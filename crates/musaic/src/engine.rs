@@ -33,20 +33,36 @@ pub struct Engine {
     pub state: EngineState,
     bridge: StoredValue<Option<Bridge>, LocalStorage>,
     custom_handler: StoredValue<Option<Callback<serde_json::Value>>, LocalStorage>,
+    queue: StoredValue<Vec<ToWorker>, LocalStorage>,
     worker_url: StoredValue<String>,
 }
 
 impl Engine {
     pub fn send<Message: Serialize>(&self, message: &Message) {
-        if let Some(bridge) = self.bridge.get_value()
-            && let Ok(value) = serde_json::to_value(message)
-        {
-            bridge.send(&ToWorker::Custom(value));
+        if let Ok(value) = serde_json::to_value(message) {
+            self.dispatch(ToWorker::Custom(value));
         }
     }
 
     pub fn on_custom(&self, handler: Callback<serde_json::Value>) {
         self.custom_handler.set_value(Some(handler));
+    }
+
+    fn dispatch(&self, message: ToWorker) {
+        if let Some(bridge) = self.bridge.get_value() {
+            bridge.send(&message);
+        } else {
+            self.queue.update_value(|queue| queue.push(message));
+        }
+    }
+
+    fn connect(&self, bridge: Bridge, canvas: &web_sys::OffscreenCanvas, width: f32, height: f32) {
+        bridge.send_with_canvas(&ToWorker::Init { width, height }, canvas);
+        for message in self.queue.get_value() {
+            bridge.send(&message);
+        }
+        self.queue.set_value(Vec::new());
+        self.bridge.set_value(Some(bridge));
     }
 }
 
@@ -55,34 +71,30 @@ pub fn use_engine(worker_url: impl Into<String>) -> Engine {
         state: EngineState::new(),
         bridge: StoredValue::new_local(None),
         custom_handler: StoredValue::new_local(None),
+        queue: StoredValue::new_local(Vec::new()),
         worker_url: StoredValue::new(worker_url.into()),
     };
 
-    let bridge = engine.bridge;
     let _ = window_event_listener(leptos::ev::keydown, move |event| {
-        if typing_in_field(&event) {
+        if event.ctrl_key() || event.meta_key() || typing_in_field(&event) {
             return;
         }
-        if let Some(bridge) = bridge.get_value() {
-            let text = (event.key().chars().count() == 1).then(|| event.key());
-            bridge.send(&ToWorker::Key {
-                code: event.code(),
-                pressed: true,
-                text,
-            });
-        }
+        let text = (event.key().chars().count() == 1).then(|| event.key());
+        engine.dispatch(ToWorker::Key {
+            code: event.code(),
+            pressed: true,
+            text,
+        });
     });
     let _ = window_event_listener(leptos::ev::keyup, move |event| {
-        if typing_in_field(&event) {
+        if event.ctrl_key() || event.meta_key() || typing_in_field(&event) {
             return;
         }
-        if let Some(bridge) = bridge.get_value() {
-            bridge.send(&ToWorker::Key {
-                code: event.code(),
-                pressed: false,
-                text: None,
-            });
-        }
+        engine.dispatch(ToWorker::Key {
+            code: event.code(),
+            pressed: false,
+            text: None,
+        });
     });
 
     engine
@@ -91,7 +103,6 @@ pub fn use_engine(worker_url: impl Into<String>) -> Engine {
 #[component]
 pub fn EngineViewport(engine: Engine) -> impl IntoView {
     let state = engine.state;
-    let bridge_slot = engine.bridge;
     let custom_handler = engine.custom_handler;
 
     let on_input = Callback::new(move |event: ViewportEvent| {
@@ -105,15 +116,12 @@ pub fn EngineViewport(engine: Engine) -> impl IntoView {
             ViewportEvent::Touch { id, phase, x, y } => ToWorker::Touch { id, phase, x, y },
             ViewportEvent::Pick { x, y } => ToWorker::Pick { x, y },
         };
-        if let Some(bridge) = bridge_slot.get_value() {
-            bridge.send(&message);
-        }
+        engine.dispatch(message);
     });
 
     let on_connect = Callback::new(
         move |(connected, canvas, width, height): (Bridge, web_sys::OffscreenCanvas, f32, f32)| {
-            connected.send_with_canvas(&ToWorker::Init { width, height }, &canvas);
-            bridge_slot.set_value(Some(connected));
+            engine.connect(connected, &canvas, width, height);
         },
     );
 

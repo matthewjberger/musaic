@@ -64,3 +64,51 @@ pub enum FromWorker {
     Selected { detail: Option<SelectedEntity> },
     Custom(Value),
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn to_worker_roundtrips(message: ToWorker) {
+        let value = serde_json::to_value(&message).expect("serialize");
+        let back: ToWorker = serde_json::from_value(value).expect("deserialize");
+        assert_eq!(format!("{message:?}"), format!("{back:?}"));
+    }
+
+    #[test]
+    fn to_worker_survives_the_wire() {
+        to_worker_roundtrips(ToWorker::Init {
+            width: 800.0,
+            height: 600.0,
+        });
+        to_worker_roundtrips(ToWorker::PointerButton {
+            button: 2,
+            pressed: true,
+        });
+        to_worker_roundtrips(ToWorker::Touch {
+            id: 7,
+            phase: TouchPhase::Moved,
+            x: 1.0,
+            y: 2.0,
+        });
+        to_worker_roundtrips(ToWorker::Key {
+            code: "KeyW".to_string(),
+            pressed: true,
+            text: Some("w".to_string()),
+        });
+        to_worker_roundtrips(ToWorker::Custom(serde_json::json!({ "SpawnCube": null })));
+    }
+
+    #[test]
+    fn from_worker_survives_the_wire() {
+        let message = FromWorker::Selected {
+            detail: Some(SelectedEntity {
+                id: 3,
+                name: "Cube 3".to_string(),
+            }),
+        };
+        let value = serde_json::to_value(&message).expect("serialize");
+        let back: FromWorker = serde_json::from_value(value).expect("deserialize");
+        assert_eq!(format!("{message:?}"), format!("{back:?}"));
+    }
+}
