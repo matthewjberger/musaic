@@ -23,7 +23,7 @@ pub fn Dock(state: DemoState) -> impl IntoView {
                             height="148px"
                         />
                         <div class="ed-script-note">
-                            "Live rhai highlighting via the musaic code-editor. Scratchpad — this demo does not execute it."
+                            "Live rhai highlighting via the musaic code-editor. Scratchpad; this demo does not execute it."
                         </div>
                     </div>
                 </Show>

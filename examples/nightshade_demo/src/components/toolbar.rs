@@ -1,16 +1,16 @@
 use leptos::prelude::*;
-use musaic::{Button, ThemePicker};
+use musaic::{Button, Engine, ThemePicker};
 
 use crate::state::DemoState;
 
 #[component]
-pub fn Toolbar(state: DemoState, send: Callback<protocol::ClientMessage>) -> impl IntoView {
+pub fn Toolbar(engine: Engine, state: DemoState) -> impl IntoView {
     let spawn_cube = Callback::new(move |_event: web_sys::MouseEvent| {
-        send.run(protocol::ClientMessage::SpawnCube);
+        engine.send(&protocol::Command::SpawnCube);
         state.log_line("spawned cube");
     });
     let spawn_sphere = Callback::new(move |_event: web_sys::MouseEvent| {
-        send.run(protocol::ClientMessage::SpawnSphere);
+        engine.send(&protocol::Command::SpawnSphere);
         state.log_line("spawned sphere");
     });
     let open_palette =

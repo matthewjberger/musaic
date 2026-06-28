@@ -32,41 +32,58 @@ Drop `<MusaicStyles/>` at the root once: it injects the design-token stylesheet 
 
 ## Feature gates
 
-The base layer (design tokens, theming, `Button`, `Panel`, layout, `Modal`, `Spinner`, toasts) is
-always compiled. Everything else is opt-in:
+The base layer (design tokens, theming, `Button`, `Panel`, layout, `ResizeHandle`, `Modal`,
+`Spinner`, toasts) is always compiled. Everything else is opt-in:
 
 | feature | components |
 | --- | --- |
 | `forms` | `NumberField`, `CheckField`, `TextField`, `SliderField`, `ColorField`, `Select` |
 | `menus` | `Menu`, `MenuItem`, `ContextMenu`, `TabBar` |
-| `themes` | the bundled themes + `ThemePicker` |
-| `command-palette` | `CommandPalette` (`Ctrl+K` fuzzy commands) |
+| `themes` | the bundled themes plus `ThemePicker` |
+| `command-palette` | `CommandPalette` (Ctrl+K fuzzy commands) |
 | `code-editor` | `CodeEditor` (textarea over a synced highlight layer) |
-| `viewport` | `Viewport`, `Bridge`, `Loader`, `WebGpuGate` — a worker-backed render surface, engine-agnostic |
-| `nightshade` | `viewport` + `code-editor` plus engine-shaped UI: the rhai highlighter and `SelectedCard` |
+| `viewport` | `Viewport`, `Bridge`, `Loader`, `WebGpuGate`: a worker-backed render surface, engine-agnostic |
+| `engine` | `use_engine`, `EngineViewport`: turnkey wiring (input, keyboard, lifecycle) over the shared protocol |
+| `nightshade` | engine-shaped UI: the rhai highlighter and `SelectedCard` |
 
 `default = ["forms", "menus", "themes"]`. Use `full` to turn on everything.
 
 ## Engine integration
 
-musaic's core never links a game engine. The `viewport` feature gives you a generic render surface:
-it owns the canvas/`OffscreenCanvas` handoff, pointer/touch/wheel bookkeeping, and a `Bridge` that
-speaks any `serde` protocol you define — you wire its events to your own worker messages. The
-optional `nightshade` feature layers on UI shaped for the
-[nightshade](https://crates.io/crates/nightshade-api) engine without ever pulling the engine into
-your page bundle.
+musaic's core never links a game engine. Two layers sit on top, both optional:
+
+- The `viewport` feature gives a generic render surface: it owns the canvas/`OffscreenCanvas`
+  handoff and the pointer/touch/wheel bookkeeping, emitting `ViewportEvent`s you map to your own
+  protocol.
+- The `engine` feature goes further. `use_engine("worker.js")` returns a standard `EngineState`
+  (ready, adapter, fps, entities, selection, grabbing) plus a bridge, with all the wiring done:
+  keyboard forwarding, input mapping, and lifecycle decoding. You send app-specific messages with
+  `engine.send(&YourCommand)` and receive them with `engine.on_custom(...)`. Your page drops the
+  boilerplate and keeps only its panels.
+
+The wire types live in the tiny no-deps `musaic-protocol` crate, shared by page and worker, so there
+is one source of truth and no drift.
 
 ## Crates
 
-- `crates/musaic` — the component library.
-- `crates/musaic-shell` — a reusable native shell (`wry` + `winit`) that serves a built web bundle
+- `crates/musaic`: the component library.
+- `crates/musaic-protocol`: the shared page/worker wire types (`serde` only).
+- `crates/musaic-shell`: a reusable native shell (`wry` + `winit`) that serves a built web bundle
   into a desktop window. `musaic_shell::run(title, get)`.
+- `crates/musaic-engine`: the worker-side driver for nightshade apps. `run_offscreen(scene, setup,
+  tick, on_custom)` owns the render loop, input injection, picking, and stats. This is the only
+  crate that links `nightshade-api`.
+
+A new nightshade app is roughly: `use_engine()` plus your panels on the page, and
+`run_offscreen(scene, setup, tick, on_custom)` plus your scene logic in the worker. The repeated
+wiring is gone.
 
 ## Example: `examples/nightshade_demo`
 
-A full nightshade integration: a Leptos page built entirely from musaic components, driving the
-nightshade engine (from crates.io) in a web worker on an `OffscreenCanvas`. It runs on the web
-(`just dev`) and as a native desktop app (`just run`) from the same code.
+A full nightshade integration built entirely from musaic components: a toolbar, a sidebar of live
+scene controls, an embedded viewport, a resizable script/log dock, a command palette, and nine
+themes, driving the nightshade engine (from crates.io) in a web worker on an `OffscreenCanvas`. It
+runs on the web (`just dev`) and as a native desktop app (`just run`) from the same code.
 
 ```
 just init    # install the pinned toolchain (rust, wasm-bindgen, wasm-opt, trunk) via mise

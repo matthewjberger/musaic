@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use leptos::prelude::*;
+use musaic_protocol::SelectedEntity;
 
 const KEYWORDS: &[&str] = &[
     "fn", "let", "const", "if", "else", "for", "in", "while", "loop", "return", "break",
@@ -150,12 +151,6 @@ fn scan(source: &str, commands: &HashSet<&'static str>) -> Vec<(&'static str, St
         }
     }
     runs
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct SelectedEntity {
-    pub id: u32,
-    pub name: String,
 }
 
 #[component]

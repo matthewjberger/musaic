@@ -3,6 +3,7 @@ mod styles;
 mod theme;
 
 pub use base::*;
+pub use musaic_protocol::{SelectedEntity, TouchPhase};
 pub use styles::{MusaicStyles, stylesheet};
 pub use theme::*;
 
@@ -30,6 +31,11 @@ pub use code_editor::*;
 mod viewport;
 #[cfg(feature = "viewport")]
 pub use viewport::*;
+
+#[cfg(feature = "engine")]
+mod engine;
+#[cfg(feature = "engine")]
+pub use engine::*;
 
 #[cfg(feature = "nightshade")]
 mod nightshade;

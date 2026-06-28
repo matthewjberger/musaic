@@ -5,18 +5,9 @@ license = "MIT OR Apache-2.0"
 edition = "2024"
 
 [dependencies]
-musaic = { path = "../../crates/musaic", features = ["nightshade", "command-palette"] }
+musaic = { path = "../../crates/musaic", features = ["engine", "command-palette", "nightshade"] }
 protocol = { path = "protocol" }
 leptos = { version = "0.7", features = ["csr"] }
-wasm-bindgen = "=0.2.115"
-serde-wasm-bindgen = "0.6"
+serde_json = "1"
 console_error_panic_hook = "0.1"
-web-sys = { version = "0.3", features = [
-    "Window",
-    "Element",
-    "HtmlElement",
-    "EventTarget",
-    "OffscreenCanvas",
-    "KeyboardEvent",
-    "MouseEvent",
-] }
+web-sys = { version = "0.3", features = ["KeyboardEvent", "MouseEvent"] }

@@ -1,7 +1,8 @@
 use crate::state::Scene;
-use nightshade::prelude::Name;
+use nightshade::prelude::{Entity, Name};
 use nightshade_api::prelude::*;
-use protocol::WorkerMessage;
+use protocol::{Command, Event};
+use serde_json::Value;
 
 const SPIN_RADIANS_PER_SECOND: f32 = 0.8;
 const RING_RADIUS: f32 = 3.0;
@@ -17,6 +18,32 @@ pub fn tick(scene: &mut Scene, world: &mut World) {
 
     if key_pressed(world, KeyCode::Space) {
         spawn_cube_on_ring(scene, world);
+    }
+}
+
+pub fn apply_custom(scene: &mut Scene, world: &mut World, selected: Option<Entity>, value: Value) {
+    let Ok(command) = serde_json::from_value::<Command>(value) else {
+        return;
+    };
+    match command {
+        Command::SpawnCube => spawn_cube_on_ring(scene, world),
+        Command::SpawnSphere => spawn_sphere_on_ring(scene, world),
+        Command::SetSpin { spinning } => scene.spinning = spinning,
+        Command::SetSpinSpeed { speed } => scene.spin_speed = speed,
+        Command::SetBackgroundPreset { preset } => set_scene_background(world, &preset),
+        Command::SetBackgroundColor { red, green, blue } => {
+            set_background_color(world, [red, green, blue])
+        }
+        Command::SetSelectedColor { red, green, blue } => {
+            if let Some(entity) = selected {
+                set_color(world, entity, [red, green, blue, 1.0]);
+            }
+        }
+        Command::SetSelectedScale { scale } => {
+            if let Some(entity) = selected {
+                set_scale(world, entity, vec3(scale, scale, scale));
+            }
+        }
     }
 }
 
@@ -36,40 +63,19 @@ pub fn spawn_sphere_on_ring(scene: &mut Scene, world: &mut World) {
     register(scene, entity);
 }
 
-pub fn set_scene_background(world: &mut World, preset: &str) {
-    set_background(world, background_for(preset));
-}
-
-pub fn set_background_color(world: &mut World, rgb: [f32; 3]) {
-    set_background(world, Background::Color([rgb[0], rgb[1], rgb[2], 1.0]));
-}
-
-pub fn recolor_selected(scene: &Scene, world: &mut World, rgb: [f32; 3]) {
-    if let Some(entity) = scene.selected {
-        set_color(world, entity, [rgb[0], rgb[1], rgb[2], 1.0]);
-    }
-}
-
-pub fn rescale_selected(scene: &Scene, world: &mut World, scale: f32) {
-    if let Some(entity) = scene.selected {
-        set_scale(world, entity, vec3(scale, scale, scale));
-    }
-}
-
 fn register(scene: &mut Scene, entity: Entity) {
     scene.cubes.push(entity);
-    crate::post(&WorkerMessage::CubeCount {
+    musaic_engine::post_custom(&Event::ObjectCount {
         count: scene.cubes.len() as u32,
     });
 }
 
-fn ring_position(index: usize) -> Vec3 {
-    if index == 0 {
-        vec3(0.0, 0.5, 0.0)
-    } else {
-        let angle = index as f32 * GOLDEN_ANGLE_RADIANS;
-        vec3(angle.cos() * RING_RADIUS, 0.5, angle.sin() * RING_RADIUS)
-    }
+fn set_scene_background(world: &mut World, preset: &str) {
+    set_background(world, background_for(preset));
+}
+
+fn set_background_color(world: &mut World, rgb: [f32; 3]) {
+    set_background(world, Background::Color([rgb[0], rgb[1], rgb[2], 1.0]));
 }
 
 fn background_for(preset: &str) -> Background {
@@ -79,6 +85,15 @@ fn background_for(preset: &str) -> Background {
         "space" => Background::Space,
         "sunset" => Background::Sunset,
         _ => Background::Nebula,
+    }
+}
+
+fn ring_position(index: usize) -> Vec3 {
+    if index == 0 {
+        vec3(0.0, 0.5, 0.0)
+    } else {
+        let angle = index as f32 * GOLDEN_ANGLE_RADIANS;
+        vec3(angle.cos() * RING_RADIUS, 0.5, angle.sin() * RING_RADIUS)
     }
 }
 

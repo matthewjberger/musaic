@@ -1,30 +1,30 @@
 use leptos::prelude::*;
-use musaic::{CheckField, ColorField, Panel, Select, SelectedCard, SliderField};
+use musaic::{CheckField, ColorField, Engine, Panel, Select, SelectedCard, SliderField};
 
 use crate::state::DemoState;
 
 #[component]
-pub fn Sidebar(state: DemoState, send: Callback<protocol::ClientMessage>) -> impl IntoView {
+pub fn Sidebar(engine: Engine, state: DemoState) -> impl IntoView {
     let toggle_spin = Callback::new(move |value: bool| {
         state.spinning.set(value);
-        send.run(protocol::ClientMessage::SetSpin { spinning: value });
+        engine.send(&protocol::Command::SetSpin { spinning: value });
     });
     let spin_speed = Callback::new(move |(value, _committed): (f64, bool)| {
         state.spin_speed.set(value);
-        send.run(protocol::ClientMessage::SetSpinSpeed {
+        engine.send(&protocol::Command::SetSpinSpeed {
             speed: value as f32,
         });
     });
     let background = Callback::new(move |value: String| {
         state.background.set(value.clone());
-        send.run(protocol::ClientMessage::SetBackgroundPreset {
+        engine.send(&protocol::Command::SetBackgroundPreset {
             preset: value.clone(),
         });
-        state.log_line(format!("background → {value}"));
+        state.log_line(format!("background -> {value}"));
     });
     let bg_color = Callback::new(move |(rgb, _committed): ([f32; 3], bool)| {
         state.bg_color.set(rgb);
-        send.run(protocol::ClientMessage::SetBackgroundColor {
+        engine.send(&protocol::Command::SetBackgroundColor {
             red: rgb[0],
             green: rgb[1],
             blue: rgb[2],
@@ -32,7 +32,7 @@ pub fn Sidebar(state: DemoState, send: Callback<protocol::ClientMessage>) -> imp
     });
     let sel_color = Callback::new(move |(rgb, _committed): ([f32; 3], bool)| {
         state.sel_color.set(rgb);
-        send.run(protocol::ClientMessage::SetSelectedColor {
+        engine.send(&protocol::Command::SetSelectedColor {
             red: rgb[0],
             green: rgb[1],
             blue: rgb[2],
@@ -40,7 +40,7 @@ pub fn Sidebar(state: DemoState, send: Callback<protocol::ClientMessage>) -> imp
     });
     let sel_scale = Callback::new(move |(value, _committed): (f64, bool)| {
         state.sel_scale.set(value);
-        send.run(protocol::ClientMessage::SetSelectedScale {
+        engine.send(&protocol::Command::SetSelectedScale {
             scale: value as f32,
         });
     });
@@ -48,11 +48,14 @@ pub fn Sidebar(state: DemoState, send: Callback<protocol::ClientMessage>) -> imp
     view! {
         <div class="ed-sidebar">
             <Panel title="Scene">
-                <Stat label="Adapter" value=Signal::derive(move || state.adapter.get()) />
-                <Stat label="FPS" value=Signal::derive(move || format!("{:.0}", state.fps.get())) />
+                <Stat label="Adapter" value=Signal::derive(move || engine.state.adapter.get()) />
+                <Stat
+                    label="FPS"
+                    value=Signal::derive(move || format!("{:.0}", engine.state.fps.get()))
+                />
                 <Stat
                     label="Entities"
-                    value=Signal::derive(move || state.entity_count.get().to_string())
+                    value=Signal::derive(move || engine.state.entity_count.get().to_string())
                 />
                 <Stat
                     label="Objects"
@@ -97,7 +100,7 @@ pub fn Sidebar(state: DemoState, send: Callback<protocol::ClientMessage>) -> imp
             </Panel>
 
             <Panel title="Selection">
-                <SelectedCard selected=state.selected />
+                <SelectedCard selected=engine.state.selected />
                 <ColorField
                     label="Color"
                     value=Signal::derive(move || state.sel_color.get())

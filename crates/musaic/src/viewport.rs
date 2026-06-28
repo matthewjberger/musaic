@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use leptos::html;
 use leptos::prelude::*;
-use serde::{Deserialize, Serialize};
+use musaic_protocol::{CANVAS_KEY, MESSAGE_KEY, TouchPhase};
+use serde::Serialize;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{
@@ -10,19 +11,8 @@ use web_sys::{
     WheelEvent, Worker, WorkerOptions, WorkerType,
 };
 
-pub const MESSAGE_KEY: &str = "message";
-pub const CANVAS_KEY: &str = "canvas";
-
 const CLICK_DRAG_THRESHOLD: f32 = 5.0;
 const MAX_RENDER_DPR: f64 = 2.0;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum TouchPhase {
-    Started,
-    Moved,
-    Ended,
-    Cancelled,
-}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ViewportEvent {

@@ -3,10 +3,6 @@ use crate::systems::example;
 use nightshade::prelude::{load_procedural_textures, spawn_sun};
 use nightshade_api::prelude::*;
 
-/// Builds the scene through the `nightshade-api` facade: background and image
-/// based lighting, the reference grid, a sun, an orbit camera, and the first
-/// cube. The selection outline is an engine setting the facade does not
-/// expose, so it is set directly.
 pub fn initialize(scene: &mut Scene, world: &mut World) {
     if let Some((width, height)) = world.resources.window.cached_viewport_size {
         world.resources.window.active_viewport_rect =

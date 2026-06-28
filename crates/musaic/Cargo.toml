@@ -10,10 +10,12 @@ keywords = ["leptos", "ui", "wasm", "components", "webgpu"]
 categories = ["gui", "wasm", "web-programming"]
 
 [dependencies]
+musaic-protocol = { path = "../musaic-protocol" }
 leptos = { version = "0.7", features = ["csr"] }
 wasm-bindgen = "=0.2.115"
 js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 serde-wasm-bindgen = "0.6"
 web-sys = { version = "0.3", features = [
     "Window",
@@ -51,6 +53,7 @@ themes = []
 command-palette = ["menus"]
 code-editor = []
 viewport = []
+engine = ["viewport"]
 nightshade = ["viewport", "code-editor"]
 full = [
     "forms",
@@ -59,5 +62,6 @@ full = [
     "command-palette",
     "code-editor",
     "viewport",
+    "engine",
     "nightshade",
 ]
