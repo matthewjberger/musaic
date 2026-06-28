@@ -1,0 +1,63 @@
+[package]
+name = "musaic"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "A feature-gated Leptos component library for building beautiful native and wasm UIs."
+repository = "https://github.com/matthewjberger/musaic"
+readme = "README.md"
+keywords = ["leptos", "ui", "wasm", "components", "webgpu"]
+categories = ["gui", "wasm", "web-programming"]
+
+[dependencies]
+leptos = { version = "0.7", features = ["csr"] }
+wasm-bindgen = "=0.2.115"
+js-sys = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+web-sys = { version = "0.3", features = [
+    "Window",
+    "Document",
+    "Element",
+    "HtmlElement",
+    "HtmlInputElement",
+    "HtmlTextAreaElement",
+    "HtmlCanvasElement",
+    "HtmlStyleElement",
+    "Node",
+    "OffscreenCanvas",
+    "DomRect",
+    "DomRectReadOnly",
+    "Worker",
+    "WorkerOptions",
+    "WorkerType",
+    "MessageEvent",
+    "Event",
+    "EventTarget",
+    "AddEventListenerOptions",
+    "PointerEvent",
+    "MouseEvent",
+    "WheelEvent",
+    "KeyboardEvent",
+    "ResizeObserver",
+    "Storage",
+] }
+
+[features]
+default = ["forms", "menus", "themes"]
+forms = []
+menus = []
+themes = []
+command-palette = ["menus"]
+code-editor = []
+viewport = []
+nightshade = ["viewport", "code-editor"]
+full = [
+    "forms",
+    "menus",
+    "themes",
+    "command-palette",
+    "code-editor",
+    "viewport",
+    "nightshade",
+]

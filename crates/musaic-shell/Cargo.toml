@@ -1,0 +1,12 @@
+[package]
+name = "musaic-shell"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "Native desktop shell for musaic apps: serves a web bundle into a wry webview."
+repository = "https://github.com/matthewjberger/musaic"
+
+[dependencies]
+wry = "0.55"
+winit = "0.30"
+tiny_http = "0.12"

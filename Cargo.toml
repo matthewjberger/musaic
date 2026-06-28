@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/musaic",
+    "crates/musaic-shell",
+    "examples/nightshade_demo",
+    "examples/nightshade_demo/worker",
+    "examples/nightshade_demo/protocol",
+    "examples/nightshade_demo/desktop",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

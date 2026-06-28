@@ -1,0 +1,73 @@
+/* musaic forms: labeled fields built on native inputs. */
+
+.musaic-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.musaic-field.check {
+  justify-content: flex-start;
+  cursor: pointer;
+}
+
+.musaic-field-label {
+  color: var(--musaic-text-dim);
+  white-space: nowrap;
+}
+
+.musaic-field-value {
+  min-width: 44px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--musaic-text-dim);
+}
+
+.musaic-field input[type="text"],
+.musaic-field input[type="number"] {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 6px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+}
+
+.musaic-field input[type="text"]:focus,
+.musaic-field input[type="number"]:focus {
+  outline: none;
+  border-color: var(--musaic-accent);
+}
+
+.musaic-field input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--musaic-accent);
+}
+
+.musaic-field input[type="color"] {
+  width: 34px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 6px;
+  background: var(--musaic-input-bg);
+  cursor: pointer;
+}
+
+.musaic-field input[type="checkbox"] {
+  accent-color: var(--musaic-accent);
+}
+
+.musaic-select {
+  padding: 5px 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 6px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+  cursor: pointer;
+}

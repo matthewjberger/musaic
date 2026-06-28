@@ -1,0 +1,272 @@
+/* musaic core: design tokens, reset, layout primitives, base widgets. */
+
+:root {
+  color-scheme: dark;
+  --musaic-bg: #0c0d12;
+  --musaic-panel: #15171d;
+  --musaic-panel-2: #11131a;
+  --musaic-panel-border: #2a2d36;
+  --musaic-text: rgba(255, 255, 255, 0.86);
+  --musaic-text-dim: rgba(255, 255, 255, 0.52);
+  --musaic-accent: #fb923c;
+  --musaic-input-bg: rgba(255, 255, 255, 0.06);
+  --musaic-danger: #f87171;
+  --musaic-radius: 10px;
+  --musaic-font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --musaic-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
+
+  --musaic-accent-soft: color-mix(in srgb, var(--musaic-accent) 22%, transparent);
+  --musaic-hover: color-mix(in srgb, var(--musaic-text) 8%, transparent);
+  --musaic-hover-strong: color-mix(in srgb, var(--musaic-text) 13%, transparent);
+  --musaic-danger-soft: color-mix(in srgb, var(--musaic-danger) 55%, transparent);
+  --musaic-scrim: color-mix(in srgb, var(--musaic-bg) 72%, transparent);
+  --musaic-shadow: 0 14px 44px color-mix(in srgb, black 52%, transparent);
+
+  --musaic-tok-keyword: #c792ea;
+  --musaic-tok-string: #c3e88d;
+  --musaic-tok-number: #f78c6c;
+  --musaic-tok-comment: #5c6370;
+  --musaic-tok-command: #82aaff;
+  --musaic-tok-plain: var(--musaic-text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--musaic-bg);
+  color: var(--musaic-text);
+  font-family: var(--musaic-font);
+  font-size: 13px;
+}
+
+.musaic-app-shell {
+  width: 100%;
+  height: 100%;
+}
+
+.musaic-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.musaic-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.musaic-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.musaic-panel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: var(--musaic-radius);
+  background: color-mix(in srgb, var(--musaic-panel) 94%, transparent);
+  box-shadow: var(--musaic-shadow);
+  overflow: hidden;
+}
+
+.musaic-panel-title {
+  padding: 9px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--musaic-text-dim);
+  border-bottom: 1px solid var(--musaic-panel-border);
+}
+
+.musaic-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.musaic-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 7px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+
+.musaic-button:hover {
+  border-color: var(--musaic-accent);
+  color: var(--musaic-accent);
+}
+
+.musaic-button:active {
+  background: var(--musaic-hover-strong);
+}
+
+.musaic-button.primary {
+  border-color: var(--musaic-accent-soft);
+  background: var(--musaic-accent-soft);
+  color: var(--musaic-text);
+}
+
+.musaic-button.danger:hover {
+  border-color: var(--musaic-danger);
+  color: var(--musaic-danger);
+}
+
+.musaic-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--musaic-text-dim);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.musaic-icon-button:hover {
+  background: var(--musaic-hover);
+  color: var(--musaic-text);
+}
+
+.musaic-resize-handle {
+  background: transparent;
+  transition: background 0.12s ease;
+  z-index: 6;
+  align-self: stretch;
+  justify-self: stretch;
+}
+
+.musaic-resize-handle:hover,
+.musaic-resize-handle:active {
+  background: var(--musaic-accent-soft);
+}
+
+.musaic-resize-handle.horizontal {
+  cursor: col-resize;
+  height: 100%;
+}
+
+.musaic-resize-handle.vertical {
+  cursor: row-resize;
+  width: 100%;
+}
+
+.musaic-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--musaic-panel-border);
+  border-top-color: var(--musaic-accent);
+  animation: musaic-spin 0.8s linear infinite;
+}
+
+@keyframes musaic-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.musaic-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--musaic-scrim);
+  backdrop-filter: blur(4px);
+}
+
+.musaic-modal {
+  min-width: 280px;
+  max-width: min(560px, 92vw);
+  max-height: 86vh;
+  overflow: auto;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 14px;
+  background: var(--musaic-panel);
+  box-shadow: var(--musaic-shadow);
+}
+
+.musaic-toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 260;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.musaic-toast {
+  pointer-events: auto;
+  min-width: 220px;
+  max-width: 340px;
+  padding: 10px 14px;
+  border: 1px solid var(--musaic-panel-border);
+  border-left-width: 3px;
+  border-radius: 9px;
+  background: var(--musaic-panel);
+  box-shadow: var(--musaic-shadow);
+  cursor: pointer;
+  animation: musaic-toast-in 0.16s ease;
+}
+
+.musaic-toast.info {
+  border-left-color: var(--musaic-accent);
+}
+
+.musaic-toast.error {
+  border-left-color: var(--musaic-danger);
+}
+
+@keyframes musaic-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.musaic-theme-picker {
+  padding: 6px 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 7px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* The native dropdown popup does not reliably inherit the control's colors in
+   Chromium/WebView2, so color the options explicitly for readable contrast. */
+.musaic-theme-picker option,
+.musaic-select option {
+  background-color: var(--musaic-panel);
+  color: var(--musaic-text);
+}

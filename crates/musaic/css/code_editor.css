@@ -1,0 +1,73 @@
+/* musaic code editor: a textarea over a synced highlight layer. */
+
+.musaic-code-editor {
+  position: relative;
+  display: block;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  background: var(--musaic-panel-2);
+  overflow: hidden;
+  font-family: var(--musaic-mono);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.musaic-code-highlight,
+.musaic-code-textarea {
+  margin: 0;
+  padding: 12px 14px;
+  border: 0;
+  white-space: pre;
+  overflow: auto;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  tab-size: 2;
+}
+
+.musaic-code-highlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--musaic-tok-plain);
+}
+
+.musaic-code-textarea {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--musaic-text);
+}
+
+.musaic-code-textarea:focus {
+  outline: none;
+}
+
+.musaic-code-editor .tok-keyword {
+  color: var(--musaic-tok-keyword);
+}
+
+.musaic-code-editor .tok-string {
+  color: var(--musaic-tok-string);
+}
+
+.musaic-code-editor .tok-number {
+  color: var(--musaic-tok-number);
+}
+
+.musaic-code-editor .tok-comment {
+  color: var(--musaic-tok-comment);
+  font-style: italic;
+}
+
+.musaic-code-editor .tok-command {
+  color: var(--musaic-tok-command);
+}
+
+.musaic-code-editor .tok-plain {
+  color: var(--musaic-tok-plain);
+}

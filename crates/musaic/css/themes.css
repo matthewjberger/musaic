@@ -1,0 +1,140 @@
+/* musaic bundled themes. Each block overrides the semantic tokens; switch by
+   setting data-theme on the document element (ThemeProvider does this). */
+
+:root[data-theme="nightshade-light"] {
+  color-scheme: light;
+  --musaic-bg: #f4f5f8;
+  --musaic-panel: #ffffff;
+  --musaic-panel-2: #eceef3;
+  --musaic-panel-border: #d4d7e0;
+  --musaic-text: rgba(20, 22, 28, 0.9);
+  --musaic-text-dim: rgba(20, 22, 28, 0.55);
+  --musaic-accent: #d9700f;
+  --musaic-input-bg: rgba(0, 0, 0, 0.04);
+  --musaic-danger: #d23b3b;
+  --musaic-tok-keyword: #8b32c9;
+  --musaic-tok-string: #3a8a2f;
+  --musaic-tok-number: #b5500a;
+  --musaic-tok-comment: #9098a6;
+  --musaic-tok-command: #1f5fd0;
+}
+
+:root[data-theme="dracula"] {
+  --musaic-bg: #21222c;
+  --musaic-panel: #282a36;
+  --musaic-panel-2: #1e1f29;
+  --musaic-panel-border: #3a3c4e;
+  --musaic-text: #f8f8f2;
+  --musaic-text-dim: rgba(248, 248, 242, 0.55);
+  --musaic-accent: #bd93f9;
+  --musaic-input-bg: rgba(255, 255, 255, 0.06);
+  --musaic-danger: #ff5555;
+  --musaic-tok-keyword: #ff79c6;
+  --musaic-tok-string: #f1fa8c;
+  --musaic-tok-number: #bd93f9;
+  --musaic-tok-comment: #6272a4;
+  --musaic-tok-command: #8be9fd;
+}
+
+:root[data-theme="nord"] {
+  --musaic-bg: #2e3440;
+  --musaic-panel: #3b4252;
+  --musaic-panel-2: #353c4a;
+  --musaic-panel-border: #4c566a;
+  --musaic-text: #eceff4;
+  --musaic-text-dim: rgba(236, 239, 244, 0.55);
+  --musaic-accent: #88c0d0;
+  --musaic-input-bg: rgba(255, 255, 255, 0.06);
+  --musaic-danger: #bf616a;
+  --musaic-tok-keyword: #81a1c1;
+  --musaic-tok-string: #a3be8c;
+  --musaic-tok-number: #b48ead;
+  --musaic-tok-comment: #616e88;
+  --musaic-tok-command: #8fbcbb;
+}
+
+:root[data-theme="gruvbox"] {
+  --musaic-bg: #282828;
+  --musaic-panel: #32302f;
+  --musaic-panel-2: #1d2021;
+  --musaic-panel-border: #504945;
+  --musaic-text: #ebdbb2;
+  --musaic-text-dim: rgba(235, 219, 178, 0.55);
+  --musaic-accent: #fe8019;
+  --musaic-input-bg: rgba(255, 255, 255, 0.06);
+  --musaic-danger: #fb4934;
+  --musaic-tok-keyword: #fb4934;
+  --musaic-tok-string: #b8bb26;
+  --musaic-tok-number: #d3869b;
+  --musaic-tok-comment: #928374;
+  --musaic-tok-command: #83a598;
+}
+
+:root[data-theme="one-dark"] {
+  --musaic-bg: #21252b;
+  --musaic-panel: #282c34;
+  --musaic-panel-2: #1e2228;
+  --musaic-panel-border: #3b4048;
+  --musaic-text: #abb2bf;
+  --musaic-text-dim: rgba(171, 178, 191, 0.55);
+  --musaic-accent: #61afef;
+  --musaic-input-bg: rgba(255, 255, 255, 0.05);
+  --musaic-danger: #e06c75;
+  --musaic-tok-keyword: #c678dd;
+  --musaic-tok-string: #98c379;
+  --musaic-tok-number: #d19a66;
+  --musaic-tok-comment: #5c6370;
+  --musaic-tok-command: #61afef;
+}
+
+:root[data-theme="catppuccin"] {
+  --musaic-bg: #181825;
+  --musaic-panel: #1e1e2e;
+  --musaic-panel-2: #161623;
+  --musaic-panel-border: #313244;
+  --musaic-text: #cdd6f4;
+  --musaic-text-dim: rgba(205, 214, 244, 0.55);
+  --musaic-accent: #f5c2e7;
+  --musaic-input-bg: rgba(255, 255, 255, 0.05);
+  --musaic-danger: #f38ba8;
+  --musaic-tok-keyword: #cba6f7;
+  --musaic-tok-string: #a6e3a1;
+  --musaic-tok-number: #fab387;
+  --musaic-tok-comment: #6c7086;
+  --musaic-tok-command: #89b4fa;
+}
+
+:root[data-theme="tokyo-night"] {
+  --musaic-bg: #1a1b26;
+  --musaic-panel: #1f2335;
+  --musaic-panel-2: #16161e;
+  --musaic-panel-border: #2f334d;
+  --musaic-text: #c0caf5;
+  --musaic-text-dim: rgba(192, 202, 245, 0.55);
+  --musaic-accent: #7aa2f7;
+  --musaic-input-bg: rgba(255, 255, 255, 0.05);
+  --musaic-danger: #f7768e;
+  --musaic-tok-keyword: #bb9af7;
+  --musaic-tok-string: #9ece6a;
+  --musaic-tok-number: #ff9e64;
+  --musaic-tok-comment: #565f89;
+  --musaic-tok-command: #7dcfff;
+}
+
+:root[data-theme="solarized-light"] {
+  color-scheme: light;
+  --musaic-bg: #fdf6e3;
+  --musaic-panel: #eee8d5;
+  --musaic-panel-2: #e6dfc8;
+  --musaic-panel-border: #d6cfb8;
+  --musaic-text: #4c5b61;
+  --musaic-text-dim: rgba(76, 91, 97, 0.6);
+  --musaic-accent: #b58900;
+  --musaic-input-bg: rgba(0, 0, 0, 0.04);
+  --musaic-danger: #dc322f;
+  --musaic-tok-keyword: #859900;
+  --musaic-tok-string: #2aa198;
+  --musaic-tok-number: #d33682;
+  --musaic-tok-comment: #93a1a1;
+  --musaic-tok-command: #268bd2;
+}

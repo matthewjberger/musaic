@@ -1,0 +1,11 @@
+[build]
+target = "examples/nightshade_demo/index.html"
+release = false
+dist = "examples/nightshade_demo/dist"
+public_url = "/"
+filehash = true
+
+[serve]
+addresses = ["127.0.0.1"]
+port = 8080
+open = false

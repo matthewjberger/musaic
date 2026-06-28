@@ -1,0 +1,13 @@
+[package]
+name = "nightshade_demo_desktop"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+edition = "2024"
+
+[[bin]]
+name = "nightshade_demo"
+path = "src/main.rs"
+
+[dependencies]
+musaic-shell = { path = "../../../crates/musaic-shell" }
+rust-embed = "8"

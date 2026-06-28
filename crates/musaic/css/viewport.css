@@ -1,0 +1,78 @@
+/* musaic viewport: the worker-backed render surface and its loader. */
+
+.musaic-viewport {
+  position: absolute;
+  inset: 0;
+}
+
+.musaic-viewport-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+
+.musaic-viewport-canvas.grabbing {
+  cursor: grabbing;
+}
+
+.musaic-loader-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 180;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--musaic-bg) 70%, transparent);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.musaic-loader-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 12px;
+  background: var(--musaic-panel);
+  box-shadow: var(--musaic-shadow);
+}
+
+.musaic-webgpu-gate {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+  color: var(--musaic-text-dim);
+}
+
+.musaic-webgpu-gate-card {
+  max-width: 440px;
+}
+
+.musaic-webgpu-gate-card h1 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--musaic-text);
+}
+
+.musaic-selected-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.musaic-selected-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.musaic-selected-row .key {
+  color: var(--musaic-text-dim);
+}
