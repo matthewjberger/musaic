@@ -1,0 +1,58 @@
+/* musaic inspector / property grid. */
+
+.musaic-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.musaic-inspector-section {
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.musaic-inspector-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: var(--musaic-panel-2);
+  color: var(--musaic-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.musaic-inspector-header:hover {
+  background: var(--musaic-hover);
+}
+
+.musaic-inspector-caret {
+  color: var(--musaic-text-dim);
+  transition: transform 0.12s ease;
+}
+
+.musaic-inspector-caret.open {
+  transform: rotate(90deg);
+}
+
+.musaic-inspector-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+
+.musaic-inspector-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.musaic-inspector-label {
+  color: var(--musaic-text-dim);
+}

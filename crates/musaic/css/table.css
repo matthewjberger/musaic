@@ -1,0 +1,47 @@
+/* musaic data table. */
+
+.musaic-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+}
+
+.musaic-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.musaic-table thead th {
+  position: sticky;
+  top: 0;
+  text-align: left;
+  padding: 8px 10px;
+  background: var(--musaic-panel-2);
+  color: var(--musaic-text-dim);
+  border-bottom: 1px solid var(--musaic-panel-border);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.musaic-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.musaic-table thead th.sortable:hover {
+  color: var(--musaic-text);
+}
+
+.musaic-table tbody td {
+  padding: 7px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--musaic-panel-border) 55%, transparent);
+}
+
+.musaic-table tbody tr:hover {
+  background: var(--musaic-hover);
+}
+
+.musaic-table tbody tr:last-child td {
+  border-bottom: none;
+}

@@ -13,6 +13,12 @@ pub fn stylesheet() -> String {
     css.push_str(include_str!("../css/palette.css"));
     #[cfg(feature = "code-editor")]
     css.push_str(include_str!("../css/code_editor.css"));
+    #[cfg(feature = "table")]
+    css.push_str(include_str!("../css/table.css"));
+    #[cfg(feature = "tree")]
+    css.push_str(include_str!("../css/tree.css"));
+    #[cfg(feature = "inspector")]
+    css.push_str(include_str!("../css/inspector.css"));
     #[cfg(feature = "viewport")]
     css.push_str(include_str!("../css/viewport.css"));
     format!("@layer musaic {{\n{css}\n}}\n")

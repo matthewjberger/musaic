@@ -37,7 +37,27 @@ mod engine;
 #[cfg(feature = "engine")]
 pub use engine::*;
 
+#[cfg(feature = "table")]
+mod table;
+#[cfg(feature = "table")]
+pub use table::*;
+
+#[cfg(feature = "tree")]
+mod tree;
+#[cfg(feature = "tree")]
+pub use tree::*;
+
+#[cfg(feature = "inspector")]
+mod inspector;
+#[cfg(feature = "inspector")]
+pub use inspector::*;
+
 #[cfg(feature = "nightshade")]
 mod nightshade;
 #[cfg(feature = "nightshade")]
 pub use nightshade::*;
+
+pub mod prelude {
+    pub use crate::*;
+    pub use leptos::prelude::*;
+}

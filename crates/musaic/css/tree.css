@@ -1,0 +1,42 @@
+/* musaic tree. */
+
+.musaic-tree {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  user-select: none;
+}
+
+.musaic-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.musaic-tree-row:hover {
+  background: var(--musaic-hover);
+}
+
+.musaic-tree-chevron {
+  display: inline-flex;
+  width: 14px;
+  justify-content: center;
+  color: var(--musaic-text-dim);
+  transition: transform 0.12s ease;
+}
+
+.musaic-tree-chevron.open {
+  transform: rotate(90deg);
+}
+
+.musaic-tree-spacer {
+  display: inline-block;
+  width: 14px;
+}
+
+.musaic-tree-label {
+  white-space: nowrap;
+}

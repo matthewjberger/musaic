@@ -52,6 +52,9 @@ menus = []
 themes = []
 command-palette = ["menus"]
 code-editor = []
+table = []
+tree = []
+inspector = []
 viewport = []
 engine = ["viewport"]
 nightshade = ["viewport", "code-editor"]
@@ -61,6 +64,9 @@ full = [
     "themes",
     "command-palette",
     "code-editor",
+    "table",
+    "tree",
+    "inspector",
     "viewport",
     "engine",
     "nightshade",
