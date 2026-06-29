@@ -1,4 +1,5 @@
 target/
 /examples/nightshade_demo/dist
 /examples/nightshade_demo/runtime/engine*
+/examples/gallery/dist
 *.log
