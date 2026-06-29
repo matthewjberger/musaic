@@ -12,6 +12,11 @@
   line-height: 1.55;
 }
 
+.musaic-code-editor.fill {
+  flex: 1 1 0%;
+  min-height: 0;
+}
+
 .musaic-code-highlight,
 .musaic-code-textarea {
   margin: 0;

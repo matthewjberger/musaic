@@ -17,11 +17,7 @@ pub fn Dock(state: DemoState) -> impl IntoView {
                     fallback=move || view! { <LogView state=state /> }
                 >
                     <div class="ed-script">
-                        <CodeEditor
-                            value=state.script
-                            highlighter=highlight_rhai
-                            height="148px"
-                        />
+                        <CodeEditor value=state.script highlighter=highlight_rhai fill=true />
                         <div class="ed-script-note">
                             "Live rhai highlighting via the musaic code-editor. Scratchpad; this demo does not execute it."
                         </div>

@@ -8,8 +8,15 @@ pub fn CodeEditor(
     value: RwSignal<String>,
     #[prop(optional)] highlighter: Option<Highlighter>,
     #[prop(into, optional, default = "240px".to_string())] height: String,
+    #[prop(optional)] fill: bool,
 ) -> impl IntoView {
     let pre_ref = NodeRef::<leptos::html::Pre>::new();
+    let class = if fill {
+        "musaic-code-editor fill"
+    } else {
+        "musaic-code-editor"
+    };
+    let style = (!fill).then(|| format!("height:{height}"));
 
     let spans = move || {
         let text = value.get();
@@ -30,7 +37,7 @@ pub fn CodeEditor(
     };
 
     view! {
-        <div class="musaic-code-editor" style=format!("height:{height}")>
+        <div class=class style=style>
             <pre node_ref=pre_ref class="musaic-code-highlight" aria-hidden="true">
                 {move || {
                     spans()
