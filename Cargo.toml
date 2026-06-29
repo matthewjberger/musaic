@@ -9,6 +9,8 @@ members = [
     "examples/nightshade_demo/worker",
     "examples/nightshade_demo/protocol",
     "examples/nightshade_demo/desktop",
+    "examples/gallery",
+    "examples/gallery/desktop",
 ]
 
 [profile.release]

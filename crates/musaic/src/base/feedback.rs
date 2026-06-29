@@ -54,13 +54,14 @@ pub fn use_toaster() -> Toaster {
 }
 
 #[component]
-pub fn ToastHub() -> impl IntoView {
+pub fn ToastHub(children: Children) -> impl IntoView {
     let toaster = Toaster {
         toasts: RwSignal::new(Vec::new()),
         next: RwSignal::new(0),
     };
     provide_context(toaster);
     view! {
+        {children()}
         <div class="musaic-toast-stack">
             <For each=move || toaster.toasts.get() key=|toast| toast.id let:toast>
                 {

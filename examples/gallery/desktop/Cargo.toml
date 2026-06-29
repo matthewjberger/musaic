@@ -1,0 +1,13 @@
+[package]
+name = "gallery_desktop"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+edition = "2024"
+
+[[bin]]
+name = "gallery"
+path = "src/main.rs"
+
+[dependencies]
+leptos-musaic-shell = { path = "../../../crates/musaic-shell" }
+rust-embed = "8"

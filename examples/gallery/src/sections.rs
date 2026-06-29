@@ -1,0 +1,933 @@
+use leptos::prelude::*;
+use leptos_musaic::{
+    Badge, Button, Card, CheckField, CodeEditor, ColorField, ContextMenu, IconButton, Inspector,
+    InspectorRow, InspectorSection, Menu, MenuItem, Modal, NumberField, Panel, Progress,
+    ResizeAxis, ResizeHandle, Select, SliderField, Spinner, Switch, TabBar, Table, TextField,
+    ThemePicker, Tooltip, Tree, TreeItem, highlight_rhai, use_toaster,
+};
+use web_sys::MouseEvent;
+
+use crate::app::GalleryCtx;
+
+pub const DEFAULT: &str = "overview";
+
+struct Page {
+    id: &'static str,
+    title: &'static str,
+}
+
+struct Category {
+    id: &'static str,
+    title: &'static str,
+    icon: &'static str,
+    pages: &'static [Page],
+}
+
+const CATEGORIES: &[Category] = &[
+    Category {
+        id: "start",
+        title: "Getting started",
+        icon: "\u{1f4d8}",
+        pages: &[
+            Page {
+                id: "overview",
+                title: "Overview",
+            },
+            Page {
+                id: "theming",
+                title: "Theming",
+            },
+            Page {
+                id: "command-palette",
+                title: "Command palette",
+            },
+        ],
+    },
+    Category {
+        id: "base",
+        title: "Base",
+        icon: "\u{1f9f1}",
+        pages: &[
+            Page {
+                id: "buttons",
+                title: "Buttons",
+            },
+            Page {
+                id: "badges",
+                title: "Badges",
+            },
+            Page {
+                id: "card",
+                title: "Card",
+            },
+            Page {
+                id: "panel",
+                title: "Panel",
+            },
+            Page {
+                id: "progress",
+                title: "Progress",
+            },
+            Page {
+                id: "tooltip",
+                title: "Tooltip",
+            },
+            Page {
+                id: "spinner",
+                title: "Spinner",
+            },
+            Page {
+                id: "modal",
+                title: "Modal",
+            },
+            Page {
+                id: "toasts",
+                title: "Toasts",
+            },
+            Page {
+                id: "layout",
+                title: "Layout & resize",
+            },
+        ],
+    },
+    Category {
+        id: "forms",
+        title: "Forms",
+        icon: "\u{1f5a9}",
+        pages: &[
+            Page {
+                id: "number-field",
+                title: "NumberField",
+            },
+            Page {
+                id: "text-field",
+                title: "TextField",
+            },
+            Page {
+                id: "check-field",
+                title: "CheckField",
+            },
+            Page {
+                id: "switch",
+                title: "Switch",
+            },
+            Page {
+                id: "slider",
+                title: "SliderField",
+            },
+            Page {
+                id: "color-field",
+                title: "ColorField",
+            },
+            Page {
+                id: "select",
+                title: "Select",
+            },
+        ],
+    },
+    Category {
+        id: "menus",
+        title: "Menus & navigation",
+        icon: "\u{1f9ed}",
+        pages: &[
+            Page {
+                id: "menu",
+                title: "Menu",
+            },
+            Page {
+                id: "context-menu",
+                title: "ContextMenu",
+            },
+            Page {
+                id: "tabs",
+                title: "TabBar",
+            },
+        ],
+    },
+    Category {
+        id: "data",
+        title: "Data",
+        icon: "\u{1f5c2}",
+        pages: &[
+            Page {
+                id: "table",
+                title: "Table",
+            },
+            Page {
+                id: "tree",
+                title: "Tree",
+            },
+            Page {
+                id: "inspector",
+                title: "Inspector",
+            },
+        ],
+    },
+    Category {
+        id: "editor",
+        title: "Editor",
+        icon: "\u{1f4dd}",
+        pages: &[Page {
+            id: "code-editor",
+            title: "CodeEditor",
+        }],
+    },
+    Category {
+        id: "engine-cat",
+        title: "Engine",
+        icon: "\u{1f3ae}",
+        pages: &[Page {
+            id: "engine",
+            title: "Engine integration",
+        }],
+    },
+];
+
+pub fn pages() -> Vec<(&'static str, &'static str)> {
+    CATEGORIES
+        .iter()
+        .flat_map(|category| category.pages.iter())
+        .map(|page| (page.id, page.title))
+        .collect()
+}
+
+pub fn nav_tree() -> Vec<TreeItem> {
+    CATEGORIES
+        .iter()
+        .map(|category| {
+            let children = category
+                .pages
+                .iter()
+                .map(|page| TreeItem::leaf(page.id, page.title))
+                .collect();
+            TreeItem::branch(category.id, category.title, children).with_icon(category.icon)
+        })
+        .collect()
+}
+
+pub fn render(id: &str) -> AnyView {
+    match id {
+        "overview" => view! { <Overview /> }.into_any(),
+        "theming" => view! { <ThemingDemo /> }.into_any(),
+        "command-palette" => view! { <CommandPaletteDemo /> }.into_any(),
+        "buttons" => view! { <ButtonsDemo /> }.into_any(),
+        "badges" => view! { <BadgesDemo /> }.into_any(),
+        "card" => view! { <CardDemo /> }.into_any(),
+        "panel" => view! { <PanelDemo /> }.into_any(),
+        "progress" => view! { <ProgressDemo /> }.into_any(),
+        "tooltip" => view! { <TooltipDemo /> }.into_any(),
+        "spinner" => view! { <SpinnerDemo /> }.into_any(),
+        "modal" => view! { <ModalDemo /> }.into_any(),
+        "toasts" => view! { <ToastsDemo /> }.into_any(),
+        "layout" => view! { <LayoutDemo /> }.into_any(),
+        "number-field" => view! { <NumberFieldDemo /> }.into_any(),
+        "text-field" => view! { <TextFieldDemo /> }.into_any(),
+        "check-field" => view! { <CheckFieldDemo /> }.into_any(),
+        "switch" => view! { <SwitchDemo /> }.into_any(),
+        "slider" => view! { <SliderDemo /> }.into_any(),
+        "color-field" => view! { <ColorFieldDemo /> }.into_any(),
+        "select" => view! { <SelectDemo /> }.into_any(),
+        "menu" => view! { <MenuDemo /> }.into_any(),
+        "context-menu" => view! { <ContextMenuDemo /> }.into_any(),
+        "tabs" => view! { <TabsDemo /> }.into_any(),
+        "table" => view! { <TableDemo /> }.into_any(),
+        "tree" => view! { <TreeDemo /> }.into_any(),
+        "inspector" => view! { <InspectorDemo /> }.into_any(),
+        "code-editor" => view! { <CodeEditorDemo /> }.into_any(),
+        "engine" => view! { <EngineDemo /> }.into_any(),
+        other => match CATEGORIES.iter().find(|category| category.id == other) {
+            Some(category) => category_landing(category),
+            None => view! { <Overview /> }.into_any(),
+        },
+    }
+}
+
+fn category_landing(category: &'static Category) -> AnyView {
+    let selected = expect_context::<GalleryCtx>().selected;
+    view! {
+        <article class="gallery-page">
+            <h1>{category.title}</h1>
+            <p class="gallery-blurb">"Choose a component from this section."</p>
+            <div class="gallery-stage">
+                <div class="gallery-row">
+                    {category
+                        .pages
+                        .iter()
+                        .map(|page| {
+                            let id = page.id;
+                            view! {
+                                <Button on_click=Callback::new(move |_| {
+                                    selected.set(id.to_string())
+                                })>{page.title}</Button>
+                            }
+                        })
+                        .collect_view()}
+                </div>
+            </div>
+        </article>
+    }
+    .into_any()
+}
+
+#[component]
+fn Demo(
+    #[prop(into)] title: String,
+    #[prop(into)] blurb: String,
+    children: Children,
+) -> impl IntoView {
+    view! {
+        <article class="gallery-page">
+            <h1>{title}</h1>
+            <p class="gallery-blurb">{blurb}</p>
+            <div class="gallery-stage">{children()}</div>
+        </article>
+    }
+}
+
+#[component]
+fn Snippet(#[prop(into)] code: String) -> impl IntoView {
+    view! { <pre class="gallery-code">{code}</pre> }
+}
+
+#[component]
+fn Overview() -> impl IntoView {
+    view! {
+        <article class="gallery-page">
+            <h1>"musaic gallery"</h1>
+            <p class="gallery-blurb">
+                "Every musaic component, live and interactive. Pick a topic on the left. Switch the theme in the top right and watch the whole gallery restyle, since every widget here is built from the same design tokens. Press Ctrl+K for the command palette, and use the menu button to collapse the sidebar."
+            </p>
+            <div class="gallery-stage">
+                <div class="gallery-row">
+                    <Badge variant="accent">"forms"</Badge>
+                    <Badge variant="accent">"menus"</Badge>
+                    <Badge variant="accent">"themes"</Badge>
+                    <Badge variant="accent">"command palette"</Badge>
+                    <Badge variant="accent">"code editor"</Badge>
+                    <Badge variant="accent">"table"</Badge>
+                    <Badge variant="accent">"tree"</Badge>
+                    <Badge variant="accent">"inspector"</Badge>
+                    <Badge variant="accent">"viewport"</Badge>
+                    <Badge variant="accent">"engine"</Badge>
+                </div>
+                <Card title="Same code, native and web">
+                    "Run this gallery in the browser with " <code>"just run-gallery-wasm"</code>
+                    " or as a native desktop window with " <code>"just run-gallery"</code>
+                    ". Both render the exact same Leptos components."
+                </Card>
+            </div>
+        </article>
+    }
+}
+
+#[component]
+fn ButtonsDemo() -> impl IntoView {
+    let count = RwSignal::new(0u32);
+    view! {
+        <Demo title="Buttons" blurb="Button takes a class for variants and an on_click callback. IconButton is the square, borderless variant for toolbars.">
+            <div class="gallery-row">
+                <Button>"Default"</Button>
+                <Button class="primary">"Primary"</Button>
+                <Button class="danger">"Danger"</Button>
+                <Button class="ghost">"Ghost"</Button>
+                <IconButton>"\u{2605}"</IconButton>
+            </div>
+            <div class="gallery-row">
+                <Button
+                    class="primary"
+                    on_click=Callback::new(move |_| count.update(|value| *value += 1))
+                >
+                    "Clicked"
+                </Button>
+                <span class="gallery-readout">{move || format!("count = {}", count.get())}</span>
+            </div>
+            <Snippet code="<Button class=\"primary\" on_click=on_save>\"Save\"</Button>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn BadgesDemo() -> impl IntoView {
+    view! {
+        <Demo title="Badges" blurb="Small status pills. The variant prop selects accent or danger; the default is muted.">
+            <div class="gallery-row">
+                <Badge>"default"</Badge>
+                <Badge variant="accent">"accent"</Badge>
+                <Badge variant="danger">"danger"</Badge>
+            </div>
+            <Snippet code="<Badge variant=\"accent\">\"new\"</Badge>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn CardDemo() -> impl IntoView {
+    view! {
+        <Demo title="Card" blurb="A titled container for grouped content. Pass a title or leave it off for a plain surface.">
+            <Card title="Render settings">
+                "Cards hold arbitrary children and use the panel tokens, so they sit on any theme."
+            </Card>
+            <Card>"A card with no title is just a padded, bordered surface."</Card>
+            <Snippet code="<Card title=\"Render settings\">{children}</Card>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn PanelDemo() -> impl IntoView {
+    view! {
+        <Demo title="Panel" blurb="The workhorse container for sidebars and docks: an uppercase title bar over a padded body.">
+            <Panel title="Scene">
+                <div class="gallery-row">
+                    <Badge variant="accent">"12 entities"</Badge>
+                    <Badge>"60 fps"</Badge>
+                </div>
+            </Panel>
+            <Snippet code="<Panel title=\"Scene\">{children}</Panel>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn ProgressDemo() -> impl IntoView {
+    let value = RwSignal::new(0.35);
+    view! {
+        <Demo title="Progress" blurb="A determinate progress bar driven by a reactive value. Drag the slider to update it.">
+            <Progress value=Signal::derive(move || value.get()) />
+            <SliderField
+                label="Value"
+                value=Signal::derive(move || value.get())
+                min=Signal::derive(|| 0.0)
+                max=Signal::derive(|| 1.0)
+                step=0.01
+                on_change=Callback::new(move |(next, _): (f64, bool)| value.set(next))
+            />
+            <Snippet code="<Progress value=progress max=1.0 />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn TooltipDemo() -> impl IntoView {
+    view! {
+        <Demo title="Tooltip" blurb="Wrap any element to show a hint on hover or keyboard focus. It is CSS-driven, so it costs nothing until shown.">
+            <div class="gallery-row">
+                <Tooltip text="Saves to local storage">
+                    <Button>"Hover me"</Button>
+                </Tooltip>
+                <Tooltip text="Also shows on focus">
+                    <Button class="ghost">"Or tab to me"</Button>
+                </Tooltip>
+            </div>
+            <Snippet code="<Tooltip text=\"Saves to disk\"><Button>\"Save\"</Button></Tooltip>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn SpinnerDemo() -> impl IntoView {
+    view! {
+        <Demo title="Spinner" blurb="A small indeterminate activity indicator that inherits the accent color.">
+            <div class="gallery-row">
+                <Spinner />
+                <span class="gallery-readout">"working..."</span>
+            </div>
+            <Snippet code="<Spinner />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn ModalDemo() -> impl IntoView {
+    let open = RwSignal::new(false);
+    view! {
+        <Demo title="Modal" blurb="A centered dialog over a scrim. It traps Tab focus, closes on Escape or backdrop click, and restores focus when dismissed.">
+            <Button class="primary" on_click=Callback::new(move |_| open.set(true))>
+                "Open modal"
+            </Button>
+            <Modal open=open>
+                <div style="padding:20px; display:flex; flex-direction:column; gap:12px; min-width:280px;">
+                    <strong>"Delete scene?"</strong>
+                    <span class="gallery-readout">
+                        "Tab cycles the buttons. Escape closes. Focus returns to the trigger."
+                    </span>
+                    <div class="gallery-row">
+                        <Button class="danger" on_click=Callback::new(move |_| open.set(false))>
+                            "Delete"
+                        </Button>
+                        <Button on_click=Callback::new(move |_| open.set(false))>"Cancel"</Button>
+                    </div>
+                </div>
+            </Modal>
+            <Snippet code="let open = RwSignal::new(false);\n<Modal open=open>{children}</Modal>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn ToastsDemo() -> impl IntoView {
+    let toaster = use_toaster();
+    view! {
+        <Demo title="Toasts" blurb="Transient notifications. Mount ToastHub once at the root, then call use_toaster() anywhere to push info or error toasts.">
+            <div class="gallery-row">
+                <Button on_click=Callback::new(move |_| toaster.info("Saved to disk"))>
+                    "Info toast"
+                </Button>
+                <Button
+                    class="danger"
+                    on_click=Callback::new(move |_| toaster.error("Export failed"))
+                >
+                    "Error toast"
+                </Button>
+            </div>
+            <Snippet code="let toaster = use_toaster();\ntoaster.info(\"Saved\");" />
+        </Demo>
+    }
+}
+
+#[component]
+fn LayoutDemo() -> impl IntoView {
+    let width = RwSignal::new(180.0);
+    view! {
+        <Demo title="Layout & resize" blurb="Row, Column, and Grid are thin fl/grid wrappers. ResizeHandle turns a signal into a draggable splitter; here it resizes the left pane.">
+            <div class="gallery-split">
+                <div
+                    class="gallery-split-pane"
+                    style=move || format!("width:{}px", width.get())
+                >
+                    "left"
+                </div>
+                <ResizeHandle value=width axis=ResizeAxis::Horizontal min=80.0 max=320.0 />
+                <div class="gallery-split-pane" style="flex:1">
+                    "right"
+                </div>
+            </div>
+            <span class="gallery-readout">{move || format!("left width = {:.0}px", width.get())}</span>
+            <Snippet code="<ResizeHandle value=width axis=ResizeAxis::Horizontal min=80.0 max=320.0 />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn NumberFieldDemo() -> impl IntoView {
+    let value = RwSignal::new(3.0);
+    view! {
+        <Demo title="NumberField" blurb="A labeled numeric input. This one is in integer mode, clamped to 0..10, with help text below.">
+            <Panel>
+                <NumberField
+                    label="Copies"
+                    value=Signal::derive(move || value.get())
+                    min=0.0
+                    max=10.0
+                    integer=true
+                    help="Whole numbers from 0 to 10"
+                    on_change=Callback::new(move |(next, _): (f64, bool)| value.set(next))
+                />
+            </Panel>
+            <span class="gallery-readout">{move || format!("value = {}", value.get())}</span>
+            <Snippet code="<NumberField label=\"Copies\" value=v min=0.0 max=10.0 integer=true on_change=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn TextFieldDemo() -> impl IntoView {
+    let value = RwSignal::new("untitled".to_string());
+    view! {
+        <Demo title="TextField" blurb="A labeled text input that commits on blur. Supports placeholder, help, error, and disabled.">
+            <Panel>
+                <TextField
+                    label="Name"
+                    value=Signal::derive(move || value.get())
+                    placeholder="Scene name"
+                    help="Commits when you click away"
+                    on_commit=Callback::new(move |next: String| value.set(next))
+                />
+            </Panel>
+            <span class="gallery-readout">{move || format!("committed = {}", value.get())}</span>
+            <Snippet code="<TextField label=\"Name\" value=v help=\"...\" on_commit=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn CheckFieldDemo() -> impl IntoView {
+    let value = RwSignal::new(true);
+    view! {
+        <Demo title="CheckField" blurb="A labeled checkbox bound to a boolean signal.">
+            <Panel>
+                <CheckField
+                    label="Cast shadows"
+                    value=Signal::derive(move || value.get())
+                    on_change=Callback::new(move |next: bool| value.set(next))
+                />
+            </Panel>
+            <span class="gallery-readout">{move || format!("checked = {}", value.get())}</span>
+            <Snippet code="<CheckField label=\"Cast shadows\" value=v on_change=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn SwitchDemo() -> impl IntoView {
+    let value = RwSignal::new(false);
+    view! {
+        <Demo title="Switch" blurb="A role=switch toggle, distinct from a checkbox, for on/off settings.">
+            <Panel>
+                <Switch
+                    label="Wireframe"
+                    value=Signal::derive(move || value.get())
+                    on_change=Callback::new(move |next: bool| value.set(next))
+                />
+            </Panel>
+            <span class="gallery-readout">{move || format!("on = {}", value.get())}</span>
+            <Snippet code="<Switch label=\"Wireframe\" value=v on_change=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn SliderDemo() -> impl IntoView {
+    let value = RwSignal::new(1.5);
+    view! {
+        <Demo title="SliderField" blurb="A labeled range slider with a live numeric readout. min and max are reactive signals.">
+            <Panel>
+                <SliderField
+                    label="Speed"
+                    value=Signal::derive(move || value.get())
+                    min=Signal::derive(|| 0.0)
+                    max=Signal::derive(|| 4.0)
+                    step=0.05
+                    on_change=Callback::new(move |(next, _): (f64, bool)| value.set(next))
+                />
+            </Panel>
+            <Snippet code="<SliderField label=\"Speed\" value=v min=lo max=hi step=0.05 on_change=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn ColorFieldDemo() -> impl IntoView {
+    let value = RwSignal::new([0.98, 0.57, 0.24]);
+    view! {
+        <Demo title="ColorField" blurb="A labeled color picker bound to an RGB float triple, handy for material and light colors.">
+            <Panel>
+                <ColorField
+                    label="Albedo"
+                    value=Signal::derive(move || value.get())
+                    on_change=Callback::new(move |(next, _): ([f32; 3], bool)| value.set(next))
+                />
+            </Panel>
+            <span class="gallery-readout">
+                {move || {
+                    let rgb = value.get();
+                    format!("rgb = [{:.2}, {:.2}, {:.2}]", rgb[0], rgb[1], rgb[2])
+                }}
+            </span>
+            <Snippet code="<ColorField label=\"Albedo\" value=v on_change=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn SelectDemo() -> impl IntoView {
+    let value = RwSignal::new("nebula".to_string());
+    view! {
+        <Demo title="Select" blurb="A labeled dropdown over (value, label) pairs.">
+            <Panel>
+                <Select
+                    label="Sky"
+                    value=Signal::derive(move || value.get())
+                    options=vec![
+                        ("nebula".into(), "Nebula".into()),
+                        ("sky".into(), "Sky".into()),
+                        ("space".into(), "Space".into()),
+                        ("sunset".into(), "Sunset".into()),
+                    ]
+                    on_change=Callback::new(move |next: String| value.set(next))
+                />
+            </Panel>
+            <span class="gallery-readout">{move || format!("selected = {}", value.get())}</span>
+            <Snippet code="<Select label=\"Sky\" value=v options=opts on_change=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn MenuDemo() -> impl IntoView {
+    let toaster = use_toaster();
+    view! {
+        <Demo title="Menu" blurb="A click-to-open dropdown menu. MenuItem takes a label, optional shortcut, and a select callback.">
+            <Menu label="File">
+                <MenuItem
+                    label="New scene"
+                    shortcut="Ctrl+N"
+                    on_select=Callback::new(move |_| toaster.info("New scene"))
+                />
+                <MenuItem
+                    label="Open"
+                    shortcut="Ctrl+O"
+                    on_select=Callback::new(move |_| toaster.info("Open"))
+                />
+                <MenuItem
+                    label="Save"
+                    shortcut="Ctrl+S"
+                    on_select=Callback::new(move |_| toaster.info("Save"))
+                />
+            </Menu>
+            <Snippet code="<Menu label=\"File\"><MenuItem label=\"New\" shortcut=\"Ctrl+N\" on_select=cb /></Menu>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn ContextMenuDemo() -> impl IntoView {
+    let open = RwSignal::new(false);
+    let x = RwSignal::new(0);
+    let y = RwSignal::new(0);
+    let toaster = use_toaster();
+    let on_context = move |event: MouseEvent| {
+        event.prevent_default();
+        x.set(event.client_x());
+        y.set(event.client_y());
+        open.set(true);
+    };
+    view! {
+        <Demo title="ContextMenu" blurb="A menu positioned at a point. Right-click the area below to open it where you clicked.">
+            <div class="gallery-box" style="height:120px; display:flex; align-items:center; justify-content:center;" on:contextmenu=on_context>
+                "Right-click anywhere in this box"
+            </div>
+            <ContextMenu open=open x=x y=y>
+                <MenuItem label="Cut" on_select=Callback::new(move |_| toaster.info("Cut")) />
+                <MenuItem label="Copy" on_select=Callback::new(move |_| toaster.info("Copy")) />
+                <MenuItem label="Paste" on_select=Callback::new(move |_| toaster.info("Paste")) />
+            </ContextMenu>
+            <Snippet code="<ContextMenu open=open x=x y=y>{items}</ContextMenu>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn TabsDemo() -> impl IntoView {
+    let active = RwSignal::new("script".to_string());
+    view! {
+        <Demo title="TabBar" blurb="A row of tabs bound to a signal, with tablist and tab roles for assistive tech.">
+            <TabBar
+                tabs=vec![
+                    ("script".into(), "Script".into()),
+                    ("log".into(), "Log".into()),
+                    ("stats".into(), "Stats".into()),
+                ]
+                active=active
+            />
+            <div class="gallery-box">
+                {move || match active.get().as_str() {
+                    "log" => "Log panel content",
+                    "stats" => "Stats panel content",
+                    _ => "Script panel content",
+                }}
+            </div>
+            <Snippet code="<TabBar tabs=tabs active=active />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn TableDemo() -> impl IntoView {
+    let rows = RwSignal::new(vec![
+        vec!["Cube".to_string(), "12".to_string(), "visible".to_string()],
+        vec!["Sphere".to_string(), "3".to_string(), "hidden".to_string()],
+        vec![
+            "Cylinder".to_string(),
+            "27".to_string(),
+            "visible".to_string(),
+        ],
+        vec!["Cone".to_string(), "8".to_string(), "visible".to_string()],
+    ]);
+    let selected = RwSignal::new(None::<usize>);
+    view! {
+        <Demo title="Table" blurb="A sortable, selectable data table. Click a header to sort (numeric columns sort by value); click a row to select it. Selection survives re-sorting.">
+            <Table
+                headers=vec!["Name".into(), "Count".into(), "State".into()]
+                rows=Signal::derive(move || rows.get())
+                sortable=true
+                on_row_click=Callback::new(move |index: usize| selected.set(Some(index)))
+                selected_row=Signal::derive(move || selected.get())
+            />
+            <span class="gallery-readout">
+                {move || match selected.get() {
+                    Some(index) => format!("selected row index = {index}"),
+                    None => "no row selected".to_string(),
+                }}
+            </span>
+            <Snippet code="<Table headers=h rows=r sortable=true on_row_click=cb selected_row=sel />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn TreeDemo() -> impl IntoView {
+    let selected = RwSignal::new(Some("camera".to_string()));
+    let items = vec![TreeItem::branch(
+        "scene",
+        "Scene",
+        vec![
+            TreeItem::leaf("camera", "Camera").with_icon("\u{1f3a5}"),
+            TreeItem::branch(
+                "lights",
+                "Lights",
+                vec![
+                    TreeItem::leaf("sun", "Sun").with_icon("\u{2600}"),
+                    TreeItem::leaf("fill", "Fill").with_icon("\u{1f4a1}"),
+                ],
+            ),
+            TreeItem::branch(
+                "meshes",
+                "Meshes",
+                vec![
+                    TreeItem::leaf("cube", "Cube").with_icon("\u{1f4e6}"),
+                    TreeItem::leaf("sphere", "Sphere").with_icon("\u{1f7e0}"),
+                ],
+            ),
+        ],
+    )];
+    view! {
+        <Demo title="Tree" blurb="A collapsible hierarchy with selection and per-item icons. Click the chevrons to expand, click a row to select, or focus a row and use the arrow keys.">
+            <Panel>
+                <Tree
+                    items=items
+                    selected=Signal::derive(move || selected.get())
+                    on_select=Callback::new(move |id: String| selected.set(Some(id)))
+                    default_expanded=true
+                />
+            </Panel>
+            <span class="gallery-readout">
+                {move || match selected.get() {
+                    Some(id) => format!("selected = {id}"),
+                    None => "nothing selected".to_string(),
+                }}
+            </span>
+            <Snippet code="<Tree items=items selected=sel on_select=cb default_expanded=true />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn InspectorDemo() -> impl IntoView {
+    let visible = RwSignal::new(true);
+    view! {
+        <Demo title="Inspector" blurb="A property grid of collapsible sections and label/control rows. Drop any control into a row; here we mix plain inputs with a Switch.">
+            <Inspector>
+                <InspectorSection title="Transform">
+                    <InspectorRow label="Position X">
+                        <input class="gallery-inline-input" value="0.0" />
+                    </InspectorRow>
+                    <InspectorRow label="Position Y">
+                        <input class="gallery-inline-input" value="1.5" />
+                    </InspectorRow>
+                    <InspectorRow label="Position Z">
+                        <input class="gallery-inline-input" value="0.0" />
+                    </InspectorRow>
+                </InspectorSection>
+                <InspectorSection title="Render">
+                    <InspectorRow label="Visible">
+                        <Switch
+                            label=""
+                            value=Signal::derive(move || visible.get())
+                            on_change=Callback::new(move |next: bool| visible.set(next))
+                        />
+                    </InspectorRow>
+                </InspectorSection>
+            </Inspector>
+            <Snippet code="<Inspector><InspectorSection title=\"Transform\"><InspectorRow label=\"X\">{control}</InspectorRow></InspectorSection></Inspector>" />
+        </Demo>
+    }
+}
+
+const SAMPLE_SCRIPT: &str = r#"// rhai scene script
+fn build(commands) {
+    set_background("nebula");
+    let count = 8;
+    for index in 0..count {
+        let cube = commands.spawn_cube();
+        commands.set_color(cube, hsv(index * 45.0, 0.7, 1.0));
+        commands.rotate(cube, 0.2);
+    }
+}
+"#;
+
+#[component]
+fn CodeEditorDemo() -> impl IntoView {
+    let code = RwSignal::new(SAMPLE_SCRIPT.to_string());
+    view! {
+        <Demo title="CodeEditor" blurb="A lightweight editor: a textarea over a synced, tokenized highlight layer. Pass a highlighter (here the bundled rhai one) and fill to grow with its container.">
+            <div class="gallery-editor">
+                <CodeEditor value=code highlighter=highlight_rhai fill=true />
+            </div>
+            <Snippet code="<CodeEditor value=code highlighter=highlight_rhai fill=true />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn EngineDemo() -> impl IntoView {
+    view! {
+        <Demo title="Engine integration" blurb="musaic's core never links a renderer. Two optional layers sit on top for apps that drive a worker-backed WebGPU surface.">
+            <Card title="viewport">
+                "The viewport feature gives a generic render surface: it owns the OffscreenCanvas handoff and all pointer, touch, and wheel bookkeeping, emitting ViewportEvents you map to your own protocol."
+            </Card>
+            <Card title="engine">
+                "The engine feature goes further: use_engine(\"worker.js\") returns a ready EngineState plus a bridge, with input, keyboard, and lifecycle wiring done. A live, worker-backed example ships in examples/nightshade_demo."
+            </Card>
+            <Snippet code="let engine = use_engine(\"runtime/worker.js\");\n<EngineViewport engine=engine />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn ThemingDemo() -> impl IntoView {
+    view! {
+        <Demo title="Theming" blurb="Every component reads a small set of semantic CSS custom properties. A theme overrides those tokens; ThemeProvider and ThemePicker switch and persist the choice. Pick a theme and watch this whole page restyle.">
+            <div class="gallery-row">
+                <span class="gallery-readout">"Theme:"</span>
+                <ThemePicker />
+            </div>
+            <h2>"Core tokens"</h2>
+            <div class="gallery-swatches">
+                <Swatch name="--musaic-accent" var="--musaic-accent" />
+                <Swatch name="--musaic-bg" var="--musaic-bg" />
+                <Swatch name="--musaic-panel" var="--musaic-panel" />
+                <Swatch name="--musaic-panel-2" var="--musaic-panel-2" />
+                <Swatch name="--musaic-panel-border" var="--musaic-panel-border" />
+                <Swatch name="--musaic-text" var="--musaic-text" />
+                <Swatch name="--musaic-danger" var="--musaic-danger" />
+                <Swatch name="--musaic-input-bg" var="--musaic-input-bg" />
+            </div>
+            <Snippet code="<ThemeProvider>\n    <MusaicStyles />\n    {app}\n</ThemeProvider>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn Swatch(#[prop(into)] name: String, #[prop(into)] var: String) -> impl IntoView {
+    view! {
+        <div class="gallery-swatch">
+            <div class="gallery-chip" style=format!("background:var({var})")></div>
+            {name}
+        </div>
+    }
+}
+
+#[component]
+fn CommandPaletteDemo() -> impl IntoView {
+    let palette_open = expect_context::<GalleryCtx>().palette_open;
+    view! {
+        <Demo title="Command palette" blurb="A fuzzy command launcher. It is mounted once at the app root and opened from anywhere. Try it: press Ctrl+K, or use the button below, then type to filter.">
+            <Button class="primary" on_click=Callback::new(move |_| palette_open.set(true))>
+                "Open command palette"
+            </Button>
+            <span class="gallery-readout">"or press Ctrl+K"</span>
+            <Snippet code="let open = RwSignal::new(false);\n<CommandPalette open=open commands=commands />" />
+        </Demo>
+    }
+}

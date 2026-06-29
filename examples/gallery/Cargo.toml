@@ -1,0 +1,11 @@
+[package]
+name = "gallery"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+edition = "2024"
+
+[dependencies]
+leptos-musaic = { path = "../../crates/musaic", features = ["full"] }
+leptos = { version = "0.7", features = ["csr"] }
+console_error_panic_hook = "0.1"
+web-sys = { version = "0.3", features = ["KeyboardEvent", "MouseEvent"] }

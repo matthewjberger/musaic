@@ -47,8 +47,14 @@ pub fn Tree(
     items: Vec<TreeItem>,
     #[prop(optional)] on_select: Option<Callback<String>>,
     #[prop(optional, into)] selected: Option<Signal<Option<String>>>,
+    #[prop(optional)] default_expanded: bool,
 ) -> impl IntoView {
-    let expanded = RwSignal::new(HashSet::<String>::new());
+    let initial = if default_expanded {
+        collect_branch_ids(&items)
+    } else {
+        HashSet::new()
+    };
+    let expanded = RwSignal::new(initial);
     let on_select = on_select.unwrap_or_else(|| Callback::new(|_| {}));
     let selected = selected.unwrap_or_else(|| Signal::derive(|| None));
     let tree_ref = NodeRef::<html::Div>::new();
@@ -225,6 +231,20 @@ fn Branch(
             })}
     }
     .into_any()
+}
+
+fn collect_branch_ids(items: &[TreeItem]) -> HashSet<String> {
+    fn walk(items: &[TreeItem], set: &mut HashSet<String>) {
+        for item in items {
+            if !item.children.is_empty() {
+                set.insert(item.id.clone());
+                walk(&item.children, set);
+            }
+        }
+    }
+    let mut set = HashSet::new();
+    walk(items, &mut set);
+    set
 }
 
 fn rows_within(container: &HtmlElement) -> Vec<HtmlElement> {

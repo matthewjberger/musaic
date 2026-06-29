@@ -1688,6 +1688,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "gallery"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "leptos",
+ "leptos-musaic",
+ "web-sys",
+]
+
+[[package]]
+name = "gallery_desktop"
+version = "0.1.0"
+dependencies = [
+ "leptos-musaic-shell",
+ "rust-embed",
+]
+
+[[package]]
 name = "gdk"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
