@@ -30,6 +30,9 @@ fn App() -> impl IntoView {
 Drop `<MusaicStyles/>` at the root once: it injects the design-token stylesheet (wrapped in
 `@layer musaic`, so your own CSS always wins) into the document head. No file to copy, no build step.
 
+Prefer a single import? `use musaic::prelude::*;` pulls in every enabled component plus
+`leptos::prelude::*`, so a typical module needs just that one line.
+
 ## Feature gates
 
 The base layer (design tokens, theming, `Button`, `Panel`, layout, `ResizeHandle`, `Modal`,
@@ -42,6 +45,9 @@ The base layer (design tokens, theming, `Button`, `Panel`, layout, `ResizeHandle
 | `themes` | the bundled themes plus `ThemePicker` |
 | `command-palette` | `CommandPalette` (Ctrl+K fuzzy commands) |
 | `code-editor` | `CodeEditor` (textarea over a synced highlight layer) |
+| `table` | `Table` (optional click-to-sort, numeric-aware) |
+| `tree` | `Tree`, `TreeItem` (collapsible hierarchy with selection) |
+| `inspector` | `Inspector`, `InspectorSection`, `InspectorRow` (collapsible property panels) |
 | `viewport` | `Viewport`, `Bridge`, `Loader`, `WebGpuGate`: a worker-backed render surface, engine-agnostic |
 | `engine` | `use_engine`, `EngineViewport`: turnkey wiring (input, keyboard, lifecycle) over the shared protocol |
 | `nightshade` | engine-shaped UI: the rhai highlighter and `SelectedCard` |
