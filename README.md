@@ -1,14 +1,14 @@
 # leptos-musaic
 
 A feature-gated [Leptos](https://leptos.dev) component library for building beautiful UIs that
-run the same code natively (in a webview) and on the web (wasm). musaic is the UI patterns behind
-apps like the nightshade editor, extracted into a reusable, engine-agnostic crate.
+run the same code natively (in a webview) and on the web (wasm). It is a reusable, engine-agnostic
+set of UI patterns for editor-style and tool apps.
 
-The goal is the same one `nightshade-api` has for nightshade: let you assemble a complex,
-production-grade Leptos UI with very little code, without giving up control. Components default to
-sensible behavior and expose callbacks and reactive props for the moments you need to steer them.
-Everything is themed from one set of CSS custom properties, so the whole surface — including every
-component added here — restyles with a single `data-theme` switch.
+The goal: let you assemble a complex, production-grade Leptos UI with very little code, without
+giving up control. Components default to sensible behavior and expose callbacks and reactive props
+for the moments you need to steer them. Everything is themed from one set of CSS custom properties,
+so the whole surface (including every component added here) restyles with a single `data-theme`
+switch.
 
 ```toml
 [dependencies]
@@ -57,7 +57,7 @@ Everything else is opt-in:
 | `inspector` | `Inspector`, `InspectorSection`, `InspectorRow` (collapsible property panels) |
 | `viewport` | `Viewport`, `Bridge`, `Loader`, `WebGpuGate`: a worker-backed render surface, engine-agnostic |
 | `engine` | `use_engine`, `EngineViewport`: turnkey wiring (input, keyboard, lifecycle) over the shared protocol |
-| `nightshade` | engine-shaped UI: the rhai highlighter and `SelectedCard` |
+| `nightshade` | the rhai syntax highlighter and `SelectedCard` |
 
 `default = ["forms", "menus", "themes"]`. Use `full` to turn on everything.
 
@@ -65,7 +65,7 @@ Everything else is opt-in:
 
 Every component draws its colors from a small set of semantic CSS custom properties
 (`--musaic-accent`, `--musaic-panel`, `--musaic-text`, `--musaic-danger`, and friends). A theme is
-just a block that overrides those tokens, selected by `data-theme` on the document element —
+just a block that overrides those tokens, selected by `data-theme` on the document element.
 `ThemeProvider` and `ThemePicker` handle that and persist the choice to `localStorage`. Because the
 new primitives (`Badge`, `Card`, `Progress`, `Tooltip`, `Switch`, table/tree selection) are all
 built from the same tokens, they restyle automatically across the nine bundled themes, and a
@@ -102,19 +102,19 @@ there is one source of truth and no drift.
 - `leptos-musaic-protocol` (`crates/musaic-protocol`): the shared page/worker wire types (`serde` only).
 - `leptos-musaic-shell` (`crates/musaic-shell`): a reusable native shell (`wry` + `winit`) that serves
   a built web bundle into a desktop window. `leptos_musaic_shell::run(title, get)`.
-- `leptos-musaic-engine` (`crates/musaic-engine`): the worker-side driver for nightshade apps.
+- `leptos-musaic-engine` (`crates/musaic-engine`): the worker-side engine driver used by the example.
   `run_offscreen(scene, setup, tick, on_custom)` owns the render loop, input injection, picking, and
-  stats. This is the only crate that links `nightshade-api`.
+  stats.
 
-A new nightshade app is roughly: `use_engine()` plus your panels on the page, and
+A new engine-backed app is roughly: `use_engine()` plus your panels on the page, and
 `run_offscreen(scene, setup, tick, on_custom)` plus your scene logic in the worker. The repeated
 wiring is gone.
 
-## Example: `examples/nightshade_demo`
+## Example
 
-A full nightshade integration built entirely from musaic components: a toolbar, a sidebar of live
-scene controls, an embedded viewport, a resizable script/log dock, a command palette, and nine
-themes, driving the nightshade engine (from crates.io) in a web worker on an `OffscreenCanvas`. It
+`examples/nightshade_demo` is a full editor-style app built entirely from musaic components: a
+toolbar, a sidebar of live scene controls, an embedded viewport, a resizable script/log dock, a
+command palette, and nine themes, driving a 3D engine in a web worker on an `OffscreenCanvas`. It
 runs on the web (`just dev`) and as a native desktop app (`just run`) from the same code.
 
 ```
