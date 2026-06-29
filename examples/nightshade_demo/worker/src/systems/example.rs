@@ -65,7 +65,7 @@ pub fn spawn_sphere_on_ring(scene: &mut Scene, world: &mut World) {
 
 fn register(scene: &mut Scene, entity: Entity) {
     scene.cubes.push(entity);
-    musaic_engine::post_custom(&Event::ObjectCount {
+    leptos_musaic_engine::post_custom(&Event::ObjectCount {
         count: scene.cubes.len() as u32,
     });
 }

@@ -9,5 +9,5 @@ name = "nightshade_demo"
 path = "src/main.rs"
 
 [dependencies]
-musaic-shell = { path = "../../../crates/musaic-shell" }
+leptos-musaic-shell = { path = "../../../crates/musaic-shell" }
 rust-embed = "8"

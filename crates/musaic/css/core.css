@@ -270,3 +270,100 @@ body {
   background-color: var(--musaic-panel);
   color: var(--musaic-text);
 }
+
+.musaic-button:focus-visible,
+.musaic-icon-button:focus-visible,
+.musaic-theme-picker:focus-visible,
+.musaic-select:focus-visible {
+  outline: 2px solid var(--musaic-accent);
+  outline-offset: 1px;
+}
+
+.musaic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--musaic-text-dim);
+  background: var(--musaic-input-bg);
+}
+
+.musaic-badge.accent {
+  color: var(--musaic-accent);
+  border-color: var(--musaic-accent-soft);
+  background: var(--musaic-accent-soft);
+}
+
+.musaic-badge.danger {
+  color: var(--musaic-danger);
+  border-color: var(--musaic-danger-soft);
+  background: color-mix(in srgb, var(--musaic-danger) 16%, transparent);
+}
+
+.musaic-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: var(--musaic-radius);
+  background: color-mix(in srgb, var(--musaic-panel) 94%, transparent);
+}
+
+.musaic-card-title {
+  padding: 9px 12px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--musaic-panel-border);
+}
+
+.musaic-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.musaic-progress {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--musaic-input-bg);
+  overflow: hidden;
+}
+
+.musaic-progress-fill {
+  height: 100%;
+  background: var(--musaic-accent);
+  transition: width 0.18s ease;
+}
+
+.musaic-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.musaic-tooltip-bubble {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 6px;
+  background: var(--musaic-panel);
+  color: var(--musaic-text);
+  box-shadow: var(--musaic-shadow);
+  white-space: nowrap;
+  font-size: 11px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+  z-index: 300;
+}
+
+.musaic-tooltip:hover .musaic-tooltip-bubble,
+.musaic-tooltip:focus-within .musaic-tooltip-bubble {
+  opacity: 1;
+}

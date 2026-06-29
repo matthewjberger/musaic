@@ -1,9 +1,9 @@
 [package]
-name = "musaic-protocol"
+name = "leptos-musaic-protocol"
 version = "0.1.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
-description = "Shared page/worker wire protocol for musaic's engine integration."
+description = "Shared page/worker wire protocol for leptos-musaic's engine integration."
 repository = "https://github.com/matthewjberger/musaic"
 
 [dependencies]

@@ -42,6 +42,10 @@ fn fuzzy(query: &str, target: &str) -> bool {
     needle.peek().is_none()
 }
 
+fn option_id(index: usize) -> String {
+    format!("musaic-palette-option-{index}")
+}
+
 #[component]
 pub fn CommandPalette(
     open: RwSignal<bool>,
@@ -104,6 +108,15 @@ pub fn CommandPalette(
         _ => {}
     };
 
+    let active_descendant = move || {
+        let items = filtered();
+        if items.is_empty() {
+            String::new()
+        } else {
+            option_id(active.get().min(items.len() - 1))
+        }
+    };
+
     view! {
         <Show when=move || open.get() fallback=|| ()>
             <div class="musaic-palette-scrim" on:click=move |_| open.set(false)>
@@ -112,12 +125,17 @@ pub fn CommandPalette(
                         node_ref=input_ref
                         class="musaic-palette-input"
                         type="text"
+                        role="combobox"
+                        aria-expanded="true"
+                        aria-controls="musaic-palette-list"
+                        aria-autocomplete="list"
+                        aria-activedescendant=active_descendant
                         placeholder="Type a command…"
                         prop:value=move || query.get()
                         on:input=move |event| query.set(event_target_value(&event))
                         on:keydown=on_key
                     />
-                    <div class="musaic-palette-list">
+                    <div id="musaic-palette-list" class="musaic-palette-list" role="listbox">
                         {move || {
                             let items = filtered();
                             if items.is_empty() {
@@ -131,10 +149,14 @@ pub fn CommandPalette(
                                     .enumerate()
                                     .map(|(index, command)| {
                                         let hint = command.hint.clone();
+                                        let is_active = move || active.get() == index;
                                         view! {
                                             <div
+                                                id=option_id(index)
+                                                role="option"
+                                                aria-selected=move || is_active().to_string()
                                                 class=move || {
-                                                    if active.get() == index {
+                                                    if is_active() {
                                                         "musaic-palette-item active"
                                                     } else {
                                                         "musaic-palette-item"
@@ -155,5 +177,23 @@ pub fn CommandPalette(
                 </div>
             </div>
         </Show>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::fuzzy;
+
+    #[test]
+    fn fuzzy_matches_subsequences_case_insensitively() {
+        assert!(fuzzy("sc", "Spawn Cube"));
+        assert!(fuzzy("", "anything"));
+        assert!(fuzzy("CUBE", "spawn cube"));
+    }
+
+    #[test]
+    fn fuzzy_rejects_out_of_order_or_missing_characters() {
+        assert!(!fuzzy("cs", "Spawn Cube"));
+        assert!(!fuzzy("xyz", "Spawn Cube"));
     }
 }

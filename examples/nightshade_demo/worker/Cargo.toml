@@ -8,7 +8,7 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-musaic-engine = { path = "../../../crates/musaic-engine" }
+leptos-musaic-engine = { path = "../../../crates/musaic-engine" }
 protocol = { path = "../protocol" }
 nightshade-api = { version = "0.48.0", default-features = false, features = ["picking"] }
 nightshade = { version = "0.48.0", features = ["tracing", "debug_render"] }

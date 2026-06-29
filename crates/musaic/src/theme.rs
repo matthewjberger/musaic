@@ -14,12 +14,18 @@ pub const THEMES: &[(&str, &str)] = &[
 
 const THEME_KEY: &str = "musaic-theme";
 
-pub fn stored_theme() -> String {
-    web_sys::window()
-        .and_then(|window| window.local_storage().ok().flatten())
-        .and_then(|storage| storage.get_item(THEME_KEY).ok().flatten())
+fn resolve_theme(stored: Option<String>) -> String {
+    stored
         .filter(|stored| THEMES.iter().any(|(id, _)| id == stored))
         .unwrap_or_else(|| THEMES[0].0.to_string())
+}
+
+pub fn stored_theme() -> String {
+    resolve_theme(
+        web_sys::window()
+            .and_then(|window| window.local_storage().ok().flatten())
+            .and_then(|storage| storage.get_item(THEME_KEY).ok().flatten()),
+    )
 }
 
 pub fn preview_theme(id: &str) {
@@ -72,5 +78,22 @@ pub fn ThemePicker() -> impl IntoView {
                 .map(|(id, label)| view! { <option value=*id>{*label}</option> })
                 .collect_view()}
         </select>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{THEMES, resolve_theme};
+
+    #[test]
+    fn known_theme_is_preserved() {
+        assert_eq!(resolve_theme(Some("dracula".to_string())), "dracula");
+    }
+
+    #[test]
+    fn unknown_or_missing_theme_falls_back_to_default() {
+        let default = THEMES[0].0;
+        assert_eq!(resolve_theme(None), default);
+        assert_eq!(resolve_theme(Some("does-not-exist".to_string())), default);
     }
 }

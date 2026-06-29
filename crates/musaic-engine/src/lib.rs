@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use musaic_protocol::{CANVAS_KEY, FromWorker, MESSAGE_KEY, SelectedEntity, ToWorker};
+use leptos_musaic_protocol::{CANVAS_KEY, FromWorker, MESSAGE_KEY, SelectedEntity, ToWorker};
 use nightshade::prelude::*;
 use nightshade::render::wgpu::create_wgpu_renderer;
 use nightshade_api::prelude::entity_under_cursor;
@@ -309,12 +309,12 @@ fn mouse_button(button: u8) -> MouseButton {
     }
 }
 
-fn touch_phase(phase: musaic_protocol::TouchPhase) -> TouchPhase {
+fn touch_phase(phase: leptos_musaic_protocol::TouchPhase) -> TouchPhase {
     match phase {
-        musaic_protocol::TouchPhase::Started => TouchPhase::Started,
-        musaic_protocol::TouchPhase::Moved => TouchPhase::Moved,
-        musaic_protocol::TouchPhase::Ended => TouchPhase::Ended,
-        musaic_protocol::TouchPhase::Cancelled => TouchPhase::Cancelled,
+        leptos_musaic_protocol::TouchPhase::Started => TouchPhase::Started,
+        leptos_musaic_protocol::TouchPhase::Moved => TouchPhase::Moved,
+        leptos_musaic_protocol::TouchPhase::Ended => TouchPhase::Ended,
+        leptos_musaic_protocol::TouchPhase::Cancelled => TouchPhase::Cancelled,
     }
 }
 

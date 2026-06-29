@@ -1,13 +1,13 @@
 [package]
-name = "musaic-engine"
+name = "leptos-musaic-engine"
 version = "0.1.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
-description = "Worker-side engine driver for musaic apps backed by the nightshade engine."
+description = "Worker-side engine driver for leptos-musaic apps backed by the nightshade engine."
 repository = "https://github.com/matthewjberger/musaic"
 
 [dependencies]
-musaic-protocol = { path = "../musaic-protocol" }
+leptos-musaic-protocol = { path = "../musaic-protocol" }
 nightshade-api = { version = "0.48.0", default-features = false, features = ["picking"] }
 nightshade = { version = "0.48.0", features = ["tracing", "debug_render"] }
 serde = { version = "1", features = ["derive"] }

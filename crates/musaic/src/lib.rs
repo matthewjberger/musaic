@@ -3,7 +3,7 @@ mod styles;
 mod theme;
 
 pub use base::*;
-pub use musaic_protocol::{SelectedEntity, TouchPhase};
+pub use leptos_musaic_protocol::{SelectedEntity, TouchPhase};
 pub use styles::{MusaicStyles, stylesheet};
 pub use theme::*;
 

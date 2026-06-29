@@ -40,3 +40,19 @@
 .musaic-tree-label {
   white-space: nowrap;
 }
+
+.musaic-tree-icon {
+  display: inline-flex;
+  width: 16px;
+  justify-content: center;
+  color: var(--musaic-text-dim);
+}
+
+.musaic-tree-row.selected {
+  background: var(--musaic-accent-soft);
+}
+
+.musaic-tree-row:focus-visible {
+  outline: 2px solid var(--musaic-accent);
+  outline-offset: -2px;
+}

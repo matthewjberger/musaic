@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use leptos::prelude::*;
-use musaic_protocol::SelectedEntity;
+use leptos_musaic_protocol::SelectedEntity;
 
 const KEYWORDS: &[&str] = &[
     "fn", "let", "const", "if", "else", "for", "in", "while", "loop", "return", "break",

@@ -38,15 +38,20 @@ build-desktop: dist
 # Type-checks the library across all features and the demo workspace
 check:
     cargo build --manifest-path crates/musaic/Cargo.toml --target wasm32-unknown-unknown --features full
-    cargo check -p musaic-protocol -p musaic-engine -p protocol -p worker -p nightshade_demo --target wasm32-unknown-unknown
-    cargo check -p musaic-shell -p nightshade_demo_desktop
+    cargo check -p leptos-musaic-protocol -p leptos-musaic-engine -p protocol -p worker -p nightshade_demo --target wasm32-unknown-unknown
+    cargo check -p leptos-musaic-shell -p nightshade_demo_desktop
     cargo fmt --all -- --check
 
 # Lints the library and the demo workspace, denying warnings
 lint:
     cargo clippy --manifest-path crates/musaic/Cargo.toml --target wasm32-unknown-unknown --features full -- -D warnings
-    cargo clippy -p musaic-protocol -p musaic-engine -p protocol -p worker -p nightshade_demo --target wasm32-unknown-unknown -- -D warnings
-    cargo clippy -p musaic-shell -p nightshade_demo_desktop -- -D warnings
+    cargo clippy -p leptos-musaic-protocol -p leptos-musaic-engine -p protocol -p worker -p nightshade_demo --target wasm32-unknown-unknown -- -D warnings
+    cargo clippy -p leptos-musaic-shell -p nightshade_demo_desktop -- -D warnings
+
+# Runs the unit tests on the host target
+test:
+    cargo test -p leptos-musaic --features full
+    cargo test -p leptos-musaic-protocol
 
 # Formats the code
 format:

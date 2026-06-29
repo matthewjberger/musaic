@@ -71,3 +71,68 @@
   font: inherit;
   cursor: pointer;
 }
+
+.musaic-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.musaic-field-help {
+  color: var(--musaic-text-dim);
+  font-size: 11px;
+}
+
+.musaic-field-error {
+  color: var(--musaic-danger);
+  font-size: 11px;
+}
+
+.musaic-field input:disabled,
+.musaic-select:disabled,
+.musaic-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.musaic-switch-field {
+  justify-content: space-between;
+}
+
+.musaic-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 999px;
+  background: var(--musaic-input-bg);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.musaic-switch.on {
+  background: var(--musaic-accent-soft);
+  border-color: var(--musaic-accent);
+}
+
+.musaic-switch:focus-visible {
+  outline: 2px solid var(--musaic-accent);
+  outline-offset: 1px;
+}
+
+.musaic-switch-thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--musaic-text-dim);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.musaic-switch.on .musaic-switch-thumb {
+  transform: translateX(16px);
+  background: var(--musaic-accent);
+}

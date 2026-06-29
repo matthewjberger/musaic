@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use musaic::{CheckField, ColorField, Engine, Panel, Select, SelectedCard, SliderField};
+use leptos_musaic::{ColorField, Engine, Panel, Select, SelectedCard, SliderField, Switch};
 
 use crate::state::DemoState;
 
@@ -64,7 +64,7 @@ pub fn Sidebar(engine: Engine, state: DemoState) -> impl IntoView {
             </Panel>
 
             <Panel title="Motion">
-                <CheckField
+                <Switch
                     label="Spin"
                     value=Signal::derive(move || state.spinning.get())
                     on_change=toggle_spin

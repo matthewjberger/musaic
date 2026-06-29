@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use musaic::{CodeEditor, TabBar, highlight_rhai};
+use leptos_musaic::{CodeEditor, TabBar, highlight_rhai};
 
 use crate::state::DemoState;
 

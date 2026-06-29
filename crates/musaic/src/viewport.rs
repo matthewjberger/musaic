@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use leptos::html;
 use leptos::prelude::*;
-use musaic_protocol::{CANVAS_KEY, MESSAGE_KEY, TouchPhase};
+use leptos_musaic_protocol::{CANVAS_KEY, MESSAGE_KEY, TouchPhase};
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
@@ -13,6 +13,10 @@ use web_sys::{
 
 const CLICK_DRAG_THRESHOLD: f32 = 5.0;
 const MAX_RENDER_DPR: f64 = 2.0;
+
+type MessageClosure = Closure<dyn FnMut(MessageEvent)>;
+type WheelClosure = Closure<dyn FnMut(WheelEvent)>;
+type ResizeObservation = (ResizeObserver, Closure<dyn FnMut()>);
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ViewportEvent {
@@ -68,6 +72,13 @@ impl Bridge {
         let transfer = js_sys::Array::of1(canvas);
         let _ = self.worker.post_message_with_transfer(&envelope, &transfer);
     }
+}
+
+struct ViewportResources {
+    worker: Worker,
+    _on_message: MessageClosure,
+    _wheel: Option<WheelClosure>,
+    observer: Option<ResizeObservation>,
 }
 
 #[derive(Clone, Copy, Default)]
@@ -141,6 +152,7 @@ pub fn Viewport(
     on_input: Callback<ViewportEvent>,
     on_connect: Callback<(Bridge, OffscreenCanvas, f32, f32)>,
     on_message: Callback<JsValue>,
+    #[prop(optional)] on_error: Option<Callback<String>>,
 ) -> impl IntoView {
     let canvas_ref = NodeRef::<html::Canvas>::new();
     let drag = StoredValue::new(DragState::default());
@@ -148,6 +160,7 @@ pub fn Viewport(
     let rect_offset = StoredValue::new((0.0_f64, 0.0_f64));
     let connected = StoredValue::new(false);
     let worker_url = StoredValue::new(worker_url);
+    let resources = StoredValue::new_local(None::<ViewportResources>);
 
     Effect::new(move |_| {
         let Some(canvas) = canvas_ref.get() else {
@@ -162,14 +175,39 @@ pub fn Viewport(
         let height = rect.height() as f32 * dpr;
         canvas.set_width(width as u32);
         canvas.set_height(height as u32);
-        let offscreen = canvas
-            .transfer_control_to_offscreen()
-            .expect("failed to transfer canvas to offscreen");
-        let bridge = spawn_worker(&worker_url.get_value(), on_message);
-        attach_wheel(&canvas, on_input);
-        observe_resize(canvas, on_input);
+        let Ok(offscreen) = canvas.transfer_control_to_offscreen() else {
+            report(
+                &on_error,
+                "failed to transfer canvas to an offscreen surface",
+            );
+            return;
+        };
+        let Some((bridge, on_message_closure)) = spawn_worker(&worker_url.get_value(), on_message)
+        else {
+            report(&on_error, "failed to spawn the render worker");
+            return;
+        };
+        let wheel = attach_wheel(&canvas, on_input);
+        let observer = observe_resize(canvas, on_input);
         connected.set_value(true);
+        resources.set_value(Some(ViewportResources {
+            worker: bridge.worker.clone(),
+            _on_message: on_message_closure,
+            _wheel: wheel,
+            observer,
+        }));
         on_connect.run((bridge, offscreen, width, height));
+    });
+
+    on_cleanup(move || {
+        resources.update_value(|slot| {
+            if let Some(active) = slot.take() {
+                active.worker.terminate();
+                if let Some((observer, _closure)) = active.observer {
+                    observer.disconnect();
+                }
+            }
+        });
     });
 
     let on_pointerdown = move |event: PointerEvent| {
@@ -348,10 +386,16 @@ pub fn Viewport(
     }
 }
 
-fn spawn_worker(url: &str, on_message: Callback<JsValue>) -> Bridge {
+fn report(on_error: &Option<Callback<String>>, message: &str) {
+    if let Some(callback) = on_error {
+        callback.run(message.to_string());
+    }
+}
+
+fn spawn_worker(url: &str, on_message: Callback<JsValue>) -> Option<(Bridge, MessageClosure)> {
     let options = WorkerOptions::new();
     options.set_type(WorkerType::Module);
-    let worker = Worker::new_with_options(url, &options).expect("failed to spawn worker");
+    let worker = Worker::new_with_options(url, &options).ok()?;
     let handler = Closure::<dyn FnMut(MessageEvent)>::new(move |event: MessageEvent| {
         let data = event.data();
         if let Ok(payload) = js_sys::Reflect::get(&data, &JsValue::from_str(MESSAGE_KEY)) {
@@ -359,8 +403,7 @@ fn spawn_worker(url: &str, on_message: Callback<JsValue>) -> Bridge {
         }
     });
     worker.set_onmessage(Some(handler.as_ref().unchecked_ref()));
-    handler.forget();
-    Bridge { worker }
+    Some((Bridge { worker }, handler))
 }
 
 fn render_dpr() -> f64 {
@@ -377,7 +420,10 @@ fn physical(offset: (f64, f64), client_x: i32, client_y: i32) -> (f32, f32) {
     )
 }
 
-fn attach_wheel(canvas: &HtmlCanvasElement, on_input: Callback<ViewportEvent>) {
+fn attach_wheel(
+    canvas: &HtmlCanvasElement,
+    on_input: Callback<ViewportEvent>,
+) -> Option<WheelClosure> {
     let handler = Closure::<dyn FnMut(WheelEvent)>::new(move |event: WheelEvent| {
         event.prevent_default();
         on_input.run(ViewportEvent::Wheel {
@@ -392,11 +438,14 @@ fn attach_wheel(canvas: &HtmlCanvasElement, on_input: Callback<ViewportEvent>) {
             handler.as_ref().unchecked_ref(),
             &options,
         )
-        .expect("failed to add wheel listener");
-    handler.forget();
+        .ok()?;
+    Some(handler)
 }
 
-fn observe_resize(canvas: HtmlCanvasElement, on_input: Callback<ViewportEvent>) {
+fn observe_resize(
+    canvas: HtmlCanvasElement,
+    on_input: Callback<ViewportEvent>,
+) -> Option<ResizeObservation> {
     let resize_canvas = canvas.clone();
     let handler = Closure::<dyn FnMut()>::new(move || {
         let dpr = render_dpr() as f32;
@@ -406,9 +455,7 @@ fn observe_resize(canvas: HtmlCanvasElement, on_input: Callback<ViewportEvent>) 
             height: rect.height() as f32 * dpr,
         });
     });
-    let observer = ResizeObserver::new(handler.as_ref().unchecked_ref())
-        .expect("failed to create resize observer");
+    let observer = ResizeObserver::new(handler.as_ref().unchecked_ref()).ok()?;
     observer.observe(&canvas);
-    handler.forget();
-    std::mem::forget(observer);
+    Some((observer, handler))
 }

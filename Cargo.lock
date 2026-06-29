@@ -2712,6 +2712,54 @@ dependencies = [
 ]
 
 [[package]]
+name = "leptos-musaic"
+version = "0.1.0"
+dependencies = [
+ "js-sys",
+ "leptos",
+ "leptos-musaic-protocol",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "leptos-musaic-engine"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "js-sys",
+ "leptos-musaic-protocol",
+ "nightshade",
+ "nightshade-api",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "leptos-musaic-protocol"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "leptos-musaic-shell"
+version = "0.1.0"
+dependencies = [
+ "tiny_http",
+ "winit",
+ "wry",
+]
+
+[[package]]
 name = "leptos_config"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2997,54 +3045,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "musaic"
-version = "0.1.0"
-dependencies = [
- "js-sys",
- "leptos",
- "musaic-protocol",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
-name = "musaic-engine"
-version = "0.1.0"
-dependencies = [
- "console_error_panic_hook",
- "js-sys",
- "musaic-protocol",
- "nightshade",
- "nightshade-api",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
-name = "musaic-protocol"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "musaic-shell"
-version = "0.1.0"
-dependencies = [
- "tiny_http",
- "winit",
- "wry",
-]
-
-[[package]]
 name = "naga"
 version = "29.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3261,7 +3261,7 @@ version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "leptos",
- "musaic",
+ "leptos-musaic",
  "protocol",
  "serde_json",
  "web-sys",
@@ -3271,7 +3271,7 @@ dependencies = [
 name = "nightshade_demo_desktop"
 version = "0.1.0"
 dependencies = [
- "musaic-shell",
+ "leptos-musaic-shell",
  "rust-embed",
 ]
 
@@ -6884,7 +6884,7 @@ checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 name = "worker"
 version = "0.1.0"
 dependencies = [
- "musaic-engine",
+ "leptos-musaic-engine",
  "nightshade",
  "nightshade-api",
  "protocol",

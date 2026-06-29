@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
 pub fn start() {
-    musaic_engine::run_offscreen(
+    leptos_musaic_engine::run_offscreen(
         state::Scene::new(),
         systems::setup::initialize,
         systems::tick,

@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use musaic::{Button, Engine, ThemePicker};
+use leptos_musaic::{Button, Engine, ThemePicker};
 
 use crate::state::DemoState;
 

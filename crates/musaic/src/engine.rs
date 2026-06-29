@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use musaic_protocol::{FromWorker, SelectedEntity, ToWorker};
+use leptos_musaic_protocol::{FromWorker, SelectedEntity, ToWorker};
 use serde::Serialize;
 use wasm_bindgen::{JsCast, JsValue};
 

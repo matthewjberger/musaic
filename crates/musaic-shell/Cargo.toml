@@ -1,9 +1,9 @@
 [package]
-name = "musaic-shell"
+name = "leptos-musaic-shell"
 version = "0.1.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
-description = "Native desktop shell for musaic apps: serves a web bundle into a wry webview."
+description = "Native desktop shell for leptos-musaic apps: serves a web bundle into a wry webview."
 repository = "https://github.com/matthewjberger/musaic"
 
 [dependencies]

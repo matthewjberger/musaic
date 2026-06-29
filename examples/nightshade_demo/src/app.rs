@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use musaic::{
+use leptos_musaic::{
     AppShell, Command, CommandPalette, EngineViewport, Loader, MusaicStyles, ResizeAxis,
     ResizeHandle, THEMES, ThemeProvider, WebGpuGate, use_engine, use_theme,
 };

@@ -9,7 +9,7 @@ fn main() {
         eprintln!("the web bundle is missing, build it first with `just dist`");
         std::process::exit(1);
     }
-    musaic_shell::run("Musaic · Nightshade Demo", |path| {
+    leptos_musaic_shell::run("Musaic · Nightshade Demo", |path| {
         Dist::get(path).map(|file| file.data.into_owned())
     });
 }
