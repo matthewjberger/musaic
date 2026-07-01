@@ -3,15 +3,16 @@ use std::collections::HashSet;
 use leptos::prelude::*;
 use leptos_musaic::{
     Accordion, AccordionItem, AssetGrid, AssetItem, Badge, Button, Card, Chat, ChatMessage,
-    ChatRole, CheckField, ChipGroup, CodeEditor, ColorField, ContextMenu, Disclosure, DockLayout,
-    DockMain, DockPanel, DockSide, DynamicForm, FieldSchema, FormField, IconButton, Inspector,
-    InspectorRow, InspectorSection, ListItem, LogEntry, LogKind, LogView, Markdown, Menu, MenuBar,
-    MenuBarMenu, MenuItem, MenuSeparator, Modal, NavGizmo, NumberField, OrderedList, Panel,
-    Progress, ResizeAxis, ResizeHandle, SearchItem, SearchList, Select, SliderField, Spinner,
-    SplitAxis, StatusBar, StatusItem, StatusSpacer, Submenu, SwatchPalette, Switch, TabBar, Table,
-    TagInput, TextField, Theme, ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar,
-    ToolbarGroup, ToolbarSpacer, Tooltip, Tree, TreeItem, Vec3Field, ViewportOverlay,
-    highlight_rhai, pretty_binding, register_theme, use_commands, use_theme, use_toaster,
+    ChatRole, CheckField, ChipGroup, CodeEditor, ColorField, ComboOption, Combobox, ContextMenu,
+    Dialog, Disclosure, DockLayout, DockMain, DockPanel, DockSide, Dropdown, DynamicForm,
+    FieldSchema, FormField, IconButton, Inspector, InspectorRow, InspectorSection, ListItem,
+    LogEntry, LogKind, LogView, Markdown, Menu, MenuBar, MenuBarMenu, MenuItem, MenuSeparator,
+    Modal, NavGizmo, NumberField, OrderedList, Panel, Popover, Progress, ResizeAxis, ResizeHandle,
+    SearchItem, SearchList, Select, Side, SliderField, Spinner, SplitAxis, StatusBar, StatusItem,
+    StatusSpacer, Submenu, SwatchPalette, Switch, TabBar, Table, TagInput, TextField, Theme,
+    ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup, ToolbarSpacer, Tooltip,
+    Tree, TreeItem, Vec3Field, ViewportOverlay, highlight_rhai, pretty_binding, register_theme,
+    use_commands, use_theme, use_toaster,
 };
 use web_sys::MouseEvent;
 
@@ -157,6 +158,18 @@ const CATEGORIES: &[Category] = &[
             Page {
                 id: "tabs",
                 title: "TabBar",
+            },
+            Page {
+                id: "popover",
+                title: "Popover & Dropdown",
+            },
+            Page {
+                id: "combobox",
+                title: "Combobox",
+            },
+            Page {
+                id: "dialog",
+                title: "Dialog",
             },
         ],
     },
@@ -313,6 +326,9 @@ pub fn render(id: &str) -> AnyView {
         "menu" => view! { <MenuDemo /> }.into_any(),
         "context-menu" => view! { <ContextMenuDemo /> }.into_any(),
         "tabs" => view! { <TabsDemo /> }.into_any(),
+        "popover" => view! { <PopoverDemo /> }.into_any(),
+        "combobox" => view! { <ComboboxDemo /> }.into_any(),
+        "dialog" => view! { <DialogDemo /> }.into_any(),
         "table" => view! { <TableDemo /> }.into_any(),
         "tree" => view! { <TreeDemo /> }.into_any(),
         "inspector" => view! { <InspectorDemo /> }.into_any(),
@@ -650,19 +666,33 @@ fn ModalDemo() -> impl IntoView {
 fn ToastsDemo() -> impl IntoView {
     let toaster = use_toaster();
     view! {
-        <Demo title="Toasts" blurb="Transient notifications. Mount ToastHub once at the root, then call use_toaster() anywhere to push info or error toasts.">
+        <Demo title="Toasts" blurb="Transient notifications with info, success, warning, and error kinds, a dismiss button, and optional inline actions. Mount ToastHub once at the root, then call use_toaster() anywhere.">
             <div class="gallery-row">
                 <Button on_click=Callback::new(move |_| toaster.info("Saved to disk"))>
-                    "Info toast"
+                    "Info"
+                </Button>
+                <Button on_click=Callback::new(move |_| toaster.success("Export complete"))>
+                    "Success"
+                </Button>
+                <Button on_click=Callback::new(move |_| toaster.warning("Low memory"))>
+                    "Warning"
                 </Button>
                 <Button
                     class="danger"
                     on_click=Callback::new(move |_| toaster.error("Export failed"))
                 >
-                    "Error toast"
+                    "Error"
                 </Button>
+                <Button on_click=Callback::new(move |_| {
+                    toaster
+                        .action(
+                            "Deleted 3 entities",
+                            "Undo",
+                            Callback::new(move |_| toaster.success("Restored")),
+                        )
+                })>"With action"</Button>
             </div>
-            <Snippet code="let toaster = use_toaster();\ntoaster.info(\"Saved\");" />
+            <Snippet code="toaster.success(\"Saved\");\ntoaster.action(\"Deleted\", \"Undo\", on_undo);" />
         </Demo>
     }
 }
@@ -1680,6 +1710,89 @@ fn NavGizmoDemo() -> impl IntoView {
             />
             <span class="gallery-readout">{move || readout.get()}</span>
             <Snippet code="<ViewportOverlay><NavGizmo basis=camera_basis on_axis=cb /></ViewportOverlay>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn PopoverDemo() -> impl IntoView {
+    let toaster = use_toaster();
+    let open = RwSignal::new(false);
+    view! {
+        <Demo title="Popover & Dropdown" blurb="Popover anchors a floating panel to a trigger and flips or shifts it to stay on screen, portalled out of any clipping ancestor. Dropdown is a Popover preset over a menu. Scroll or resize and it follows.">
+            <div class="gallery-row">
+                <Dropdown label="Actions">
+                    <MenuItem label="Duplicate" on_select=Callback::new(move |_| toaster.info("Duplicate")) />
+                    <MenuItem label="Rename" on_select=Callback::new(move |_| toaster.info("Rename")) />
+                    <MenuSeparator />
+                    <MenuItem label="Delete" on_select=Callback::new(move |_| toaster.error("Delete")) />
+                </Dropdown>
+                <Popover
+                    open=open
+                    side=Side::Top
+                    trigger=move || view! { <Button>"Popover above"</Button> }
+                >
+                    <div style="padding:12px; max-width:220px;">
+                        <strong>"Anchored"</strong>
+                        <p class="gallery-readout" style="margin:6px 0 0;">
+                            "Positioned relative to the trigger, flipped to stay visible."
+                        </p>
+                    </div>
+                </Popover>
+            </div>
+            <Snippet code="<Popover open=open side=Side::Top trigger=move || view!{ <Button>\"Open\"</Button> }>{content}</Popover>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn ComboboxDemo() -> impl IntoView {
+    let value = RwSignal::new("nord".to_string());
+    let options = vec![
+        ComboOption::new("nightshade", "Nightshade"),
+        ComboOption::new("dracula", "Dracula"),
+        ComboOption::new("nord", "Nord"),
+        ComboOption::new("gruvbox", "Gruvbox Dark"),
+        ComboOption::new("tokyo-night", "Tokyo Night"),
+        ComboOption::new("catppuccin", "Catppuccin Mocha"),
+    ];
+    view! {
+        <Demo title="Combobox" blurb="A searchable single-select: type to filter, arrow keys to move, Enter to pick. The list is a Popover, so it escapes clipping and repositions on scroll.">
+            <div class="gallery-row">
+                <Combobox
+                    value=Signal::derive(move || value.get())
+                    options=options
+                    on_select=Callback::new(move |next: String| value.set(next))
+                    placeholder="Pick a theme"
+                />
+                <span class="gallery-readout">{move || format!("value = {}", value.get())}</span>
+            </div>
+            <Snippet code="<Combobox value=v options=options on_select=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn DialogDemo() -> impl IntoView {
+    let open = RwSignal::new(false);
+    let toaster = use_toaster();
+    view! {
+        <Demo title="Dialog" blurb="A confirm/cancel dialog built on the portalled Modal: it traps focus, closes on Escape, and reports the choice. Pass danger for destructive actions.">
+            <Button class="danger" on_click=Callback::new(move |_| open.set(true))>
+                "Delete scene"
+            </Button>
+            <Dialog
+                open=open
+                title="Delete scene?"
+                confirm_label="Delete"
+                cancel_label="Keep"
+                danger=true
+                on_confirm=Callback::new(move |_| toaster.error("Scene deleted"))
+                on_cancel=Callback::new(move |_| toaster.info("Kept"))
+            >
+                "This removes every entity in the scene. This cannot be undone."
+            </Dialog>
+            <Snippet code="<Dialog open=open title=\"Delete?\" danger=true on_confirm=cb on_cancel=cb>{body}</Dialog>" />
         </Demo>
     }
 }

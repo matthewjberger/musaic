@@ -226,20 +226,66 @@ body {
 
 .musaic-toast {
   pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   min-width: 220px;
-  max-width: 340px;
-  padding: 10px 14px;
+  max-width: 360px;
+  padding: 10px 12px 10px 14px;
   border: 1px solid var(--musaic-panel-border);
   border-left-width: 3px;
   border-radius: 9px;
   background: var(--musaic-panel);
   box-shadow: var(--musaic-shadow);
-  cursor: pointer;
   animation: musaic-toast-in 0.16s ease;
+}
+
+.musaic-toast-text {
+  flex: 1 1 auto;
+}
+
+.musaic-toast-action {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border: 1px solid var(--musaic-accent-soft);
+  border-radius: 6px;
+  background: var(--musaic-accent-soft);
+  color: var(--musaic-accent);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.musaic-toast-close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--musaic-text-dim);
+  font: inherit;
+  cursor: pointer;
+}
+
+.musaic-toast-close:hover {
+  background: var(--musaic-hover);
+  color: var(--musaic-text);
 }
 
 .musaic-toast.info {
   border-left-color: var(--musaic-accent);
+}
+
+.musaic-toast.success {
+  border-left-color: #4ade80;
+}
+
+.musaic-toast.warn {
+  border-left-color: #fbbf24;
 }
 
 .musaic-toast.error {

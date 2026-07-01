@@ -70,6 +70,11 @@ mod dock;
 #[cfg(feature = "dock")]
 pub use dock::*;
 
+#[cfg(feature = "overlays")]
+mod floating;
+#[cfg(feature = "overlays")]
+pub use floating::*;
+
 #[cfg(feature = "disclosure")]
 mod disclosure;
 #[cfg(feature = "disclosure")]

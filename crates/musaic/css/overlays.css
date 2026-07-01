@@ -1,0 +1,127 @@
+/* musaic floating layer: popover, dropdown, combobox, dialog. */
+
+.musaic-popover-anchor {
+  display: inline-flex;
+}
+
+.musaic-popover-catcher {
+  position: fixed;
+  inset: 0;
+  z-index: 310;
+}
+
+.musaic-popover {
+  position: fixed;
+  z-index: 320;
+  min-width: 160px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  background: var(--musaic-panel);
+  box-shadow: var(--musaic-shadow);
+  animation: musaic-popover-in 0.12s ease;
+}
+
+@keyframes musaic-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.musaic-popover .musaic-menu-list {
+  position: static;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.musaic-combobox-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 160px;
+  padding: 6px 10px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 7px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.musaic-combobox-trigger:hover {
+  border-color: var(--musaic-accent);
+}
+
+.musaic-combobox-caret {
+  color: var(--musaic-text-dim);
+}
+
+.musaic-combobox-panel {
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+}
+
+.musaic-combobox-input {
+  padding: 9px 12px;
+  border: none;
+  border-bottom: 1px solid var(--musaic-panel-border);
+  background: transparent;
+  color: var(--musaic-text);
+  font: inherit;
+}
+
+.musaic-combobox-input:focus {
+  outline: none;
+}
+
+.musaic-combobox-list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.musaic-combobox-empty {
+  padding: 14px;
+  text-align: center;
+  color: var(--musaic-text-dim);
+}
+
+.musaic-combobox-option {
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.musaic-combobox-option:hover,
+.musaic-combobox-option.active {
+  background: var(--musaic-hover);
+}
+
+.musaic-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px 16px;
+  min-width: 320px;
+  max-width: min(480px, 92vw);
+}
+
+.musaic-dialog-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.musaic-dialog-body {
+  color: var(--musaic-text-dim);
+  line-height: 1.5;
+}
+
+.musaic-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}

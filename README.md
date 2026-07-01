@@ -42,9 +42,10 @@ Prefer a single import? `use leptos_musaic::prelude::*;` pulls in every enabled 
 ## Feature gates
 
 The base layer (design tokens, typed theming, `Button`, `IconButton`, `Panel`, `Card`, layout,
-`ResizeHandle`, `Overlay`/`Modal`, `Badge`, `Progress`, `Tooltip`, `Spinner`, toasts, the
-`CommandRegistry`, the `KeymapProvider`, the `EditorShell` frame, and the `use_persisted` /
-`use_reconnecting_socket` hooks) is always compiled. Everything else is opt-in:
+`ResizeHandle`, `Overlay`/`Modal`, `Badge`, `Progress`, `Tooltip`, `Spinner`, toasts
+(info/success/warning/error, dismiss, inline actions), the `CommandRegistry`, the `KeymapProvider`,
+the `EditorShell` frame, and the `use_persisted` / `use_reconnecting_socket` hooks) is always
+compiled. Everything else is opt-in:
 
 | feature | components |
 | --- | --- |
@@ -57,6 +58,7 @@ The base layer (design tokens, typed theming, `Button`, `IconButton`, `Panel`, `
 | `tree` | `Tree`, `TreeItem` (collapsible hierarchy, multi-select, inline rename, drag-and-drop, lazy expand, arrow-key nav) |
 | `inspector` | `Inspector`, `InspectorSection` (header actions slot), `InspectorRow` |
 | `dock` | `DockLayout`, `DockPanel`, `DockMain`: resizable, collapsible panels docked around a main region |
+| `overlays` | `Popover` (anchored positioning that flips/shifts to stay on screen), `Dropdown`, `Combobox`, `Dialog` |
 | `disclosure` | `Disclosure`, `Accordion`, `AccordionItem` |
 | `status-bar` | `StatusBar`, `StatusItem`, `StatusSpacer` |
 | `toolbar` | `Toolbar`, `ToolbarGroup`, `ToolbarSpacer`, `ToolButton`, `MenuBar`, `MenuBarMenu` |
