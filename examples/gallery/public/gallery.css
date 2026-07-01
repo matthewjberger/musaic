@@ -127,7 +127,32 @@
   line-height: 1.55;
   overflow: auto;
   white-space: pre;
-  color: var(--musaic-text);
+  color: var(--musaic-tok-plain);
+}
+
+.gallery-code .tok-keyword {
+  color: var(--musaic-tok-keyword);
+}
+
+.gallery-code .tok-string {
+  color: var(--musaic-tok-string);
+}
+
+.gallery-code .tok-number {
+  color: var(--musaic-tok-number);
+}
+
+.gallery-code .tok-comment {
+  color: var(--musaic-tok-comment);
+  font-style: italic;
+}
+
+.gallery-code .tok-command {
+  color: var(--musaic-tok-command);
+}
+
+.gallery-code .tok-plain {
+  color: var(--musaic-tok-plain);
 }
 
 .gallery-box {
@@ -168,6 +193,24 @@
   border: 1px solid var(--musaic-panel-border);
   border-radius: 9px;
   overflow: hidden;
+}
+
+.gallery-keyrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 2px;
+}
+
+.gallery-keyrow + .gallery-keyrow {
+  border-top: 1px solid color-mix(in srgb, var(--musaic-panel-border) 55%, transparent);
+}
+
+.gallery-keyrow-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .gallery-dock-viewport {

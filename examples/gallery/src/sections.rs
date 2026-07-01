@@ -5,8 +5,9 @@ use leptos_musaic::{
     Badge, Button, Card, CheckField, CodeEditor, ColorField, ContextMenu, DockLayout, DockMain,
     DockPanel, DockSide, IconButton, Inspector, InspectorRow, InspectorSection, Menu, MenuItem,
     MenuSeparator, Modal, NumberField, Panel, Progress, ResizeAxis, ResizeHandle, Select,
-    SliderField, Spinner, SplitAxis, Submenu, Switch, TabBar, Table, TextField, ThemePicker,
-    Tooltip, Tree, TreeItem, Vec3Field, highlight_rhai, use_toaster,
+    SliderField, Spinner, SplitAxis, Submenu, Switch, TabBar, Table, TextField, Theme, ThemePicker,
+    Tooltip, Tree, TreeItem, Vec3Field, highlight_rhai, pretty_binding, register_theme,
+    use_commands, use_theme, use_toaster,
 };
 use web_sys::MouseEvent;
 
@@ -43,6 +44,10 @@ const CATEGORIES: &[Category] = &[
             Page {
                 id: "command-palette",
                 title: "Command palette",
+            },
+            Page {
+                id: "keybindings",
+                title: "Commands & keys",
             },
         ],
     },
@@ -226,6 +231,7 @@ pub fn render(id: &str) -> AnyView {
         "overview" => view! { <Overview /> }.into_any(),
         "theming" => view! { <ThemingDemo /> }.into_any(),
         "command-palette" => view! { <CommandPaletteDemo /> }.into_any(),
+        "keybindings" => view! { <KeybindingsDemo /> }.into_any(),
         "buttons" => view! { <ButtonsDemo /> }.into_any(),
         "badges" => view! { <BadgesDemo /> }.into_any(),
         "card" => view! { <CardDemo /> }.into_any(),
@@ -302,9 +308,96 @@ fn Demo(
     }
 }
 
+const SNIPPET_KEYWORDS: &[&str] = &[
+    "let", "mut", "fn", "move", "pub", "use", "impl", "for", "in", "if", "else", "match", "as",
+    "const", "return", "while", "loop", "true", "false", "self",
+];
+
+fn highlight_snippet(source: &str) -> Vec<(&'static str, String)> {
+    let chars: Vec<char> = source.chars().collect();
+    let count = chars.len();
+    let mut runs: Vec<(&'static str, String)> = Vec::new();
+    let mut index = 0;
+    let mut expect_tag = false;
+    while index < count {
+        let current = chars[index];
+        if current == '/' && index + 1 < count && chars[index + 1] == '/' {
+            let start = index;
+            while index < count && chars[index] != '\n' {
+                index += 1;
+            }
+            runs.push(("tok-comment", chars[start..index].iter().collect()));
+            expect_tag = false;
+        } else if current == '"' {
+            let start = index;
+            index += 1;
+            while index < count {
+                if chars[index] == '\\' && index + 1 < count {
+                    index += 2;
+                    continue;
+                }
+                let quote = chars[index] == '"';
+                index += 1;
+                if quote {
+                    break;
+                }
+            }
+            runs.push(("tok-string", chars[start..index].iter().collect()));
+            expect_tag = false;
+        } else if current.is_ascii_digit() {
+            let start = index;
+            while index < count && (chars[index].is_ascii_alphanumeric() || chars[index] == '.') {
+                index += 1;
+            }
+            runs.push(("tok-number", chars[start..index].iter().collect()));
+            expect_tag = false;
+        } else if current.is_alphabetic() || current == '_' {
+            let start = index;
+            while index < count && (chars[index].is_alphanumeric() || chars[index] == '_') {
+                index += 1;
+            }
+            let word: String = chars[start..index].iter().collect();
+            let starts_upper = word.chars().next().is_some_and(char::is_uppercase);
+            let class = if expect_tag || starts_upper {
+                "tok-command"
+            } else if SNIPPET_KEYWORDS.contains(&word.as_str()) {
+                "tok-keyword"
+            } else {
+                "tok-plain"
+            };
+            runs.push((class, word));
+            expect_tag = false;
+        } else {
+            let start = index;
+            index += 1;
+            while index < count {
+                let next = chars[index];
+                let token_start = (next == '/' && index + 1 < count && chars[index + 1] == '/')
+                    || next == '"'
+                    || next.is_ascii_digit()
+                    || next.is_alphabetic()
+                    || next == '_';
+                if token_start {
+                    break;
+                }
+                index += 1;
+            }
+            let run: String = chars[start..index].iter().collect();
+            let trimmed = run.trim_end();
+            expect_tag = trimmed.ends_with('<') || trimmed.ends_with("</");
+            runs.push(("tok-plain", run));
+        }
+    }
+    runs
+}
+
 #[component]
 fn Snippet(#[prop(into)] code: String) -> impl IntoView {
-    view! { <pre class="gallery-code">{code}</pre> }
+    let spans = highlight_snippet(&code)
+        .into_iter()
+        .map(|(class, text)| view! { <span class=class>{text}</span> })
+        .collect_view();
+    view! { <pre class="gallery-code">{spans}</pre> }
 }
 
 #[component]
@@ -529,8 +622,9 @@ fn LayoutDemo() -> impl IntoView {
 #[component]
 fn NumberFieldDemo() -> impl IntoView {
     let value = RwSignal::new(3.0);
+    let scale = RwSignal::new(1.0);
     view! {
-        <Demo title="NumberField" blurb="A labeled numeric input. This one is in integer mode, clamped to 0..10, with help text below.">
+        <Demo title="NumberField" blurb="A labeled numeric input. It accepts arithmetic expressions (type 2+3*4 or 90/2 and press Enter), clamps to min/max, and can run a custom validator that shows an inline error.">
             <Panel>
                 <NumberField
                     label="Copies"
@@ -538,12 +632,23 @@ fn NumberFieldDemo() -> impl IntoView {
                     min=0.0
                     max=10.0
                     integer=true
-                    help="Whole numbers from 0 to 10"
+                    help="Whole numbers 0 to 10; try typing 2*4"
                     on_change=Callback::new(move |(next, _): (f64, bool)| value.set(next))
                 />
+                <NumberField
+                    label="Scale"
+                    value=Signal::derive(move || scale.get())
+                    help="Try an expression like 1.5*2"
+                    validate=Callback::new(|candidate: f64| {
+                        (candidate <= 0.0).then(|| "Scale must be positive".to_string())
+                    })
+                    on_change=Callback::new(move |(next, _): (f64, bool)| scale.set(next))
+                />
             </Panel>
-            <span class="gallery-readout">{move || format!("value = {}", value.get())}</span>
-            <Snippet code="<NumberField label=\"Copies\" value=v min=0.0 max=10.0 integer=true on_change=cb />" />
+            <span class="gallery-readout">
+                {move || format!("copies = {}, scale = {:.3}", value.get(), scale.get())}
+            </span>
+            <Snippet code="<NumberField label=\"Scale\" value=v validate=Callback::new(|n| (n <= 0.0).then(|| \"must be positive\".into())) on_change=cb />" />
         </Demo>
     }
 }
@@ -551,8 +656,9 @@ fn NumberFieldDemo() -> impl IntoView {
 #[component]
 fn TextFieldDemo() -> impl IntoView {
     let value = RwSignal::new("untitled".to_string());
+    let search = RwSignal::new(String::new());
     view! {
-        <Demo title="TextField" blurb="A labeled text input that commits on blur. Supports placeholder, help, error, and disabled.">
+        <Demo title="TextField" blurb="A labeled text input that commits on blur, or, with a debounce set, live as you stop typing. Supports placeholder, help, error, and disabled.">
             <Panel>
                 <TextField
                     label="Name"
@@ -561,9 +667,18 @@ fn TextFieldDemo() -> impl IntoView {
                     help="Commits when you click away"
                     on_commit=Callback::new(move |next: String| value.set(next))
                 />
+                <TextField
+                    label="Search"
+                    value=Signal::derive(move || search.get())
+                    placeholder="Type to search"
+                    help="Commits 400ms after you stop typing"
+                    debounce=400
+                    on_commit=Callback::new(move |next: String| search.set(next))
+                />
             </Panel>
             <span class="gallery-readout">{move || format!("committed = {}", value.get())}</span>
-            <Snippet code="<TextField label=\"Name\" value=v help=\"...\" on_commit=cb />" />
+            <span class="gallery-readout">{move || format!("debounced search = {}", search.get())}</span>
+            <Snippet code="<TextField label=\"Search\" value=v debounce=400 on_commit=cb />" />
         </Demo>
     }
 }
@@ -1053,11 +1168,35 @@ fn EngineDemo() -> impl IntoView {
 
 #[component]
 fn ThemingDemo() -> impl IntoView {
+    let theme = use_theme();
+    let register_ember = Callback::new(move |_| {
+        register_theme(Theme {
+            id: "ember".into(),
+            label: "Ember".into(),
+            light: false,
+            bg: "#140f0c".into(),
+            panel: "#1e1613".into(),
+            panel_2: "#161010".into(),
+            panel_border: "#3a2a20".into(),
+            text: "rgba(255, 240, 230, 0.9)".into(),
+            text_dim: "rgba(255, 240, 230, 0.5)".into(),
+            accent: "#ff7a45".into(),
+            input_bg: "rgba(255, 255, 255, 0.05)".into(),
+            danger: "#ff5d5d".into(),
+            keyword: "#ffab70".into(),
+            string: "#f2c94c".into(),
+            number: "#ff7a45".into(),
+            comment: "#7a5c4c".into(),
+            command: "#ffd0a0".into(),
+        });
+        theme.set("ember".into());
+    });
     view! {
-        <Demo title="Theming" blurb="Every component reads a small set of semantic CSS custom properties. A theme overrides those tokens; ThemeProvider and ThemePicker switch and persist the choice. Pick a theme and watch this whole page restyle.">
+        <Demo title="Theming" blurb="Every component reads a small set of semantic CSS custom properties. A theme is a typed Rust struct that emits those tokens; ThemeProvider generates and injects the CSS, and register_theme adds custom themes at runtime with no per-component work. Pick a theme, or add one in code, and watch this whole page restyle.">
             <div class="gallery-row">
                 <span class="gallery-readout">"Theme:"</span>
                 <ThemePicker />
+                <Button on_click=register_ember>"Register + apply 'Ember' theme"</Button>
             </div>
             <h2>"Core tokens"</h2>
             <div class="gallery-swatches">
@@ -1071,6 +1210,7 @@ fn ThemingDemo() -> impl IntoView {
                 <Swatch name="--musaic-input-bg" var="--musaic-input-bg" />
             </div>
             <Snippet code="<ThemeProvider>\n    <MusaicStyles />\n    {app}\n</ThemeProvider>" />
+            <Snippet code="register_theme(Theme { id: \"ember\".into(), accent: \"#ff7a45\".into(), ..base });" />
         </Demo>
     }
 }
@@ -1089,12 +1229,56 @@ fn Swatch(#[prop(into)] name: String, #[prop(into)] var: String) -> impl IntoVie
 fn CommandPaletteDemo() -> impl IntoView {
     let palette_open = expect_context::<GalleryCtx>().palette_open;
     view! {
-        <Demo title="Command palette" blurb="A fuzzy command launcher. It is mounted once at the app root and opened from anywhere. Try it: press Ctrl+K, or use the button below, then type to filter.">
+        <Demo title="Command palette" blurb="A fuzzy command launcher driven by the CommandRegistry. It ranks by match quality, shows recently-used commands first, displays keybinding hints, and descends into nested submenus (try 'Switch theme'). Press Ctrl+K, or use the button, then type to filter.">
             <Button class="primary" on_click=Callback::new(move |_| palette_open.set(true))>
                 "Open command palette"
             </Button>
-            <span class="gallery-readout">"or press Ctrl+K"</span>
-            <Snippet code="let open = RwSignal::new(false);\n<CommandPalette open=open commands=commands />" />
+            <span class="gallery-readout">"or press Ctrl+K, then try typing 'theme'"</span>
+            <Snippet code="let open = RwSignal::new(false);\nprovide_command_registry().register(Command::new(\"save\", \"Save\", cb).with_keybinding(\"mod+s\"));\n<CommandPalette open=open />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn KeybindingsDemo() -> impl IntoView {
+    let registry = use_commands();
+    view! {
+        <Demo title="Commands & keys" blurb="Every action lives in one CommandRegistry. The command palette, the global keymap, and menus all read from it, so registering a command once wires up all three surfaces. KeymapProvider installs a single listener that parses bindings like Mod+K and chords like 'g d'.">
+            <Panel title="Registered commands">
+                {move || {
+                    registry
+                        .commands()
+                        .into_iter()
+                        .map(|command| {
+                            let binding = command
+                                .keybinding
+                                .as_deref()
+                                .map(pretty_binding)
+                                .unwrap_or_default();
+                            let group = command.group.clone();
+                            view! {
+                                <div class="gallery-keyrow">
+                                    <span>{command.title}</span>
+                                    <span class="gallery-keyrow-meta">
+                                        {(!group.is_empty())
+                                            .then(|| {
+                                                view! { <span class="gallery-readout">{group}</span> }
+                                            })}
+                                        {(!binding.is_empty())
+                                            .then(|| {
+                                                view! { <kbd class="musaic-palette-kbd">{binding}</kbd> }
+                                            })}
+                                    </span>
+                                </div>
+                            }
+                        })
+                        .collect_view()
+                }}
+            </Panel>
+            <span class="gallery-readout">
+                "Ctrl+K opens the palette and Ctrl+B toggles the sidebar, both registered commands rather than bespoke listeners."
+            </span>
+            <Snippet code="registry.register(Command::new(\"save\", \"Save scene\", cb).with_keybinding(\"mod+s\").with_group(\"File\"));" />
         </Demo>
     }
 }
