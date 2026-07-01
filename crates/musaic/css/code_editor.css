@@ -2,7 +2,7 @@
 
 .musaic-code-editor {
   position: relative;
-  display: block;
+  display: flex;
   border: 1px solid var(--musaic-panel-border);
   border-radius: 9px;
   background: var(--musaic-panel-2);
@@ -15,6 +15,32 @@
 .musaic-code-editor.fill {
   flex: 1 1 0%;
   min-height: 0;
+}
+
+.musaic-code-surface {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.musaic-code-gutter {
+  flex: 0 0 auto;
+  padding: 12px 8px 12px 12px;
+  overflow: hidden;
+  text-align: right;
+  color: var(--musaic-text-dim);
+  background: color-mix(in srgb, var(--musaic-panel-2) 60%, var(--musaic-bg));
+  border-right: 1px solid var(--musaic-panel-border);
+  user-select: none;
+}
+
+.musaic-code-gutter-line {
+  font-variant-numeric: tabular-nums;
+}
+
+.musaic-code-gutter-line.error {
+  color: var(--musaic-danger);
+  font-weight: 600;
 }
 
 .musaic-code-highlight,

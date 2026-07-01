@@ -1,0 +1,41 @@
+/* musaic dynamic (schema-driven) form. */
+
+.musaic-dynamic-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.musaic-dynamic-form .musaic-field input[type="number"],
+.musaic-dynamic-form .musaic-field input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 6px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+}
+
+.musaic-dynamic-form .musaic-field input:focus {
+  outline: none;
+  border-color: var(--musaic-accent);
+}
+
+.musaic-dynamic-form .musaic-vec-field {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.musaic-dynamic-form .musaic-vec-input {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 6px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+}

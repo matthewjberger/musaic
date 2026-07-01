@@ -6,19 +6,27 @@ pub fn Inspector(children: Children) -> impl IntoView {
 }
 
 #[component]
-pub fn InspectorSection(#[prop(into)] title: String, children: ChildrenFn) -> impl IntoView {
-    let open = RwSignal::new(true);
+pub fn InspectorSection(
+    #[prop(into)] title: String,
+    #[prop(default = true)] default_open: bool,
+    #[prop(optional, into)] actions: ViewFn,
+    children: ChildrenFn,
+) -> impl IntoView {
+    let open = RwSignal::new(default_open);
     view! {
         <div class="musaic-inspector-section">
-            <button
-                class="musaic-inspector-header"
-                on:click=move |_| open.update(|value| *value = !*value)
-            >
-                <span class="musaic-inspector-caret" class:open=move || open.get()>
-                    "\u{25b8}"
-                </span>
-                {title}
-            </button>
+            <div class="musaic-inspector-headrow">
+                <button
+                    class="musaic-inspector-header"
+                    on:click=move |_| open.update(|value| *value = !*value)
+                >
+                    <span class="musaic-inspector-caret" class:open=move || open.get()>
+                        "\u{25b8}"
+                    </span>
+                    {title}
+                </button>
+                <div class="musaic-inspector-actions">{actions.run()}</div>
+            </div>
             <Show when=move || open.get() fallback=|| ()>
                 <div class="musaic-inspector-body">{children()}</div>
             </Show>

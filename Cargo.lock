@@ -1694,6 +1694,7 @@ dependencies = [
  "console_error_panic_hook",
  "leptos",
  "leptos-musaic",
+ "serde_json",
  "web-sys",
 ]
 

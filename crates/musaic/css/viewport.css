@@ -76,3 +76,52 @@
 .musaic-selected-row .key {
   color: var(--musaic-text-dim);
 }
+
+/* HUD overlay and nav gizmo. */
+
+.musaic-viewport-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.musaic-hud {
+  position: absolute;
+  pointer-events: auto;
+}
+
+.musaic-nav-gizmo {
+  display: block;
+  cursor: pointer;
+}
+
+.musaic-gizmo-line {
+  stroke: var(--musaic-text-dim);
+  stroke-width: 1.5;
+}
+
+.musaic-gizmo-axis.x {
+  fill: #f87171;
+}
+
+.musaic-gizmo-axis.y {
+  fill: #4ade80;
+}
+
+.musaic-gizmo-axis.z {
+  fill: #60a5fa;
+}
+
+.musaic-gizmo-axis.neg {
+  fill: var(--musaic-panel);
+  stroke: var(--musaic-text-dim);
+  stroke-width: 1.5;
+}
+
+.musaic-gizmo-label {
+  fill: var(--musaic-bg);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--musaic-font);
+}

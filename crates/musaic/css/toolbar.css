@@ -1,0 +1,91 @@
+/* musaic toolbar and menu bar. */
+
+.musaic-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--musaic-panel-border);
+  background: var(--musaic-panel-2);
+}
+
+.musaic-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 6px;
+  border-right: 1px solid color-mix(in srgb, var(--musaic-panel-border) 60%, transparent);
+}
+
+.musaic-toolbar-group:last-child {
+  border-right: none;
+}
+
+.musaic-toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.musaic-tool-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--musaic-text-dim);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.musaic-tool-button:hover:not(:disabled) {
+  background: var(--musaic-hover);
+  color: var(--musaic-text);
+}
+
+.musaic-tool-button.active {
+  background: var(--musaic-accent-soft);
+  color: var(--musaic-accent);
+  border-color: var(--musaic-accent-soft);
+}
+
+.musaic-tool-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.musaic-menu-bar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.musaic-menu-bar-item {
+  position: relative;
+}
+
+.musaic-menu-bar-trigger {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--musaic-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.musaic-menu-bar-trigger:hover,
+.musaic-menu-bar-trigger.active {
+  background: var(--musaic-hover);
+}
+
+.musaic-menu-bar-item .musaic-menu-list {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+}

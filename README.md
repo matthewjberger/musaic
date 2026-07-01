@@ -43,20 +43,31 @@ Prefer a single import? `use leptos_musaic::prelude::*;` pulls in every enabled 
 
 The base layer (design tokens, typed theming, `Button`, `IconButton`, `Panel`, `Card`, layout,
 `ResizeHandle`, `Overlay`/`Modal`, `Badge`, `Progress`, `Tooltip`, `Spinner`, toasts, the
-`CommandRegistry`, and the `KeymapProvider`) is always compiled. Everything else is opt-in:
+`CommandRegistry`, the `KeymapProvider`, the `EditorShell` frame, and the `use_persisted` /
+`use_reconnecting_socket` hooks) is always compiled. Everything else is opt-in:
 
 | feature | components |
 | --- | --- |
-| `forms` | `NumberField` (min/max, integer mode, arithmetic-expression input, `validate`), `Vec3Field`, `CheckField`, `Switch`, `TextField` (optional `debounce`), `SliderField`, `ColorField`, `Select`, all with `disabled` and inline help/error |
+| `forms` | `NumberField` (expression input, `validate`, live drag-to-scrub, reset), `Vec3Field`, `CheckField`, `Switch`, `TextField` (optional `debounce`), `SliderField`, `ColorField`, `Select`, `ChipGroup`/`ToggleChip`, `TagInput`, `Swatch`/`SwatchPalette` |
 | `menus` | `Menu`, `MenuItem` (checkable, disabled, shortcuts), `Submenu`, `MenuSeparator`, `ContextMenu` (portalled), `TabBar`, all keyboard-navigable |
-| `themes` | the bundled themes, `register_theme` for custom typed themes, plus `ThemePicker` |
+| `themes` | the bundled themes, `register_theme` for custom typed themes, `ThemePicker`, and `ThemeMenu` (hover-preview) |
 | `command-palette` | `CommandPalette` (registry-driven, fuzzy-ranked, recents, keybinding hints, nested submenus) |
-| `code-editor` | `CodeEditor` (textarea over a synced highlight layer) |
+| `code-editor` | `CodeEditor` (highlight layer, optional line-number gutter and diagnostic markers) |
 | `table` | `Table` (multi-column sort, filter, column resize, sticky header, optional virtualization) |
 | `tree` | `Tree`, `TreeItem` (collapsible hierarchy, multi-select, inline rename, drag-and-drop, lazy expand, arrow-key nav) |
-| `inspector` | `Inspector`, `InspectorSection`, `InspectorRow` (collapsible property panels) |
+| `inspector` | `Inspector`, `InspectorSection` (header actions slot), `InspectorRow` |
 | `dock` | `DockLayout`, `DockPanel`, `DockMain`: resizable, collapsible panels docked around a main region |
-| `viewport` | `Viewport`, `Bridge`, `Loader`, `WebGpuGate`: a worker-backed render surface, engine-agnostic |
+| `disclosure` | `Disclosure`, `Accordion`, `AccordionItem` |
+| `status-bar` | `StatusBar`, `StatusItem`, `StatusSpacer` |
+| `toolbar` | `Toolbar`, `ToolbarGroup`, `ToolbarSpacer`, `ToolButton`, `MenuBar`, `MenuBarMenu` |
+| `log` | `LogView` (kind-colored, deduped, auto-tailing console) |
+| `markdown` | `Markdown`: a dependency-free renderer (headings, emphasis, code, lists, links, quotes) |
+| `search-list` | `SearchList`: filterable list with expandable detail and scroll-to-selected |
+| `asset-grid` | `AssetGrid`, `AssetItem`: searchable thumbnail grid with lazy images |
+| `list-editor` | `OrderedList`, `ListItem`: reorderable list with per-row actions |
+| `chat` | `Chat`, `ChatMessage`: role-styled message list with compose box and status |
+| `dynamic-form` | `DynamicForm`, `FormField`, `FieldSchema`: a form generated from a schema, emitting JSON |
+| `viewport` | `Viewport`, `Bridge`, `Loader`, `WebGpuGate`, `ViewportOverlay`, `HudPanel`, `NavGizmo` |
 | `engine` | `use_engine`, `EngineViewport`: turnkey wiring (input, keyboard, lifecycle) over the shared protocol |
 | `nightshade` | the rhai syntax highlighter and `SelectedCard` |
 

@@ -1,0 +1,28 @@
+/* musaic status bar. */
+
+.musaic-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 26px;
+  padding: 0 12px;
+  border-top: 1px solid var(--musaic-panel-border);
+  background: var(--musaic-panel-2);
+  color: var(--musaic-text-dim);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.musaic-status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.musaic-status-icon {
+  color: var(--musaic-accent);
+}
+
+.musaic-status-spacer {
+  flex: 1 1 auto;
+}

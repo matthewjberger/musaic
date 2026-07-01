@@ -90,6 +90,7 @@ pub fn NumberField(
     #[prop(into, optional)] help: String,
     #[prop(into, optional)] error: String,
     #[prop(into, optional)] disabled: Signal<bool>,
+    #[prop(optional)] default: Option<f64>,
     #[prop(optional)] validate: Option<Callback<f64, Option<String>>>,
     on_change: Callback<(f64, bool)>,
 ) -> impl IntoView {
@@ -137,18 +138,71 @@ pub fn NumberField(
             None => {}
         }
     };
+    let live = move |raw: String| {
+        if let Ok(parsed) = raw.parse::<f64>() {
+            on_change.run((clamp(parsed), false));
+        }
+    };
+    let label_ref = NodeRef::<leptos::html::Span>::new();
+    let drag = StoredValue::new(None::<(f64, f64)>);
+    let on_scrub_down = move |event: web_sys::PointerEvent| {
+        event.prevent_default();
+        drag.set_value(Some((event.client_x() as f64, value.get_untracked())));
+        if let Some(node) = label_ref.get() {
+            let _ = node.set_pointer_capture(event.pointer_id());
+        }
+    };
+    let on_scrub_move = move |event: web_sys::PointerEvent| {
+        if let Some((start_x, start_value)) = drag.get_value() {
+            let delta = event.client_x() as f64 - start_x;
+            on_change.run((clamp(start_value + delta * step), false));
+        }
+    };
+    let on_scrub_up = move |event: web_sys::PointerEvent| {
+        if drag.get_value().is_some() {
+            drag.set_value(None);
+            on_change.run((value.get_untracked(), true));
+            if let Some(node) = label_ref.get() {
+                let _ = node.release_pointer_capture(event.pointer_id());
+            }
+        }
+    };
     view! {
         <div class="musaic-field-group">
             <label class="musaic-field">
-                <span class="musaic-field-label">{label}</span>
+                <span
+                    node_ref=label_ref
+                    class="musaic-field-label musaic-scrub"
+                    on:pointerdown=on_scrub_down
+                    on:pointermove=on_scrub_move
+                    on:pointerup=on_scrub_up
+                >
+                    {label}
+                </span>
                 <input
                     type="text"
                     inputmode="decimal"
                     step=step
                     disabled=move || disabled.get()
                     prop:value=move || format_value(value.get())
+                    on:input=move |event| live(event_target_value(&event))
                     on:change=move |event| commit(event_target_value(&event), true)
                 />
+                {default
+                    .map(|fallback| {
+                        view! {
+                            <span
+                                class="musaic-field-reset"
+                                role="button"
+                                tabindex="0"
+                                title="Reset to default"
+                                class:hidden=move || value.get() == fallback
+                                on:click=move |_| on_change.run((fallback, true))
+                            >
+                                "\u{21ba}"
+                            </span>
+                        }
+                    })}
             </label>
             <FieldNote help=help error=error_signal />
         </div>
@@ -176,11 +230,16 @@ pub fn Vec3Field(
         result
     };
     let axis = move |index: usize, tag: &'static str| {
-        let commit = move |raw: String| {
-            if let Some(parsed) = raw.parse::<f64>().ok().or_else(|| eval_expr(&raw)) {
+        let apply = move |raw: String, committed: bool| {
+            let parsed = if committed {
+                raw.parse::<f64>().ok().or_else(|| eval_expr(&raw))
+            } else {
+                raw.parse::<f64>().ok()
+            };
+            if let Some(parsed) = parsed {
                 let mut next = value.get_untracked();
                 next[index] = clamp(parsed);
-                on_change.run((next, true));
+                on_change.run((next, committed));
             }
         };
         view! {
@@ -192,7 +251,8 @@ pub fn Vec3Field(
                     step=step.unwrap_or(0.1)
                     disabled=move || disabled.get()
                     prop:value=move || format!("{:.3}", value.get()[index])
-                    on:change=move |event| commit(event_target_value(&event))
+                    on:input=move |event| apply(event_target_value(&event), false)
+                    on:change=move |event| apply(event_target_value(&event), true)
                 />
             </div>
         }
@@ -391,6 +451,136 @@ pub fn Select(
                     .collect_view()}
             </select>
         </label>
+    }
+}
+
+#[component]
+pub fn ChipGroup(#[prop(into, optional)] class: String, children: Children) -> impl IntoView {
+    view! { <div class=format!("musaic-chip-group {class}")>{children()}</div> }
+}
+
+#[component]
+pub fn ToggleChip(
+    #[prop(into)] label: String,
+    #[prop(into)] active: Signal<bool>,
+    on_toggle: Callback<()>,
+    #[prop(into, optional)] disabled: Signal<bool>,
+) -> impl IntoView {
+    view! {
+        <button
+            type="button"
+            class="musaic-chip"
+            class:active=move || active.get()
+            aria-pressed=move || active.get().to_string()
+            disabled=move || disabled.get()
+            on:click=move |_| on_toggle.run(())
+        >
+            {label}
+        </button>
+    }
+}
+
+#[component]
+pub fn TagInput(
+    #[prop(into)] tags: Signal<Vec<String>>,
+    on_add: Callback<String>,
+    on_remove: Callback<String>,
+    #[prop(into, optional)] placeholder: String,
+) -> impl IntoView {
+    let draft = RwSignal::new(String::new());
+    let placeholder = if placeholder.is_empty() {
+        "Add tag…".to_string()
+    } else {
+        placeholder
+    };
+    let submit = move || {
+        let value = draft.get_untracked().trim().to_string();
+        if !value.is_empty() {
+            on_add.run(value);
+            draft.set(String::new());
+        }
+    };
+    view! {
+        <div class="musaic-tag-input">
+            <For each=move || tags.get() key=|tag| tag.clone() let:tag>
+                {
+                    let removed = tag.clone();
+                    view! {
+                        <span class="musaic-tag">
+                            {tag.clone()}
+                            <button
+                                class="musaic-tag-remove"
+                                aria-label="Remove tag"
+                                on:click=move |_| on_remove.run(removed.clone())
+                            >
+                                "\u{00d7}"
+                            </button>
+                        </span>
+                    }
+                }
+            </For>
+            <input
+                type="text"
+                class="musaic-tag-field"
+                placeholder=placeholder
+                prop:value=move || draft.get()
+                on:input=move |event| draft.set(event_target_value(&event))
+                on:keydown=move |event| {
+                    if event.key() == "Enter" {
+                        event.prevent_default();
+                        submit();
+                    }
+                }
+            />
+        </div>
+    }
+}
+
+#[component]
+pub fn Swatch(
+    #[prop(into)] color: String,
+    #[prop(into, optional)] active: Signal<bool>,
+    #[prop(optional)] on_select: Option<Callback<()>>,
+) -> impl IntoView {
+    view! {
+        <button
+            type="button"
+            class="musaic-swatch"
+            class:active=move || active.get()
+            title=color.clone()
+            style=format!("background:{color}")
+            on:click=move |_| {
+                if let Some(callback) = on_select {
+                    callback.run(());
+                }
+            }
+        ></button>
+    }
+}
+
+#[component]
+pub fn SwatchPalette(
+    colors: Vec<String>,
+    #[prop(into)] selected: Signal<String>,
+    on_select: Callback<String>,
+) -> impl IntoView {
+    view! {
+        <div class="musaic-swatch-palette">
+            {colors
+                .into_iter()
+                .map(|color| {
+                    let value = color.clone();
+                    let compare = color.clone();
+                    view! {
+                        <Swatch
+                            color=color
+                            active=Signal::derive(move || selected.get() == compare)
+                            on_select=Callback::new(move |_| on_select.run(value.clone()))
+                        />
+                    }
+                })
+                .collect_view()}
+        </div>
     }
 }
 

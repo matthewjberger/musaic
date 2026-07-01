@@ -367,3 +367,100 @@ body {
 .musaic-tooltip:focus-within .musaic-tooltip-bubble {
   opacity: 1;
 }
+
+.musaic-editor-shell {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "toolbar toolbar toolbar"
+    "left    center  right"
+    "status  status  status";
+}
+
+.musaic-editor-toolbar {
+  grid-area: toolbar;
+  min-width: 0;
+}
+
+.musaic-editor-left {
+  grid-area: left;
+  width: 260px;
+  min-height: 0;
+  overflow: auto;
+  border-right: 1px solid var(--musaic-panel-border);
+  background: var(--musaic-panel);
+  transition: width 0.16s ease;
+}
+
+.musaic-editor-right {
+  grid-area: right;
+  width: 300px;
+  min-height: 0;
+  overflow: auto;
+  border-left: 1px solid var(--musaic-panel-border);
+  background: var(--musaic-panel);
+  transition: width 0.16s ease;
+}
+
+.musaic-editor-left.closed,
+.musaic-editor-right.closed {
+  width: 0;
+  border-width: 0;
+  overflow: hidden;
+}
+
+.musaic-editor-center {
+  grid-area: center;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.musaic-editor-status {
+  grid-area: status;
+  min-width: 0;
+}
+
+.musaic-theme-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.musaic-theme-menu-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  background: var(--musaic-panel);
+  box-shadow: var(--musaic-shadow);
+}
+
+.musaic-theme-menu-item {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--musaic-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.musaic-theme-menu-item:hover {
+  background: var(--musaic-hover);
+}
+
+.musaic-theme-menu-item.active {
+  color: var(--musaic-accent);
+}

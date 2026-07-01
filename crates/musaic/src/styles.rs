@@ -19,6 +19,26 @@ pub fn stylesheet() -> String {
     css.push_str(include_str!("../css/inspector.css"));
     #[cfg(feature = "dock")]
     css.push_str(include_str!("../css/dock.css"));
+    #[cfg(feature = "disclosure")]
+    css.push_str(include_str!("../css/disclosure.css"));
+    #[cfg(feature = "status-bar")]
+    css.push_str(include_str!("../css/status_bar.css"));
+    #[cfg(feature = "toolbar")]
+    css.push_str(include_str!("../css/toolbar.css"));
+    #[cfg(feature = "log")]
+    css.push_str(include_str!("../css/log.css"));
+    #[cfg(feature = "markdown")]
+    css.push_str(include_str!("../css/markdown.css"));
+    #[cfg(feature = "search-list")]
+    css.push_str(include_str!("../css/search_list.css"));
+    #[cfg(feature = "asset-grid")]
+    css.push_str(include_str!("../css/asset_grid.css"));
+    #[cfg(feature = "list-editor")]
+    css.push_str(include_str!("../css/list_editor.css"));
+    #[cfg(feature = "chat")]
+    css.push_str(include_str!("../css/chat.css"));
+    #[cfg(feature = "dynamic-form")]
+    css.push_str(include_str!("../css/dynamic_form.css"));
     #[cfg(feature = "viewport")]
     css.push_str(include_str!("../css/viewport.css"));
     format!("@layer musaic {{\n{css}\n}}\n")

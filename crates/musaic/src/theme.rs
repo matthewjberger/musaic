@@ -397,6 +397,53 @@ pub fn ThemePicker() -> impl IntoView {
     }
 }
 
+#[cfg(feature = "themes")]
+#[component]
+pub fn ThemeMenu() -> impl IntoView {
+    let theme = use_theme();
+    let open = RwSignal::new(false);
+    let revert = move || preview_theme(&theme.get_untracked());
+    view! {
+        <div class="musaic-theme-menu">
+            <button
+                class="musaic-button"
+                aria-haspopup="menu"
+                aria-expanded=move || open.get().to_string()
+                on:click=move |_| open.update(|value| *value = !*value)
+            >
+                "Theme"
+            </button>
+            <Show when=move || open.get() fallback=|| ()>
+                <div class="musaic-theme-menu-list" role="menu" on:pointerleave=move |_| revert()>
+                    {move || {
+                        use_themes()
+                            .into_iter()
+                            .map(|entry| {
+                                let id_hover = entry.id.clone();
+                                let id_click = entry.id.clone();
+                                let id_active = entry.id.clone();
+                                view! {
+                                    <button
+                                        class="musaic-theme-menu-item"
+                                        class:active=move || theme.get() == id_active
+                                        on:pointerenter=move |_| preview_theme(&id_hover)
+                                        on:click=move |_| {
+                                            theme.set(id_click.clone());
+                                            open.set(false);
+                                        }
+                                    >
+                                        {entry.label}
+                                    </button>
+                                }
+                            })
+                            .collect_view()
+                    }}
+                </div>
+            </Show>
+        </div>
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{THEMES, builtin_themes, resolve_theme};

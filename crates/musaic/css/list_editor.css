@@ -1,0 +1,80 @@
+/* musaic ordered-list editor. */
+
+.musaic-ordered-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.musaic-ordered-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--musaic-text-dim);
+}
+
+.musaic-ordered-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 4px;
+}
+
+.musaic-ordered-row + .musaic-ordered-row {
+  border-top: 1px solid color-mix(in srgb, var(--musaic-panel-border) 55%, transparent);
+}
+
+.musaic-ordered-label {
+  flex: 1 1 auto;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--musaic-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.musaic-ordered-label:hover {
+  background: var(--musaic-hover);
+}
+
+.musaic-ordered-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.musaic-ordered-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--musaic-text-dim);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.musaic-ordered-action:hover:not(:disabled) {
+  background: var(--musaic-hover);
+  color: var(--musaic-text);
+}
+
+.musaic-ordered-action.danger:hover:not(:disabled) {
+  color: var(--musaic-danger);
+}
+
+.musaic-ordered-action:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

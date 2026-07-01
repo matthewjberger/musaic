@@ -46,6 +46,7 @@ web-sys = { version = "0.3", features = [
     "DataTransfer",
     "ResizeObserver",
     "Storage",
+    "WebSocket",
 ] }
 
 [features]
@@ -59,6 +60,16 @@ table = []
 tree = []
 inspector = []
 dock = []
+disclosure = []
+status-bar = []
+toolbar = ["menus"]
+log = []
+markdown = []
+search-list = []
+asset-grid = []
+list-editor = []
+chat = []
+dynamic-form = ["forms"]
 viewport = []
 engine = ["viewport"]
 nightshade = ["viewport", "code-editor"]
@@ -72,6 +83,16 @@ full = [
     "tree",
     "inspector",
     "dock",
+    "disclosure",
+    "status-bar",
+    "toolbar",
+    "log",
+    "markdown",
+    "search-list",
+    "asset-grid",
+    "list-editor",
+    "chat",
+    "dynamic-form",
     "viewport",
     "engine",
     "nightshade",

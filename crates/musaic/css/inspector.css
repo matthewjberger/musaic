@@ -12,14 +12,20 @@
   overflow: hidden;
 }
 
+.musaic-inspector-headrow {
+  display: flex;
+  align-items: center;
+  background: var(--musaic-panel-2);
+}
+
 .musaic-inspector-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
+  flex: 1 1 auto;
   padding: 8px 10px;
   border: none;
-  background: var(--musaic-panel-2);
+  background: transparent;
   color: var(--musaic-text);
   font: inherit;
   font-weight: 600;
@@ -28,6 +34,13 @@
 
 .musaic-inspector-header:hover {
   background: var(--musaic-hover);
+}
+
+.musaic-inspector-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 8px;
 }
 
 .musaic-inspector-caret {

@@ -173,3 +173,122 @@
   outline: none;
   border-color: var(--musaic-accent);
 }
+
+.musaic-scrub {
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.musaic-field-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  color: var(--musaic-text-dim);
+  cursor: pointer;
+}
+
+.musaic-field-reset:hover {
+  background: var(--musaic-hover);
+  color: var(--musaic-text);
+}
+
+.musaic-field-reset.hidden {
+  visibility: hidden;
+}
+
+.musaic-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.musaic-chip {
+  padding: 3px 10px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 999px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text-dim);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+
+.musaic-chip:hover:not(:disabled) {
+  color: var(--musaic-text);
+}
+
+.musaic-chip.active {
+  border-color: var(--musaic-accent);
+  background: var(--musaic-accent-soft);
+  color: var(--musaic-accent);
+}
+
+.musaic-tag-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 7px;
+  background: var(--musaic-input-bg);
+}
+
+.musaic-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 2px 8px;
+  border-radius: 999px;
+  background: var(--musaic-accent-soft);
+  color: var(--musaic-accent);
+  font-size: 12px;
+}
+
+.musaic-tag-remove {
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+
+.musaic-tag-field {
+  flex: 1;
+  min-width: 80px;
+  border: none;
+  background: transparent;
+  color: var(--musaic-text);
+  font: inherit;
+}
+
+.musaic-tag-field:focus {
+  outline: none;
+}
+
+.musaic-swatch-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.musaic-swatch {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.musaic-swatch.active {
+  outline: 2px solid var(--musaic-accent);
+  outline-offset: 1px;
+}

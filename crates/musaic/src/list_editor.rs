@@ -1,0 +1,103 @@
+use leptos::prelude::*;
+
+#[derive(Clone)]
+pub struct ListItem {
+    pub id: String,
+    pub label: String,
+}
+
+impl ListItem {
+    pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self {
+        Self {
+            id: id.into(),
+            label: label.into(),
+        }
+    }
+}
+
+#[component]
+pub fn OrderedList(
+    #[prop(into)] items: Signal<Vec<ListItem>>,
+    #[prop(optional)] on_move_up: Option<Callback<String>>,
+    #[prop(optional)] on_move_down: Option<Callback<String>>,
+    #[prop(optional)] on_remove: Option<Callback<String>>,
+    #[prop(optional)] on_select: Option<Callback<String>>,
+) -> impl IntoView {
+    view! {
+        <div class="musaic-ordered-list" role="list">
+            {move || {
+                let rows = items.get();
+                let count = rows.len();
+                if count == 0 {
+                    return view! { <div class="musaic-ordered-empty">"Empty"</div> }.into_any();
+                }
+                rows.into_iter()
+                    .enumerate()
+                    .map(|(index, item)| {
+                        let select_id = item.id.clone();
+                        let up_id = item.id.clone();
+                        let down_id = item.id.clone();
+                        let remove_id = item.id.clone();
+                        let is_first = index == 0;
+                        let is_last = index + 1 == count;
+                        view! {
+                            <div class="musaic-ordered-row" role="listitem">
+                                <button
+                                    class="musaic-ordered-label"
+                                    on:click=move |_| {
+                                        if let Some(callback) = on_select {
+                                            callback.run(select_id.clone());
+                                        }
+                                    }
+                                >
+                                    {item.label}
+                                </button>
+                                <div class="musaic-ordered-actions">
+                                    {on_move_up
+                                        .map(|callback| {
+                                            view! {
+                                                <button
+                                                    class="musaic-ordered-action"
+                                                    aria-label="Move up"
+                                                    disabled=is_first
+                                                    on:click=move |_| callback.run(up_id.clone())
+                                                >
+                                                    "\u{25b2}"
+                                                </button>
+                                            }
+                                        })}
+                                    {on_move_down
+                                        .map(|callback| {
+                                            view! {
+                                                <button
+                                                    class="musaic-ordered-action"
+                                                    aria-label="Move down"
+                                                    disabled=is_last
+                                                    on:click=move |_| callback.run(down_id.clone())
+                                                >
+                                                    "\u{25bc}"
+                                                </button>
+                                            }
+                                        })}
+                                    {on_remove
+                                        .map(|callback| {
+                                            view! {
+                                                <button
+                                                    class="musaic-ordered-action danger"
+                                                    aria-label="Remove"
+                                                    on:click=move |_| callback.run(remove_id.clone())
+                                                >
+                                                    "\u{00d7}"
+                                                </button>
+                                            }
+                                        })}
+                                </div>
+                            </div>
+                        }
+                    })
+                    .collect_view()
+                    .into_any()
+            }}
+        </div>
+    }
+}
