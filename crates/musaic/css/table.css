@@ -58,3 +58,67 @@
   outline: 2px solid var(--musaic-accent);
   outline-offset: -2px;
 }
+
+.musaic-table-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.musaic-table-filter {
+  align-self: flex-start;
+  min-width: 220px;
+  padding: 6px 10px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 7px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+}
+
+.musaic-table-filter:focus {
+  outline: none;
+  border-color: var(--musaic-accent);
+}
+
+.musaic-table-wrap.sticky {
+  position: relative;
+}
+
+.musaic-th {
+  position: relative;
+}
+
+.musaic-th-label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.musaic-th-rank {
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--musaic-accent-soft);
+  color: var(--musaic-accent);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.musaic-th-grip {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.musaic-th-grip:hover {
+  background: var(--musaic-accent-soft);
+}
+
+.musaic-spacer-row td {
+  border: none !important;
+}

@@ -77,3 +77,58 @@
   color: var(--musaic-text);
   border-bottom-color: var(--musaic-accent);
 }
+
+.musaic-menu-item:focus-visible,
+.musaic-tab:focus-visible {
+  outline: 2px solid var(--musaic-accent);
+  outline-offset: -2px;
+}
+
+.musaic-menu-item[aria-disabled="true"] {
+  color: var(--musaic-text-dim);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.musaic-menu-label {
+  flex: 1;
+  text-align: left;
+}
+
+.musaic-menu-check {
+  display: inline-flex;
+  width: 14px;
+  justify-content: center;
+  color: var(--musaic-accent);
+  opacity: 0;
+}
+
+.musaic-menu-check.on {
+  opacity: 1;
+}
+
+.musaic-menu-arrow {
+  color: var(--musaic-text-dim);
+}
+
+.musaic-menu-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--musaic-panel-border);
+}
+
+.musaic-submenu {
+  position: relative;
+}
+
+.musaic-menu-list.submenu {
+  top: -4px;
+  left: 100%;
+  margin-left: 2px;
+}
+
+.musaic-context-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+}

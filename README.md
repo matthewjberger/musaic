@@ -41,36 +41,45 @@ Prefer a single import? `use leptos_musaic::prelude::*;` pulls in every enabled 
 
 ## Feature gates
 
-The base layer (design tokens, theming, `Button`, `IconButton`, `Panel`, `Card`, layout,
-`ResizeHandle`, `Modal`, `Badge`, `Progress`, `Tooltip`, `Spinner`, toasts) is always compiled.
-Everything else is opt-in:
+The base layer (design tokens, typed theming, `Button`, `IconButton`, `Panel`, `Card`, layout,
+`ResizeHandle`, `Overlay`/`Modal`, `Badge`, `Progress`, `Tooltip`, `Spinner`, toasts, the
+`CommandRegistry`, and the `KeymapProvider`) is always compiled. Everything else is opt-in:
 
 | feature | components |
 | --- | --- |
-| `forms` | `NumberField` (min/max, integer mode), `CheckField`, `Switch`, `TextField`, `SliderField`, `ColorField`, `Select`, all with `disabled` and inline help/error |
-| `menus` | `Menu`, `MenuItem`, `ContextMenu`, `TabBar` |
-| `themes` | the bundled themes plus `ThemePicker` |
-| `command-palette` | `CommandPalette` (Ctrl+K fuzzy commands) |
+| `forms` | `NumberField` (min/max, integer mode, arithmetic-expression input, `validate`), `Vec3Field`, `CheckField`, `Switch`, `TextField` (optional `debounce`), `SliderField`, `ColorField`, `Select`, all with `disabled` and inline help/error |
+| `menus` | `Menu`, `MenuItem` (checkable, disabled, shortcuts), `Submenu`, `MenuSeparator`, `ContextMenu` (portalled), `TabBar`, all keyboard-navigable |
+| `themes` | the bundled themes, `register_theme` for custom typed themes, plus `ThemePicker` |
+| `command-palette` | `CommandPalette` (registry-driven, fuzzy-ranked, recents, keybinding hints, nested submenus) |
 | `code-editor` | `CodeEditor` (textarea over a synced highlight layer) |
-| `table` | `Table` (optional click-to-sort, numeric-aware, row selection, `aria-sort`) |
-| `tree` | `Tree`, `TreeItem` (collapsible hierarchy, selection, icons, arrow-key navigation) |
+| `table` | `Table` (multi-column sort, filter, column resize, sticky header, optional virtualization) |
+| `tree` | `Tree`, `TreeItem` (collapsible hierarchy, multi-select, inline rename, drag-and-drop, lazy expand, arrow-key nav) |
 | `inspector` | `Inspector`, `InspectorSection`, `InspectorRow` (collapsible property panels) |
+| `dock` | `DockLayout`, `DockPanel`, `DockMain`: resizable, collapsible panels docked around a main region |
 | `viewport` | `Viewport`, `Bridge`, `Loader`, `WebGpuGate`: a worker-backed render surface, engine-agnostic |
 | `engine` | `use_engine`, `EngineViewport`: turnkey wiring (input, keyboard, lifecycle) over the shared protocol |
 | `nightshade` | the rhai syntax highlighter and `SelectedCard` |
 
 `default = ["forms", "menus", "themes"]`. Use `full` to turn on everything.
 
+## Commands and keybindings
+
+Actions live in one place. A `CommandRegistry` (from `provide_command_registry()`) holds `Command`s,
+each with an id, title, group, optional `enabled` predicate, optional keybinding, and optional nested
+children. The `CommandPalette`, `KeymapProvider`, and your menus all read from that single registry,
+so a new capability is one `register` call instead of three wired surfaces. `KeymapProvider` installs
+one global key listener that parses bindings like `Mod+K` or the chord `g d` and dispatches to the
+registry, skipping bare keys while a text field has focus.
+
 ## Theming
 
 Every component draws its colors from a small set of semantic CSS custom properties
-(`--musaic-accent`, `--musaic-panel`, `--musaic-text`, `--musaic-danger`, and friends). A theme is
-just a block that overrides those tokens, selected by `data-theme` on the document element.
-`ThemeProvider` and `ThemePicker` handle that and persist the choice to `localStorage`. Because the
-new primitives (`Badge`, `Card`, `Progress`, `Tooltip`, `Switch`, table/tree selection) are all
-built from the same tokens, they restyle automatically across the nine bundled themes, and a
-consumer can add a theme without touching any component. The stylesheet is wrapped in
-`@layer musaic`, so your own CSS always wins.
+(`--musaic-accent`, `--musaic-panel`, `--musaic-text`, `--musaic-danger`, and friends). A theme is a
+typed Rust `Theme` struct that emits those tokens; the nine bundled themes are defined in Rust and
+`ThemeProvider` injects their generated CSS, selected by `data-theme` on the document element, and
+persists the choice to `localStorage`. A consumer defines a new theme in code and calls
+`register_theme(...)`; it shows up in `ThemePicker` and restyles every component with no per-component
+work. The component stylesheet is wrapped in `@layer musaic`, so your own CSS always wins.
 
 ## Accessibility
 

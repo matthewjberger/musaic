@@ -1,7 +1,14 @@
 use leptos::html;
+use leptos::portal::Portal;
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{HtmlDivElement, HtmlElement, KeyboardEvent};
+
+#[component]
+pub fn Overlay(children: ChildrenFn) -> impl IntoView {
+    let children = StoredValue::new(children);
+    view! { <Portal>{move || children.with_value(|render| render())}</Portal> }
+}
 
 #[component]
 pub fn Scrim(
@@ -26,6 +33,7 @@ const FOCUSABLE_SELECTOR: &str = "a[href], button:not([disabled]), input:not([di
 pub fn Modal(open: RwSignal<bool>, children: ChildrenFn) -> impl IntoView {
     let dialog_ref = NodeRef::<html::Div>::new();
     let previously_focused = StoredValue::new_local(None::<HtmlElement>);
+    let children = StoredValue::new(children);
 
     Effect::new(move |_| {
         if open.get() {
@@ -60,19 +68,21 @@ pub fn Modal(open: RwSignal<bool>, children: ChildrenFn) -> impl IntoView {
 
     view! {
         <Show when=move || open.get() fallback=|| ()>
-            <div class="musaic-scrim" on:click=move |_| open.set(false)>
-                <div
-                    node_ref=dialog_ref
-                    class="musaic-modal"
-                    role="dialog"
-                    aria-modal="true"
-                    tabindex="-1"
-                    on:click=|event| event.stop_propagation()
-                    on:keydown=on_keydown
-                >
-                    {children()}
+            <Overlay>
+                <div class="musaic-scrim" on:click=move |_| open.set(false)>
+                    <div
+                        node_ref=dialog_ref
+                        class="musaic-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        tabindex="-1"
+                        on:click=|event| event.stop_propagation()
+                        on:keydown=on_keydown
+                    >
+                        {children.with_value(|render| render())}
+                    </div>
                 </div>
-            </div>
+            </Overlay>
         </Show>
     }
 }

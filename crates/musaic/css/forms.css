@@ -136,3 +136,40 @@
   transform: translateX(16px);
   background: var(--musaic-accent);
 }
+
+.musaic-vec-field {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.musaic-vec-axis {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.musaic-vec-tag {
+  color: var(--musaic-text-dim);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.musaic-vec-axis input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 6px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+}
+
+.musaic-vec-axis input[type="text"]:focus {
+  outline: none;
+  border-color: var(--musaic-accent);
+}

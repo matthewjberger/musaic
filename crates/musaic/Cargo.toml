@@ -42,6 +42,8 @@ web-sys = { version = "0.3", features = [
     "MouseEvent",
     "WheelEvent",
     "KeyboardEvent",
+    "DragEvent",
+    "DataTransfer",
     "ResizeObserver",
     "Storage",
 ] }
@@ -56,6 +58,7 @@ code-editor = []
 table = []
 tree = []
 inspector = []
+dock = []
 viewport = []
 engine = ["viewport"]
 nightshade = ["viewport", "code-editor"]
@@ -68,6 +71,7 @@ full = [
     "table",
     "tree",
     "inspector",
+    "dock",
     "viewport",
     "engine",
     "nightshade",

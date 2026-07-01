@@ -70,3 +70,34 @@
   text-align: center;
   color: var(--musaic-text-dim);
 }
+
+.musaic-palette-breadcrumb {
+  padding: 8px 16px 0;
+  color: var(--musaic-text-dim);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.musaic-palette-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.musaic-palette-group {
+  color: var(--musaic-text-dim);
+  font-size: 11px;
+}
+
+.musaic-palette-kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 5px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text-dim);
+  font-family: var(--musaic-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}

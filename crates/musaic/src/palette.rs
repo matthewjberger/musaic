@@ -1,88 +1,132 @@
 use leptos::prelude::*;
 
-#[derive(Clone)]
-pub struct Command {
-    pub id: String,
-    pub title: String,
-    pub hint: String,
-    pub action: Callback<()>,
-}
+use crate::command::{Command, use_commands};
+use crate::keymap::pretty_binding;
 
-impl Command {
-    pub fn new(id: impl Into<String>, title: impl Into<String>, action: Callback<()>) -> Self {
-        Self {
-            id: id.into(),
-            title: title.into(),
-            hint: String::new(),
-            action,
-        }
+fn fuzzy_score(query: &str, target: &str) -> Option<i32> {
+    if query.is_empty() {
+        return Some(0);
     }
-
-    pub fn with_hint(mut self, hint: impl Into<String>) -> Self {
-        self.hint = hint.into();
-        self
-    }
-}
-
-fn fuzzy(query: &str, target: &str) -> bool {
-    let target = target.to_lowercase();
-    let mut needle = query
-        .to_lowercase()
-        .chars()
-        .collect::<Vec<_>>()
-        .into_iter()
-        .peekable();
-    for character in target.chars() {
+    let target_lower = target.to_lowercase();
+    let query_lower = query.to_lowercase();
+    let mut needle = query_lower.chars().peekable();
+    let mut score = 0;
+    let mut streak = 0;
+    let mut matched_any = false;
+    for (index, character) in target_lower.chars().enumerate() {
         if let Some(want) = needle.peek().copied()
             && want == character
         {
             needle.next();
+            matched_any = true;
+            streak += 1;
+            score += 1 + streak;
+            if index == 0 {
+                score += 4;
+            }
+        } else {
+            streak = 0;
         }
     }
-    needle.peek().is_none()
+    if needle.peek().is_none() && matched_any {
+        Some(score)
+    } else {
+        None
+    }
 }
 
 fn option_id(index: usize) -> String {
     format!("musaic-palette-option-{index}")
 }
 
+fn resolve_level(root: Vec<Command>, path: &[String]) -> Vec<Command> {
+    let mut current = root;
+    for id in path {
+        match current.iter().find(|command| &command.id == id) {
+            Some(command) => current = command.children.clone(),
+            None => return Vec::new(),
+        }
+    }
+    current
+}
+
 #[component]
-pub fn CommandPalette(
-    open: RwSignal<bool>,
-    #[prop(into)] commands: Signal<Vec<Command>>,
-) -> impl IntoView {
+pub fn CommandPalette(open: RwSignal<bool>) -> impl IntoView {
+    let registry = use_commands();
     let query = RwSignal::new(String::new());
     let active = RwSignal::new(0usize);
+    let path = RwSignal::new(Vec::<String>::new());
     let input_ref = NodeRef::<leptos::html::Input>::new();
+
+    let level = move || resolve_level(registry.commands(), &path.get());
 
     let filtered = move || {
         let needle = query.get();
-        commands
-            .get()
+        let commands = level()
             .into_iter()
-            .filter(|command| fuzzy(&needle, &command.title))
-            .collect::<Vec<_>>()
+            .filter(Command::enabled)
+            .collect::<Vec<_>>();
+        if needle.is_empty() {
+            if path.get().is_empty() {
+                let recent = registry.recent();
+                let mut ordered = Vec::new();
+                for id in &recent {
+                    if let Some(command) = commands.iter().find(|command| &command.id == id) {
+                        ordered.push(command.clone());
+                    }
+                }
+                for command in &commands {
+                    if !recent.contains(&command.id) {
+                        ordered.push(command.clone());
+                    }
+                }
+                return ordered;
+            }
+            return commands;
+        }
+        let mut scored = commands
+            .into_iter()
+            .filter_map(|command| {
+                fuzzy_score(&needle, &command.title).map(|score| (score, command))
+            })
+            .collect::<Vec<_>>();
+        scored.sort_by(|(left, _), (right, _)| right.cmp(left));
+        scored.into_iter().map(|(_, command)| command).collect()
     };
 
     Effect::new(move |_| {
         let _ = query.get();
+        let _ = path.get();
         active.set(0);
     });
 
     Effect::new(move |_| {
-        if open.get()
-            && let Some(input) = input_ref.get()
-        {
-            let _ = input.focus();
+        if open.get() {
+            path.set(Vec::new());
+            query.set(String::new());
+            if let Some(input) = input_ref.get() {
+                let _ = input.focus();
+            }
         }
     });
 
     let select = Callback::new(move |index: usize| {
-        if let Some(command) = filtered().get(index) {
-            command.action.run(());
+        let Some(command) = filtered().into_iter().nth(index) else {
+            return;
+        };
+        if command.is_submenu() {
+            path.update(|stack| stack.push(command.id.clone()));
+            query.set(String::new());
+            active.set(0);
+            if let Some(input) = input_ref.get() {
+                let _ = input.focus();
+            }
+            return;
         }
+        registry.run(&command.id);
         open.set(false);
         query.set(String::new());
+        path.set(Vec::new());
     });
 
     let on_key = move |event: web_sys::KeyboardEvent| match event.key().as_str() {
@@ -104,7 +148,16 @@ pub fn CommandPalette(
             event.prevent_default();
             select.run(active.get());
         }
-        "Escape" => open.set(false),
+        "Backspace" if query.with(String::is_empty) && !path.with(Vec::is_empty) => {
+            event.prevent_default();
+            path.update(|stack| {
+                stack.pop();
+            });
+        }
+        "Escape" => {
+            event.prevent_default();
+            open.set(false);
+        }
         _ => {}
     };
 
@@ -117,10 +170,30 @@ pub fn CommandPalette(
         }
     };
 
+    let breadcrumb = move || {
+        let stack = path.get();
+        if stack.is_empty() {
+            return String::new();
+        }
+        let root = registry.commands();
+        let mut titles = Vec::new();
+        let mut current = root;
+        for id in &stack {
+            if let Some(command) = current.iter().find(|command| &command.id == id) {
+                titles.push(command.title.clone());
+                current = command.children.clone();
+            }
+        }
+        titles.join("  ›  ")
+    };
+
     view! {
         <Show when=move || open.get() fallback=|| ()>
             <div class="musaic-palette-scrim" on:click=move |_| open.set(false)>
                 <div class="musaic-palette" on:click=|event| event.stop_propagation()>
+                    <Show when=move || !path.get().is_empty() fallback=|| ()>
+                        <div class="musaic-palette-breadcrumb">{breadcrumb}</div>
+                    </Show>
                     <input
                         node_ref=input_ref
                         class="musaic-palette-input"
@@ -148,7 +221,13 @@ pub fn CommandPalette(
                                     .into_iter()
                                     .enumerate()
                                     .map(|(index, command)| {
-                                        let hint = command.hint.clone();
+                                        let is_submenu = command.is_submenu();
+                                        let group = command.group.clone();
+                                        let keybinding = command
+                                            .keybinding
+                                            .as_deref()
+                                            .map(pretty_binding)
+                                            .unwrap_or_default();
                                         let is_active = move || active.get() == index;
                                         view! {
                                             <div
@@ -164,8 +243,25 @@ pub fn CommandPalette(
                                                 }
                                                 on:click=move |_| select.run(index)
                                             >
-                                                <span>{command.title}</span>
-                                                <span class="hint">{hint}</span>
+                                                <span class="musaic-palette-title">
+                                                    {command.title}
+                                                    {(!group.is_empty())
+                                                        .then(|| {
+                                                            view! {
+                                                                <span class="musaic-palette-group">{group}</span>
+                                                            }
+                                                        })}
+                                                </span>
+                                                {if is_submenu {
+                                                    view! { <span class="hint">"›"</span> }.into_any()
+                                                } else if !keybinding.is_empty() {
+                                                    view! {
+                                                        <kbd class="musaic-palette-kbd">{keybinding}</kbd>
+                                                    }
+                                                        .into_any()
+                                                } else {
+                                                    ().into_any()
+                                                }}
                                             </div>
                                         }
                                     })
@@ -182,18 +278,25 @@ pub fn CommandPalette(
 
 #[cfg(test)]
 mod tests {
-    use super::fuzzy;
+    use super::fuzzy_score;
 
     #[test]
     fn fuzzy_matches_subsequences_case_insensitively() {
-        assert!(fuzzy("sc", "Spawn Cube"));
-        assert!(fuzzy("", "anything"));
-        assert!(fuzzy("CUBE", "spawn cube"));
+        assert!(fuzzy_score("sc", "Spawn Cube").is_some());
+        assert!(fuzzy_score("", "anything").is_some());
+        assert!(fuzzy_score("cube", "spawn cube").is_some());
     }
 
     #[test]
     fn fuzzy_rejects_out_of_order_or_missing_characters() {
-        assert!(!fuzzy("cs", "Spawn Cube"));
-        assert!(!fuzzy("xyz", "Spawn Cube"));
+        assert!(fuzzy_score("cs", "Spawn Cube").is_none());
+        assert!(fuzzy_score("xyz", "Spawn Cube").is_none());
+    }
+
+    #[test]
+    fn prefix_matches_outrank_scattered_ones() {
+        let prefix = fuzzy_score("spa", "Spawn Cube").expect("prefix matches");
+        let scattered = fuzzy_score("spa", "Set Parallax").expect("scattered matches");
+        assert!(prefix > scattered);
     }
 }

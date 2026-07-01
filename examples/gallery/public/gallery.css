@@ -163,6 +163,28 @@
   height: 260px;
 }
 
+.gallery-dock-frame {
+  height: 320px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.gallery-dock-viewport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--musaic-text-dim);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--musaic-panel),
+    var(--musaic-panel) 12px,
+    var(--musaic-panel-2) 12px,
+    var(--musaic-panel-2) 24px
+  );
+}
+
 .gallery-swatches {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));

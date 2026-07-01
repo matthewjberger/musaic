@@ -1,9 +1,12 @@
+use std::collections::HashSet;
+
 use leptos::prelude::*;
 use leptos_musaic::{
-    Badge, Button, Card, CheckField, CodeEditor, ColorField, ContextMenu, IconButton, Inspector,
-    InspectorRow, InspectorSection, Menu, MenuItem, Modal, NumberField, Panel, Progress,
-    ResizeAxis, ResizeHandle, Select, SliderField, Spinner, Switch, TabBar, Table, TextField,
-    ThemePicker, Tooltip, Tree, TreeItem, highlight_rhai, use_toaster,
+    Badge, Button, Card, CheckField, CodeEditor, ColorField, ContextMenu, DockLayout, DockMain,
+    DockPanel, DockSide, IconButton, Inspector, InspectorRow, InspectorSection, Menu, MenuItem,
+    MenuSeparator, Modal, NumberField, Panel, Progress, ResizeAxis, ResizeHandle, Select,
+    SliderField, Spinner, SplitAxis, Submenu, Switch, TabBar, Table, TextField, ThemePicker,
+    Tooltip, Tree, TreeItem, Vec3Field, highlight_rhai, use_toaster,
 };
 use web_sys::MouseEvent;
 
@@ -123,6 +126,10 @@ const CATEGORIES: &[Category] = &[
                 id: "select",
                 title: "Select",
             },
+            Page {
+                id: "vec3",
+                title: "Vec3Field",
+            },
         ],
     },
     Category {
@@ -162,6 +169,15 @@ const CATEGORIES: &[Category] = &[
                 title: "Inspector",
             },
         ],
+    },
+    Category {
+        id: "layout-sys",
+        title: "Layout system",
+        icon: "\u{1f5c3}",
+        pages: &[Page {
+            id: "dock",
+            title: "Dock",
+        }],
     },
     Category {
         id: "editor",
@@ -227,6 +243,8 @@ pub fn render(id: &str) -> AnyView {
         "slider" => view! { <SliderDemo /> }.into_any(),
         "color-field" => view! { <ColorFieldDemo /> }.into_any(),
         "select" => view! { <SelectDemo /> }.into_any(),
+        "vec3" => view! { <VecFieldDemo /> }.into_any(),
+        "dock" => view! { <DockDemo /> }.into_any(),
         "menu" => view! { <MenuDemo /> }.into_any(),
         "context-menu" => view! { <ContextMenuDemo /> }.into_any(),
         "tabs" => view! { <TabsDemo /> }.into_any(),
@@ -654,10 +672,75 @@ fn SelectDemo() -> impl IntoView {
 }
 
 #[component]
+fn VecFieldDemo() -> impl IntoView {
+    let value = RwSignal::new([0.0, 1.5, 0.0]);
+    view! {
+        <Demo title="Vec3Field" blurb="Three linked numeric axes for positions, rotations, and scales. Each axis accepts an arithmetic expression, so typing 1+1 or 90/2 and pressing Enter commits the evaluated value.">
+            <Panel>
+                <Vec3Field
+                    label="Position"
+                    value=Signal::derive(move || value.get())
+                    step=0.1
+                    on_change=Callback::new(move |(next, _): ([f64; 3], bool)| value.set(next))
+                />
+            </Panel>
+            <span class="gallery-readout">
+                {move || {
+                    let vector = value.get();
+                    format!("[{:.2}, {:.2}, {:.2}]", vector[0], vector[1], vector[2])
+                }}
+            </span>
+            <Snippet code="<Vec3Field label=\"Position\" value=v on_change=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn DockDemo() -> impl IntoView {
+    let left = RwSignal::new(200.0);
+    let right = RwSignal::new(220.0);
+    let bottom = RwSignal::new(140.0);
+    let left_collapsed = RwSignal::new(false);
+    view! {
+        <Demo title="Dock" blurb="A composable editor layout: resizable, collapsible panels docked around a main region. Drag the edges to resize, and use the minus button to collapse the left panel. This is the backbone of an editor-style app.">
+            <div class="gallery-dock-frame">
+                <DockLayout axis=SplitAxis::Column>
+                    <DockMain>
+                        <DockLayout axis=SplitAxis::Row>
+                            <DockPanel
+                                title="Hierarchy"
+                                side=DockSide::Start
+                                size=left
+                                collapsible=true
+                                collapsed=left_collapsed
+                            >
+                                <div class="gallery-readout">"Scene tree, layers, outliner…"</div>
+                            </DockPanel>
+                            <DockMain>
+                                <div class="gallery-dock-viewport">"Viewport"</div>
+                            </DockMain>
+                            <DockPanel title="Inspector" side=DockSide::End size=right>
+                                <div class="gallery-readout">"Properties for the selection."</div>
+                            </DockPanel>
+                        </DockLayout>
+                    </DockMain>
+                    <DockPanel title="Console" side=DockSide::End size=bottom>
+                        <div class="gallery-readout">"Logs, timeline, asset browser…"</div>
+                    </DockPanel>
+                </DockLayout>
+            </div>
+            <Snippet code="<DockLayout axis=SplitAxis::Row><DockPanel title=\"Hierarchy\" size=w collapsible=true>...</DockPanel><DockMain>...</DockMain></DockLayout>" />
+        </Demo>
+    }
+}
+
+#[component]
 fn MenuDemo() -> impl IntoView {
     let toaster = use_toaster();
+    let wireframe = RwSignal::new(false);
+    let shadows = RwSignal::new(true);
     view! {
-        <Demo title="Menu" blurb="A click-to-open dropdown menu. MenuItem takes a label, optional shortcut, and a select callback.">
+        <Demo title="Menu" blurb="A click-to-open dropdown with keyboard navigation (arrow keys, Home/End, Escape) and outside-click dismissal. Items can carry shortcuts, checkable state, separators, and nested submenus.">
             <Menu label="File">
                 <MenuItem
                     label="New scene"
@@ -669,13 +752,34 @@ fn MenuDemo() -> impl IntoView {
                     shortcut="Ctrl+O"
                     on_select=Callback::new(move |_| toaster.info("Open"))
                 />
+                <MenuSeparator />
                 <MenuItem
-                    label="Save"
-                    shortcut="Ctrl+S"
-                    on_select=Callback::new(move |_| toaster.info("Save"))
+                    label="Wireframe"
+                    checked=Signal::derive(move || wireframe.get())
+                    on_select=Callback::new(move |_| wireframe.update(|value| *value = !*value))
                 />
+                <MenuItem
+                    label="Cast shadows"
+                    checked=Signal::derive(move || shadows.get())
+                    on_select=Callback::new(move |_| shadows.update(|value| *value = !*value))
+                />
+                <MenuSeparator />
+                <Submenu label="Export">
+                    <MenuItem
+                        label="glTF"
+                        on_select=Callback::new(move |_| toaster.info("Export glTF"))
+                    />
+                    <MenuItem
+                        label="OBJ"
+                        on_select=Callback::new(move |_| toaster.info("Export OBJ"))
+                    />
+                </Submenu>
+                <MenuItem label="Delete" disabled=Signal::derive(|| true) />
             </Menu>
-            <Snippet code="<Menu label=\"File\"><MenuItem label=\"New\" shortcut=\"Ctrl+N\" on_select=cb /></Menu>" />
+            <span class="gallery-readout">
+                {move || format!("wireframe = {}, shadows = {}", wireframe.get(), shadows.get())}
+            </span>
+            <Snippet code="<Menu label=\"File\"><MenuItem label=\"Wireframe\" checked=on on_select=cb /><Submenu label=\"Export\">...</Submenu></Menu>" />
         </Demo>
     }
 }
@@ -746,11 +850,13 @@ fn TableDemo() -> impl IntoView {
     ]);
     let selected = RwSignal::new(None::<usize>);
     view! {
-        <Demo title="Table" blurb="A sortable, selectable data table. Click a header to sort (numeric columns sort by value); click a row to select it. Selection survives re-sorting.">
+        <Demo title="Table" blurb="A sortable, filterable, resizable table. Click a header to sort (shift-click to add a secondary key); drag a header edge to resize a column; type in the filter to narrow rows. Numeric columns sort by value and selection survives re-sorting.">
             <Table
                 headers=vec!["Name".into(), "Count".into(), "State".into()]
                 rows=Signal::derive(move || rows.get())
                 sortable=true
+                filterable=true
+                resizable=true
                 on_row_click=Callback::new(move |index: usize| selected.set(Some(index)))
                 selected_row=Signal::derive(move || selected.get())
             />
@@ -760,54 +866,115 @@ fn TableDemo() -> impl IntoView {
                     None => "no row selected".to_string(),
                 }}
             </span>
-            <Snippet code="<Table headers=h rows=r sortable=true on_row_click=cb selected_row=sel />" />
+            <h2>"Virtualized: 5,000 rows"</h2>
+            <p class="gallery-blurb">
+                "With virtualized=true and a fixed height, only the rows in view are rendered, so a table of thousands of rows scrolls smoothly."
+            </p>
+            <VirtualTableDemo />
+            <Snippet code="<Table headers=h rows=r sortable=true filterable=true resizable=true virtualized=true height=360.0 />" />
         </Demo>
     }
 }
 
 #[component]
-fn TreeDemo() -> impl IntoView {
-    let selected = RwSignal::new(Some("camera".to_string()));
-    let items = vec![TreeItem::branch(
-        "scene",
-        "Scene",
-        vec![
-            TreeItem::leaf("camera", "Camera").with_icon("\u{1f3a5}"),
-            TreeItem::branch(
-                "lights",
-                "Lights",
+fn VirtualTableDemo() -> impl IntoView {
+    let rows = RwSignal::new(
+        (0..5000)
+            .map(|index| {
                 vec![
-                    TreeItem::leaf("sun", "Sun").with_icon("\u{2600}"),
-                    TreeItem::leaf("fill", "Fill").with_icon("\u{1f4a1}"),
-                ],
-            ),
-            TreeItem::branch(
-                "meshes",
-                "Meshes",
-                vec![
-                    TreeItem::leaf("cube", "Cube").with_icon("\u{1f4e6}"),
-                    TreeItem::leaf("sphere", "Sphere").with_icon("\u{1f7e0}"),
-                ],
-            ),
-        ],
-    )];
+                    format!("entity-{index:04}"),
+                    format!("{}", (index * 37) % 900),
+                    if index % 3 == 0 { "visible" } else { "hidden" }.to_string(),
+                ]
+            })
+            .collect::<Vec<_>>(),
+    );
     view! {
-        <Demo title="Tree" blurb="A collapsible hierarchy with selection and per-item icons. Click the chevrons to expand, click a row to select, or focus a row and use the arrow keys.">
+        <Table
+            headers=vec!["Name".into(), "Count".into(), "State".into()]
+            rows=Signal::derive(move || rows.get())
+            sortable=true
+            filterable=true
+            virtualized=true
+            height=300.0
+        />
+    }
+}
+
+#[component]
+fn TreeDemo() -> impl IntoView {
+    let labels = RwSignal::new(std::collections::HashMap::<String, String>::new());
+    let selection = RwSignal::new(HashSet::<String>::new());
+    let moves = RwSignal::new(String::new());
+    let label_for = move |id: &str, fallback: &str| {
+        labels
+            .with(|map| map.get(id).cloned())
+            .unwrap_or_else(|| fallback.to_string())
+    };
+    let items = move || {
+        vec![TreeItem::branch(
+            "scene",
+            label_for("scene", "Scene"),
+            vec![
+                TreeItem::leaf("camera", label_for("camera", "Camera")).with_icon("\u{1f3a5}"),
+                TreeItem::branch(
+                    "lights",
+                    label_for("lights", "Lights"),
+                    vec![
+                        TreeItem::leaf("sun", label_for("sun", "Sun")).with_icon("\u{2600}"),
+                        TreeItem::leaf("fill", label_for("fill", "Fill")).with_icon("\u{1f4a1}"),
+                    ],
+                ),
+                TreeItem::branch(
+                    "meshes",
+                    label_for("meshes", "Meshes"),
+                    vec![
+                        TreeItem::leaf("cube", label_for("cube", "Cube")).with_icon("\u{1f4e6}"),
+                        TreeItem::leaf("sphere", label_for("sphere", "Sphere"))
+                            .with_icon("\u{1f7e0}"),
+                    ],
+                ),
+            ],
+        )]
+    };
+    view! {
+        <Demo title="Tree" blurb="A collapsible hierarchy with multi-select (Ctrl-click), inline rename (double-click or F2), and drag-and-drop. Click chevrons to expand, or focus a row and use the arrow keys.">
             <Panel>
-                <Tree
-                    items=items
-                    selected=Signal::derive(move || selected.get())
-                    on_select=Callback::new(move |id: String| selected.set(Some(id)))
-                    default_expanded=true
-                />
+                {move || {
+                    view! {
+                        <Tree
+                            items=items()
+                            selection=selection
+                            on_select=Callback::new(|_| {})
+                            on_rename=Callback::new(move |(id, label): (String, String)| {
+                                labels.update(|map| { map.insert(id, label); });
+                            })
+                            on_move=Callback::new(move |(source, target): (String, String)| {
+                                moves.set(format!("moved {source} onto {target}"))
+                            })
+                            default_expanded=true
+                        />
+                    }
+                }}
             </Panel>
             <span class="gallery-readout">
-                {move || match selected.get() {
-                    Some(id) => format!("selected = {id}"),
-                    None => "nothing selected".to_string(),
+                {move || {
+                    let mut ids = selection.get().into_iter().collect::<Vec<_>>();
+                    ids.sort();
+                    if ids.is_empty() {
+                        "nothing selected".to_string()
+                    } else {
+                        format!("selected = [{}]", ids.join(", "))
+                    }
                 }}
             </span>
-            <Snippet code="<Tree items=items selected=sel on_select=cb default_expanded=true />" />
+            <span class="gallery-readout">
+                {move || {
+                    let last = moves.get();
+                    if last.is_empty() { "drag a row onto another".to_string() } else { last }
+                }}
+            </span>
+            <Snippet code="<Tree items=items selection=set on_rename=cb on_move=cb default_expanded=true />" />
         </Demo>
     }
 }

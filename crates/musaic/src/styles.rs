@@ -3,8 +3,6 @@ use leptos::prelude::*;
 pub fn stylesheet() -> String {
     let mut css = String::new();
     css.push_str(include_str!("../css/core.css"));
-    #[cfg(feature = "themes")]
-    css.push_str(include_str!("../css/themes.css"));
     #[cfg(feature = "forms")]
     css.push_str(include_str!("../css/forms.css"));
     #[cfg(feature = "menus")]
@@ -19,6 +17,8 @@ pub fn stylesheet() -> String {
     css.push_str(include_str!("../css/tree.css"));
     #[cfg(feature = "inspector")]
     css.push_str(include_str!("../css/inspector.css"));
+    #[cfg(feature = "dock")]
+    css.push_str(include_str!("../css/dock.css"));
     #[cfg(feature = "viewport")]
     css.push_str(include_str!("../css/viewport.css"));
     format!("@layer musaic {{\n{css}\n}}\n")

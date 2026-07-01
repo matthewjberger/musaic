@@ -1,8 +1,12 @@
 mod base;
+mod command;
+mod keymap;
 mod styles;
 mod theme;
 
 pub use base::*;
+pub use command::*;
+pub use keymap::*;
 pub use leptos_musaic_protocol::{SelectedEntity, TouchPhase};
 pub use styles::{MusaicStyles, stylesheet};
 pub use theme::*;
@@ -51,6 +55,11 @@ pub use tree::*;
 mod inspector;
 #[cfg(feature = "inspector")]
 pub use inspector::*;
+
+#[cfg(feature = "dock")]
+mod dock;
+#[cfg(feature = "dock")]
+pub use dock::*;
 
 #[cfg(feature = "nightshade")]
 mod nightshade;
