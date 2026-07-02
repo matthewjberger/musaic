@@ -181,6 +181,28 @@ pub fn MultiEditor(
     let scroll_top = RwSignal::new(0.0);
     let viewport_height = RwSignal::new(height);
     let wrap_ref = NodeRef::<html::Div>::new();
+    let ruler_ref = NodeRef::<html::Span>::new();
+
+    let on_pointer = move |event: web_sys::PointerEvent| {
+        let Some(wrap) = wrap_ref.get() else {
+            return;
+        };
+        let rect = wrap.get_bounding_client_rect();
+        let char_width = ruler_ref
+            .get()
+            .map(|ruler| ruler.get_bounding_client_rect().width() / 10.0)
+            .filter(|width| *width > 0.0)
+            .unwrap_or(8.0);
+        let x = event.client_x() as f64 - rect.left() + wrap.scroll_left() as f64 - 10.0;
+        let y = event.client_y() as f64 - rect.top() + wrap.scroll_top() as f64;
+        let target_line = (y / line_height).floor().max(0.0) as usize;
+        let target_col = (x / char_width).round().max(0.0) as usize;
+        let chars: Vec<char> = value.get_untracked().chars().collect();
+        let line = target_line.min(total_lines(&chars).saturating_sub(1));
+        let offset = offset_of(&chars, line, target_col);
+        carets.set(vec![Caret::collapsed(offset)]);
+        let _ = wrap.focus();
+    };
 
     let edit = move |mutate: &dyn Fn(&mut Vec<char>, &mut Vec<Caret>)| {
         let mut chars: Vec<char> = value.get_untracked().chars().collect();
@@ -390,7 +412,9 @@ pub fn MultiEditor(
             style=format!("height:{height}px")
             on:keydown=on_key
             on:scroll=on_scroll
+            on:pointerdown=on_pointer
         >
+            <span node_ref=ruler_ref class="musaic-ml-ruler">"0000000000"</span>
             {content}
         </div>
     }

@@ -128,3 +128,12 @@
   position: absolute;
   background: var(--musaic-accent-soft);
 }
+
+.musaic-ml-ruler {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
