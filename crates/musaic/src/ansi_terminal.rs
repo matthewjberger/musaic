@@ -1,13 +1,18 @@
 use leptos::html;
 use leptos::prelude::*;
 
-const DEFAULT_COLOR: u16 = 256;
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Color {
+    Default,
+    Indexed(u8),
+    Rgb(u8, u8, u8),
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct Cell {
     glyph: char,
-    fg: u16,
-    bg: u16,
+    fg: Color,
+    bg: Color,
     bold: bool,
     inverse: bool,
 }
@@ -16,8 +21,8 @@ impl Cell {
     fn blank() -> Self {
         Self {
             glyph: ' ',
-            fg: DEFAULT_COLOR,
-            bg: DEFAULT_COLOR,
+            fg: Color::Default,
+            bg: Color::Default,
             bold: false,
             inverse: false,
         }
@@ -38,13 +43,18 @@ pub struct TerminalGrid {
     cells: Vec<Cell>,
     row: usize,
     col: usize,
-    fg: u16,
-    bg: u16,
+    fg: Color,
+    bg: Color,
     bold: bool,
     inverse: bool,
     state: Parse,
     params: Vec<u16>,
     acc: Option<u16>,
+    private: bool,
+    saved_cursor: Option<(usize, usize)>,
+    scroll_top: usize,
+    scroll_bottom: usize,
+    alt: Option<(Vec<Cell>, usize, usize)>,
 }
 
 impl TerminalGrid {
@@ -55,27 +65,41 @@ impl TerminalGrid {
             cells: vec![Cell::blank(); cols * rows],
             row: 0,
             col: 0,
-            fg: DEFAULT_COLOR,
-            bg: DEFAULT_COLOR,
+            fg: Color::Default,
+            bg: Color::Default,
             bold: false,
             inverse: false,
             state: Parse::Ground,
             params: Vec::new(),
             acc: None,
+            private: false,
+            saved_cursor: None,
+            scroll_top: 0,
+            scroll_bottom: rows - 1,
+            alt: None,
         }
     }
 
-    fn scroll_up(&mut self) {
-        self.cells.drain(0..self.cols);
-        self.cells
-            .extend(std::iter::repeat_n(Cell::blank(), self.cols));
+    fn clear_row(&mut self, row: usize) {
+        let start = row * self.cols;
+        for cell in &mut self.cells[start..start + self.cols] {
+            *cell = Cell::blank();
+        }
+    }
+
+    fn scroll_region_up(&mut self) {
+        for row in self.scroll_top..self.scroll_bottom {
+            let (dst, src) = (row * self.cols, (row + 1) * self.cols);
+            self.cells.copy_within(src..src + self.cols, dst);
+        }
+        self.clear_row(self.scroll_bottom);
     }
 
     fn newline(&mut self) {
-        self.row += 1;
-        if self.row >= self.rows {
-            self.scroll_up();
-            self.row = self.rows - 1;
+        if self.row >= self.scroll_bottom {
+            self.scroll_region_up();
+        } else {
+            self.row += 1;
         }
     }
 
@@ -103,11 +127,13 @@ impl TerminalGrid {
         if self.params.is_empty() {
             self.params.push(0);
         }
-        for &code in &self.params.clone() {
-            match code {
+        let params = self.params.clone();
+        let mut index = 0;
+        while index < params.len() {
+            match params[index] {
                 0 => {
-                    self.fg = DEFAULT_COLOR;
-                    self.bg = DEFAULT_COLOR;
+                    self.fg = Color::Default;
+                    self.bg = Color::Default;
                     self.bold = false;
                     self.inverse = false;
                 }
@@ -115,14 +141,38 @@ impl TerminalGrid {
                 7 => self.inverse = true,
                 22 => self.bold = false,
                 27 => self.inverse = false,
-                30..=37 => self.fg = code - 30,
-                39 => self.fg = DEFAULT_COLOR,
-                40..=47 => self.bg = code - 40,
-                49 => self.bg = DEFAULT_COLOR,
-                90..=97 => self.fg = code - 90 + 8,
-                100..=107 => self.bg = code - 100 + 8,
+                30..=37 => self.fg = Color::Indexed((params[index] - 30) as u8),
+                39 => self.fg = Color::Default,
+                40..=47 => self.bg = Color::Indexed((params[index] - 40) as u8),
+                49 => self.bg = Color::Default,
+                90..=97 => self.fg = Color::Indexed((params[index] - 90 + 8) as u8),
+                100..=107 => self.bg = Color::Indexed((params[index] - 100 + 8) as u8),
+                38 | 48 => {
+                    let target_fg = params[index] == 38;
+                    let color = match params.get(index + 1) {
+                        Some(5) => {
+                            let value = params.get(index + 2).copied().unwrap_or(0) as u8;
+                            index += 2;
+                            Color::Indexed(value)
+                        }
+                        Some(2) => {
+                            let red = params.get(index + 2).copied().unwrap_or(0) as u8;
+                            let green = params.get(index + 3).copied().unwrap_or(0) as u8;
+                            let blue = params.get(index + 4).copied().unwrap_or(0) as u8;
+                            index += 4;
+                            Color::Rgb(red, green, blue)
+                        }
+                        _ => Color::Default,
+                    };
+                    if target_fg {
+                        self.fg = color;
+                    } else {
+                        self.bg = color;
+                    }
+                }
                 _ => {}
             }
+            index += 1;
         }
     }
 
@@ -152,13 +202,31 @@ impl TerminalGrid {
         }
     }
 
+    fn enter_alt(&mut self) {
+        if self.alt.is_none() {
+            let saved =
+                std::mem::replace(&mut self.cells, vec![Cell::blank(); self.cols * self.rows]);
+            self.alt = Some((saved, self.row, self.col));
+            self.row = 0;
+            self.col = 0;
+        }
+    }
+
+    fn exit_alt(&mut self) {
+        if let Some((cells, row, col)) = self.alt.take() {
+            self.cells = cells;
+            self.row = row.min(self.rows - 1);
+            self.col = col.min(self.cols - 1);
+        }
+    }
+
     fn execute(&mut self, final_byte: char) {
         match final_byte {
             'm' => self.apply_sgr(),
-            'A' => self.row = self.row.saturating_sub(self.param(0, 1) as usize),
-            'B' => self.row = (self.row + self.param(0, 1) as usize).min(self.rows - 1),
-            'C' => self.col = (self.col + self.param(0, 1) as usize).min(self.cols - 1),
-            'D' => self.col = self.col.saturating_sub(self.param(0, 1) as usize),
+            'A' => self.row = self.row.saturating_sub(self.param(0, 1).max(1) as usize),
+            'B' => self.row = (self.row + self.param(0, 1).max(1) as usize).min(self.rows - 1),
+            'C' => self.col = (self.col + self.param(0, 1).max(1) as usize).min(self.cols - 1),
+            'D' => self.col = self.col.saturating_sub(self.param(0, 1).max(1) as usize),
             'G' => {
                 self.col = (self.param(0, 1) as usize)
                     .saturating_sub(1)
@@ -174,6 +242,33 @@ impl TerminalGrid {
             }
             'J' => self.erase_display(),
             'K' => self.erase_line(),
+            'r' => {
+                let top = (self.param(0, 1) as usize).saturating_sub(1);
+                let bottom = (self.param(1, self.rows as u16) as usize)
+                    .saturating_sub(1)
+                    .min(self.rows - 1);
+                if top < bottom {
+                    self.scroll_top = top;
+                    self.scroll_bottom = bottom;
+                }
+            }
+            's' => self.saved_cursor = Some((self.row, self.col)),
+            'u' => {
+                if let Some((row, col)) = self.saved_cursor {
+                    self.row = row.min(self.rows - 1);
+                    self.col = col.min(self.cols - 1);
+                }
+            }
+            'h' if self.private => {
+                if matches!(self.param(0, 0), 47 | 1047 | 1049) {
+                    self.enter_alt();
+                }
+            }
+            'l' if self.private => {
+                if matches!(self.param(0, 0), 47 | 1047 | 1049) {
+                    self.exit_alt();
+                }
+            }
             _ => {}
         }
     }
@@ -188,28 +283,38 @@ impl TerminalGrid {
                         self.newline();
                     }
                     '\r' => self.col = 0,
-                    '\t' => self.col = ((self.col / 8) + 1) * 8,
+                    '\t' => self.col = (((self.col / 8) + 1) * 8).min(self.cols - 1),
                     '\u{8}' => self.col = self.col.saturating_sub(1),
                     glyph if !glyph.is_control() => self.put(glyph),
                     _ => {}
                 },
-                Parse::Escape => {
-                    if glyph == '[' {
+                Parse::Escape => match glyph {
+                    '[' => {
                         self.state = Parse::Csi;
                         self.params.clear();
                         self.acc = None;
-                    } else {
+                        self.private = false;
+                    }
+                    '7' => {
+                        self.saved_cursor = Some((self.row, self.col));
                         self.state = Parse::Ground;
                     }
-                }
+                    '8' => {
+                        if let Some((row, col)) = self.saved_cursor {
+                            self.row = row.min(self.rows - 1);
+                            self.col = col.min(self.cols - 1);
+                        }
+                        self.state = Parse::Ground;
+                    }
+                    _ => self.state = Parse::Ground,
+                },
                 Parse::Csi => match glyph {
+                    '?' => self.private = true,
                     '0'..='9' => {
                         let digit = glyph as u16 - '0' as u16;
                         self.acc = Some(self.acc.unwrap_or(0) * 10 + digit);
                     }
-                    ';' => {
-                        self.params.push(self.acc.take().unwrap_or(0));
-                    }
+                    ';' => self.params.push(self.acc.take().unwrap_or(0)),
                     '\u{40}'..='\u{7e}' => {
                         if let Some(value) = self.acc.take() {
                             self.params.push(value);
@@ -250,15 +355,26 @@ const PALETTE: [&str; 16] = [
     "#6b7280", "#fca5a5", "#86efac", "#fde68a", "#93c5fd", "#d8b4fe", "#67e8f9", "#ffffff",
 ];
 
-fn color(code: u16, default: &str) -> String {
-    if code == DEFAULT_COLOR {
-        default.to_string()
-    } else {
-        PALETTE
-            .get(code as usize)
-            .copied()
-            .unwrap_or(default)
-            .to_string()
+fn cube_channel(value: u8) -> u8 {
+    if value == 0 { 0 } else { 55 + value * 40 }
+}
+
+fn color(value: Color, default: &str) -> String {
+    match value {
+        Color::Default => default.to_string(),
+        Color::Indexed(index) if index < 16 => PALETTE[index as usize].to_string(),
+        Color::Indexed(index) if index < 232 => {
+            let index = index - 16;
+            let red = cube_channel(index / 36);
+            let green = cube_channel((index / 6) % 6);
+            let blue = cube_channel(index % 6);
+            format!("#{red:02x}{green:02x}{blue:02x}")
+        }
+        Color::Indexed(index) => {
+            let level = 8 + (index - 232) * 10;
+            format!("#{level:02x}{level:02x}{level:02x}")
+        }
+        Color::Rgb(red, green, blue) => format!("#{red:02x}{green:02x}{blue:02x}"),
     }
 }
 
@@ -352,7 +468,7 @@ pub fn AnsiTerminal(
 
 #[cfg(test)]
 mod tests {
-    use super::{DEFAULT_COLOR, TerminalGrid};
+    use super::{Color, TerminalGrid};
 
     fn text_at(grid: &TerminalGrid, row: usize) -> String {
         grid.cells[row * grid.cols..row * grid.cols + grid.cols]
@@ -375,23 +491,42 @@ mod tests {
     fn sgr_sets_and_resets_color() {
         let mut grid = TerminalGrid::new(20, 4);
         grid.feed("\u{1b}[32mgreen\u{1b}[0m.");
-        assert_eq!(grid.cells[0].fg, 2);
-        assert_eq!(grid.cells[5].fg, DEFAULT_COLOR);
+        assert_eq!(grid.cells[0].fg, Color::Indexed(2));
+        assert_eq!(grid.cells[5].fg, Color::Default);
     }
 
     #[test]
-    fn cursor_position_and_erase() {
+    fn sgr_256_and_truecolor() {
+        let mut grid = TerminalGrid::new(20, 2);
+        grid.feed("\u{1b}[38;5;196mA\u{1b}[38;2;10;20;30mB");
+        assert_eq!(grid.cells[0].fg, Color::Indexed(196));
+        assert_eq!(grid.cells[1].fg, Color::Rgb(10, 20, 30));
+    }
+
+    #[test]
+    fn cursor_save_restore_returns_to_saved_position() {
         let mut grid = TerminalGrid::new(10, 4);
-        grid.feed("abc\u{1b}[1;1Hxy");
-        assert_eq!(text_at(&grid, 0), "xyc");
-        grid.feed("\u{1b}[2K");
-        assert_eq!(text_at(&grid, 0), "");
+        grid.feed("\u{1b}7abc\u{1b}8Z");
+        assert_eq!(grid.cells[0].glyph, 'Z');
+        assert_eq!(grid.cells[1].glyph, 'b');
     }
 
     #[test]
-    fn wrapping_and_scroll_advance_rows() {
-        let mut grid = TerminalGrid::new(3, 2);
-        grid.feed("abcdef\nghi");
-        assert_eq!(text_at(&grid, grid.rows - 1), "ghi");
+    fn scroll_region_limits_scrolling() {
+        let mut grid = TerminalGrid::new(4, 4);
+        grid.feed("\u{1b}[1;2r");
+        grid.feed("a\nb\nc\nd");
+        assert_eq!(grid.scroll_top, 0);
+        assert_eq!(grid.scroll_bottom, 1);
+    }
+
+    #[test]
+    fn alt_screen_saves_and_restores() {
+        let mut grid = TerminalGrid::new(6, 2);
+        grid.feed("main");
+        grid.feed("\u{1b}[?1049h");
+        assert_eq!(text_at(&grid, 0), "");
+        grid.feed("\u{1b}[?1049l");
+        assert_eq!(text_at(&grid, 0), "main");
     }
 }
