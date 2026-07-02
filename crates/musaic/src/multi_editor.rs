@@ -423,13 +423,24 @@ pub fn MultiEditor(
         }
     });
 
-    let content = move || {
+    let model = Memo::new(move |_| {
         let source = value.get();
-        let chars: Vec<char> = source.chars().collect();
-        let lines: Vec<String> = source.split('\n').map(str::to_string).collect();
-        let total = lines.len();
+        (
+            source.chars().collect::<Vec<char>>(),
+            source
+                .split('\n')
+                .map(str::to_string)
+                .collect::<Vec<String>>(),
+        )
+    });
+
+    let content = move || {
         let view_height = viewport_height.get().max(line_height);
-        let first = ((scroll_top.get() / line_height).floor() as usize).saturating_sub(overscan);
+        let scroll = scroll_top.get();
+        let cursors = carets.get();
+        model.with(|(chars, lines)| {
+        let total = lines.len();
+        let first = ((scroll / line_height).floor() as usize).saturating_sub(overscan);
         let count = (view_height / line_height).ceil() as usize + overscan * 2 + 1;
         let start = first.min(total);
         let end = (start + count).min(total);
@@ -455,20 +466,19 @@ pub fn MultiEditor(
             })
             .collect_view();
 
-        let overlays = carets
-            .get()
+        let overlays = cursors
             .into_iter()
             .flat_map(|caret| {
                 let mut nodes = Vec::new();
                 if caret.high() > caret.low() {
-                    let (start_line, start_col) = line_col(&chars, caret.low());
-                    let (end_line, end_col) = line_col(&chars, caret.high());
+                    let (start_line, start_col) = line_col(chars, caret.low());
+                    let (end_line, end_col) = line_col(chars, caret.high());
                     for line in start_line..=end_line {
                         let from = if line == start_line { start_col } else { 0 };
                         let to = if line == end_line {
                             end_col
                         } else {
-                            line_len(&chars, line) + 1
+                            line_len(chars, line) + 1
                         };
                         nodes.push(
                             view! {
@@ -487,7 +497,7 @@ pub fn MultiEditor(
                         );
                     }
                 }
-                let (line, col) = line_col(&chars, caret.head);
+                let (line, col) = line_col(chars, caret.head);
                 nodes.push(
                     view! {
                         <div
@@ -515,6 +525,7 @@ pub fn MultiEditor(
                 {rendered_lines}
             </div>
         }
+        })
     };
 
     view! {

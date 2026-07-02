@@ -53,13 +53,21 @@ pub fn CodeSurface(
         }
     });
 
-    let body = move || {
+    let model = Memo::new(move |_| {
         let source = value.get();
-        let lines: Vec<&str> = source.lines().collect();
-        let regions = fold_regions(&lines);
+        let lines: Vec<String> = source.split('\n').map(str::to_string).collect();
+        let refs: Vec<&str> = lines.iter().map(String::as_str).collect();
+        let regions = fold_regions(&refs);
+        (lines, regions)
+    });
+
+    let body = move || {
         let folded = folds.get();
+        let view_height = viewport_height.get().max(line_height);
+        let scroll = scroll_top.get();
+        model.with(|(lines, regions)| {
         let mut hidden = HashSet::new();
-        for (start, end) in &regions {
+        for (start, end) in regions {
             if folded.contains(start) {
                 for line in (start + 1)..=*end {
                     hidden.insert(line);
@@ -71,8 +79,7 @@ pub fn CodeSurface(
             .filter(|line| !hidden.contains(line))
             .collect();
         let total = visible.len();
-        let view_height = viewport_height.get().max(line_height);
-        let first = ((scroll_top.get() / line_height).floor() as usize).saturating_sub(overscan);
+        let first = ((scroll / line_height).floor() as usize).saturating_sub(overscan);
         let count = (view_height / line_height).ceil() as usize + overscan * 2 + 1;
         let start = first.min(total);
         let end = (start + count).min(total);
@@ -82,7 +89,7 @@ pub fn CodeSurface(
         let rows = visible[start..end]
             .iter()
             .map(|&line_index| {
-                let text = lines[line_index].to_string();
+                let text = lines[line_index].clone();
                 let is_header = headers.contains_key(&line_index);
                 let is_folded = folded.contains(&line_index);
                 let spans = match highlighter {
@@ -130,6 +137,7 @@ pub fn CodeSurface(
             {rows}
             <div style=format!("height:{bottom_pad}px")></div>
         }
+        })
     };
 
     view! {
