@@ -2,17 +2,18 @@ use std::collections::HashSet;
 
 use leptos::prelude::*;
 use leptos_musaic::{
-    Accordion, AccordionItem, AssetGrid, AssetItem, Badge, Button, Card, Chat, ChatMessage,
-    ChatRole, CheckField, ChipGroup, CodeDocument, CodeEditor, CodeTabs, ColorField, ComboOption,
-    Combobox, ContextMenu, Dialog, Disclosure, DockLayout, DockMain, DockPanel, DockSide, Dropdown,
-    DynamicForm, FieldSchema, FormField, IconButton, Inspector, InspectorRow, InspectorSection,
-    ListItem, LogEntry, LogKind, LogView, Markdown, Menu, MenuBar, MenuBarMenu, MenuItem,
-    MenuSeparator, Modal, NavGizmo, NumberField, OrderedList, Panel, Popover, Progress, ResizeAxis,
-    ResizeHandle, SearchItem, SearchList, Select, Side, SliderField, Spinner, SplitAxis, StatusBar,
-    StatusItem, StatusSpacer, Submenu, SwatchPalette, Switch, TabBar, Table, TagInput, TextField,
-    Theme, ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup, ToolbarSpacer,
-    Tooltip, Tree, TreeItem, Vec3Field, ViewportOverlay, VirtualList, highlight_rhai,
-    pretty_binding, register_theme, use_commands, use_theme, use_toaster,
+    Accordion, AccordionItem, ActivityBar, ActivityItem, AssetGrid, AssetItem, Badge, Button, Card,
+    Chat, ChatMessage, ChatRole, CheckField, ChipGroup, CodeDocument, CodeEditor, CodeTabs,
+    ColorField, ComboOption, Combobox, ContextMenu, Dialog, Diff, Disclosure, DockLayout, DockMain,
+    DockPanel, DockSide, Dropdown, DynamicForm, FieldSchema, FormField, IconButton, Inspector,
+    InspectorRow, InspectorSection, ListItem, LogEntry, LogKind, LogView, Markdown, Menu, MenuBar,
+    MenuBarMenu, MenuItem, MenuSeparator, Modal, NavGizmo, NumberField, OrderedList, Panel,
+    Popover, Progress, ResizeAxis, ResizeHandle, SearchItem, SearchList, Select, Side, SliderField,
+    Spinner, SplitAxis, StatusBar, StatusItem, StatusSpacer, Submenu, SwatchPalette, Switch,
+    TabBar, Table, TagInput, TextField, Theme, ThemeMenu, ThemePicker, ToggleChip, ToolButton,
+    Toolbar, ToolbarGroup, ToolbarSpacer, Tooltip, Tree, TreeItem, Vec3Field, ViewportOverlay,
+    VirtualList, download_text, highlight_rhai, pick_file_text, pretty_binding, register_theme,
+    use_commands, use_theme, use_toaster,
 };
 use web_sys::MouseEvent;
 
@@ -258,6 +259,18 @@ const CATEGORIES: &[Category] = &[
                 id: "virtual-list",
                 title: "VirtualList",
             },
+            Page {
+                id: "diff",
+                title: "Diff",
+            },
+            Page {
+                id: "activity-bar",
+                title: "ActivityBar",
+            },
+            Page {
+                id: "file-io",
+                title: "File download / pick",
+            },
         ],
     },
     Category {
@@ -357,6 +370,9 @@ pub fn render(id: &str) -> AnyView {
         "markdown" => view! { <MarkdownDemo /> }.into_any(),
         "nav-gizmo" => view! { <NavGizmoDemo /> }.into_any(),
         "virtual-list" => view! { <VirtualListDemo /> }.into_any(),
+        "diff" => view! { <DiffDemo /> }.into_any(),
+        "activity-bar" => view! { <ActivityBarDemo /> }.into_any(),
+        "file-io" => view! { <FileIoDemo /> }.into_any(),
         "engine" => view! { <EngineDemo /> }.into_any(),
         other => match CATEGORIES.iter().find(|category| category.id == other) {
             Some(category) => category_landing(category),
@@ -1797,6 +1813,75 @@ fn VirtualListDemo() -> impl IntoView {
                 }
             />
             <Snippet code="<VirtualList count=n item_height=30.0 height=320.0 render=move |i| view!{ ... }.into_any() />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn DiffDemo() -> impl IntoView {
+    let old = RwSignal::new(
+        "fn build(commands) {\n    let count = 4;\n    spawn_cubes(count);\n    set_background(\"sky\");\n}\n".to_string(),
+    );
+    let new = RwSignal::new(
+        "fn build(commands) {\n    let count = 8;\n    spawn_cubes(count);\n    set_background(\"nebula\");\n    set_bloom(0.4);\n}\n".to_string(),
+    );
+    view! {
+        <Demo title="Diff" blurb="A line-level diff (LCS) rendered with old/new line numbers and +/- markers. Edit either side and the diff recomputes. Handy for reviewing AI edits or config changes.">
+            <div class="gallery-row" style="align-items:stretch; gap:12px;">
+                <div style="flex:1; min-width:0;">
+                    <CodeEditor value=old height="180px" />
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <CodeEditor value=new height="180px" />
+                </div>
+            </div>
+            <Diff old=Signal::derive(move || old.get()) new=Signal::derive(move || new.get()) />
+            <Snippet code="<Diff old=Signal::derive(move || a.get()) new=Signal::derive(move || b.get()) />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn ActivityBarDemo() -> impl IntoView {
+    let active = RwSignal::new("files".to_string());
+    view! {
+        <Demo title="ActivityBar" blurb="The narrow icon rail that switches sidebar views, the standard IDE chrome primitive. Bound to a signal, with tooltips per item.">
+            <div style="display:flex; height:200px; border:1px solid var(--musaic-panel-border); border-radius:9px; overflow:hidden;">
+                <ActivityBar
+                    items=vec![
+                        ActivityItem::new("files", "\u{1f4c1}", "Files"),
+                        ActivityItem::new("search", "\u{1f50d}", "Search"),
+                        ActivityItem::new("git", "\u{1f500}", "Source control"),
+                        ActivityItem::new("plugins", "\u{1f9e9}", "Plugins"),
+                    ]
+                    active=active
+                />
+                <div style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--musaic-text-dim);">
+                    {move || format!("{} view", active.get())}
+                </div>
+            </div>
+            <Snippet code="<ActivityBar items=items active=active on_select=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn FileIoDemo() -> impl IntoView {
+    let content = RwSignal::new("edit me, then download or pick a file to load".to_string());
+    view! {
+        <Demo title="File download / pick" blurb="Browser file helpers: download_text saves a string as a file, and pick_file_text opens the native file picker and reads the chosen text file back into a callback.">
+            <Panel>
+                <CodeEditor value=content height="140px" />
+                <div class="gallery-row">
+                    <Button on_click=Callback::new(move |_| {
+                        download_text("musaic-note.txt", &content.get_untracked())
+                    })>"Download .txt"</Button>
+                    <Button on_click=Callback::new(move |_| {
+                        pick_file_text(Callback::new(move |text: String| content.set(text)))
+                    })>"Pick a file"</Button>
+                </div>
+            </Panel>
+            <Snippet code="download_text(\"note.txt\", &text);\npick_file_text(Callback::new(move |text| content.set(text)));" />
         </Demo>
     }
 }

@@ -12,6 +12,57 @@ fn local_storage() -> Option<web_sys::Storage> {
     web_sys::window().and_then(|window| window.local_storage().ok().flatten())
 }
 
+pub fn download_text(filename: &str, contents: &str) {
+    let Some(document) = web_sys::window().and_then(|window| window.document()) else {
+        return;
+    };
+    let encoded: String = js_sys::encode_uri_component(contents).into();
+    let href = format!("data:text/plain;charset=utf-8,{encoded}");
+    if let Ok(element) = document.create_element("a") {
+        let anchor: web_sys::HtmlAnchorElement = element.unchecked_into();
+        anchor.set_href(&href);
+        anchor.set_download(filename);
+        anchor.click();
+    }
+}
+
+pub fn pick_file_text(on_pick: Callback<String>) {
+    let Some(document) = web_sys::window().and_then(|window| window.document()) else {
+        return;
+    };
+    let Ok(element) = document.create_element("input") else {
+        return;
+    };
+    let input: web_sys::HtmlInputElement = element.unchecked_into();
+    input.set_type("file");
+    let on_change = Closure::<dyn Fn(web_sys::Event)>::new(move |event: web_sys::Event| {
+        let Some(target) = event.target() else {
+            return;
+        };
+        let input: web_sys::HtmlInputElement = target.unchecked_into();
+        let Some(file) = input.files().and_then(|files| files.get(0)) else {
+            return;
+        };
+        let Ok(reader) = web_sys::FileReader::new() else {
+            return;
+        };
+        let reader_ref = reader.clone();
+        let on_load = Closure::<dyn Fn()>::new(move || {
+            if let Ok(result) = reader_ref.result()
+                && let Some(text) = result.as_string()
+            {
+                on_pick.run(text);
+            }
+        });
+        reader.set_onload(Some(on_load.as_ref().unchecked_ref()));
+        on_load.forget();
+        let _ = reader.read_as_text(&file);
+    });
+    input.set_onchange(Some(on_change.as_ref().unchecked_ref()));
+    on_change.forget();
+    input.click();
+}
+
 pub fn use_persisted<T>(key: impl Into<String>, default: T) -> RwSignal<T>
 where
     T: Serialize + DeserializeOwned + Send + Sync + Clone + 'static,

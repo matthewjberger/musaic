@@ -44,8 +44,8 @@ Prefer a single import? `use leptos_musaic::prelude::*;` pulls in every enabled 
 The base layer (design tokens, typed theming, `Button`, `IconButton`, `Panel`, `Card`, layout,
 `ResizeHandle`, `Overlay`/`Modal`, `Badge`, `Progress`, `Tooltip`, `Spinner`, toasts
 (info/success/warning/error, dismiss, inline actions), the `CommandRegistry`, the `KeymapProvider`,
-the `EditorShell` frame, and the `use_persisted` / `use_reconnecting_socket` hooks) is always
-compiled. Everything else is opt-in:
+the `EditorShell` frame, and the `use_persisted` / `use_reconnecting_socket` / `download_text` /
+`pick_file_text` hooks) is always compiled. Everything else is opt-in:
 
 | feature | components |
 | --- | --- |
@@ -60,9 +60,10 @@ compiled. Everything else is opt-in:
 | `dock` | `DockLayout`, `DockPanel`, `DockMain`: resizable, collapsible panels docked around a main region |
 | `overlays` | `Popover` (anchored positioning that flips/shifts to stay on screen), `Dropdown`, `Combobox`, `Dialog` |
 | `virtual-list` | `VirtualList`: a windowed-rendering primitive over any item count and render closure |
+| `diff` | `Diff` + `diff_lines`: an LCS line-diff with +/- markers and old/new line numbers |
 | `disclosure` | `Disclosure`, `Accordion`, `AccordionItem` |
 | `status-bar` | `StatusBar`, `StatusItem`, `StatusSpacer` |
-| `toolbar` | `Toolbar`, `ToolbarGroup`, `ToolbarSpacer`, `ToolButton`, `MenuBar`, `MenuBarMenu` |
+| `toolbar` | `Toolbar`, `ToolbarGroup`, `ToolbarSpacer`, `ToolButton`, `MenuBar`, `MenuBarMenu`, `ActivityBar` (icon rail) |
 | `log` | `LogView` (kind-colored, deduped, auto-tailing console) |
 | `markdown` | `Markdown`: a dependency-free renderer (headings, emphasis, code, lists, links, quotes) |
 | `search-list` | `SearchList`: filterable list with expandable detail and scroll-to-selected |

@@ -1,0 +1,52 @@
+/* musaic diff view. */
+
+.musaic-diff {
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  overflow: auto;
+  font-family: var(--musaic-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.musaic-diff-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 10px;
+  white-space: pre;
+}
+
+.musaic-diff-line.insert {
+  background: color-mix(in srgb, #4ade80 16%, transparent);
+}
+
+.musaic-diff-line.delete {
+  background: color-mix(in srgb, var(--musaic-danger) 16%, transparent);
+}
+
+.musaic-diff-num {
+  flex: 0 0 auto;
+  width: 34px;
+  text-align: right;
+  color: var(--musaic-text-dim);
+  user-select: none;
+}
+
+.musaic-diff-marker {
+  flex: 0 0 auto;
+  width: 10px;
+  color: var(--musaic-text-dim);
+}
+
+.musaic-diff-line.insert .musaic-diff-marker {
+  color: #4ade80;
+}
+
+.musaic-diff-line.delete .musaic-diff-marker {
+  color: var(--musaic-danger);
+}
+
+.musaic-diff-text {
+  flex: 1 1 auto;
+}

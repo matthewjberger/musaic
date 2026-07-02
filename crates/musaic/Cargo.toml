@@ -47,6 +47,11 @@ web-sys = { version = "0.3", features = [
     "ResizeObserver",
     "Storage",
     "WebSocket",
+    "HtmlAnchorElement",
+    "Blob",
+    "File",
+    "FileList",
+    "FileReader",
 ] }
 
 [features]
@@ -62,6 +67,7 @@ inspector = []
 dock = []
 overlays = []
 virtual-list = []
+diff = []
 disclosure = []
 status-bar = []
 toolbar = ["menus"]
@@ -87,6 +93,7 @@ full = [
     "dock",
     "overlays",
     "virtual-list",
+    "diff",
     "disclosure",
     "status-bar",
     "toolbar",

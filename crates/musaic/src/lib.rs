@@ -80,6 +80,11 @@ mod virtual_list;
 #[cfg(feature = "virtual-list")]
 pub use virtual_list::*;
 
+#[cfg(feature = "diff")]
+mod diff;
+#[cfg(feature = "diff")]
+pub use diff::*;
+
 #[cfg(feature = "disclosure")]
 mod disclosure;
 #[cfg(feature = "disclosure")]

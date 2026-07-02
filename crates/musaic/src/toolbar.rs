@@ -45,6 +45,60 @@ pub fn ToolButton(
     }
 }
 
+#[derive(Clone)]
+pub struct ActivityItem {
+    pub id: String,
+    pub icon: String,
+    pub label: String,
+}
+
+impl ActivityItem {
+    pub fn new(id: impl Into<String>, icon: impl Into<String>, label: impl Into<String>) -> Self {
+        Self {
+            id: id.into(),
+            icon: icon.into(),
+            label: label.into(),
+        }
+    }
+}
+
+#[component]
+pub fn ActivityBar(
+    items: Vec<ActivityItem>,
+    active: RwSignal<String>,
+    #[prop(optional)] on_select: Option<Callback<String>>,
+) -> impl IntoView {
+    view! {
+        <div class="musaic-activity-bar" role="tablist">
+            {items
+                .into_iter()
+                .map(|item| {
+                    let id_click = item.id.clone();
+                    let id_active = StoredValue::new(item.id.clone());
+                    let is_active = move || active.get() == id_active.get_value();
+                    view! {
+                        <button
+                            class="musaic-activity-item"
+                            class:active=is_active
+                            role="tab"
+                            title=item.label
+                            aria-selected=move || is_active().to_string()
+                            on:click=move |_| {
+                                active.set(id_click.clone());
+                                if let Some(callback) = on_select {
+                                    callback.run(id_click.clone());
+                                }
+                            }
+                        >
+                            {item.icon}
+                        </button>
+                    }
+                })
+                .collect_view()}
+        </div>
+    }
+}
+
 #[derive(Clone, Copy)]
 struct MenuBarContext(RwSignal<Option<String>>);
 

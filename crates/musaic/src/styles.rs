@@ -23,6 +23,8 @@ pub fn stylesheet() -> String {
     css.push_str(include_str!("../css/overlays.css"));
     #[cfg(feature = "virtual-list")]
     css.push_str(include_str!("../css/virtual_list.css"));
+    #[cfg(feature = "diff")]
+    css.push_str(include_str!("../css/diff.css"));
     #[cfg(feature = "disclosure")]
     css.push_str(include_str!("../css/disclosure.css"));
     #[cfg(feature = "status-bar")]
