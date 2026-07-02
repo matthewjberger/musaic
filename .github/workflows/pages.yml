@@ -1,4 +1,4 @@
-name: Deploy nightshade demo to GitHub Pages
+name: Deploy demo and gallery to GitHub Pages
 
 on:
   push:
@@ -39,13 +39,18 @@ jobs:
           wasm-bindgen --target web --out-dir examples/nightshade_demo/runtime --out-name engine target/wasm32-unknown-unknown/release/worker.wasm
           wasm-opt -O3 --enable-simd examples/nightshade_demo/runtime/engine_bg.wasm -o examples/nightshade_demo/runtime/engine_bg.wasm
 
-      - name: Build the Leptos bundle
-        run: trunk build --release --public-url /musaic/
+      # The nightshade demo is served at the project root, /musaic/.
+      - name: Build the nightshade demo bundle
+        run: trunk build --release --public-url /musaic/ --dist "$GITHUB_WORKSPACE/site"
+
+      # The interactive component gallery is served at /musaic/gallery/.
+      - name: Build the gallery bundle
+        run: trunk build --release --config examples/gallery/Trunk.toml --public-url /musaic/gallery/ --dist "$GITHUB_WORKSPACE/site/gallery"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: examples/nightshade_demo/dist
+          path: site
 
   deploy:
     needs: build
