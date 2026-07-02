@@ -415,41 +415,46 @@ body {
 }
 
 .musaic-editor-shell {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   min-height: 0;
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    "toolbar toolbar toolbar"
-    "left    center  right"
-    "status  status  status";
 }
 
 .musaic-editor-toolbar {
-  grid-area: toolbar;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
+.musaic-editor-toolbar:empty,
+.musaic-editor-status:empty,
+.musaic-editor-bottom:empty {
+  display: none;
+}
+
+.musaic-editor-main {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .musaic-editor-left {
-  grid-area: left;
+  flex: 0 0 auto;
   width: 260px;
   min-height: 0;
   overflow: auto;
   border-right: 1px solid var(--musaic-panel-border);
   background: var(--musaic-panel);
-  transition: width 0.16s ease;
 }
 
 .musaic-editor-right {
-  grid-area: right;
+  flex: 0 0 auto;
   width: 300px;
   min-height: 0;
   overflow: auto;
   border-left: 1px solid var(--musaic-panel-border);
   background: var(--musaic-panel);
-  transition: width 0.16s ease;
 }
 
 .musaic-editor-left.closed,
@@ -460,15 +465,29 @@ body {
 }
 
 .musaic-editor-center {
-  grid-area: center;
   position: relative;
+  flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
 
+.musaic-editor-bottom {
+  flex: 0 0 auto;
+  min-height: 0;
+  overflow: auto;
+  border-top: 1px solid var(--musaic-panel-border);
+  background: var(--musaic-panel);
+}
+
+.musaic-editor-bottom.closed {
+  height: 0;
+  border-width: 0;
+  overflow: hidden;
+}
+
 .musaic-editor-status {
-  grid-area: status;
+  flex: 0 0 auto;
   min-width: 0;
 }
 

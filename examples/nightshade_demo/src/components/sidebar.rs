@@ -1,5 +1,8 @@
 use leptos::prelude::*;
-use leptos_musaic::{ColorField, Engine, Panel, Select, SelectedCard, SliderField, Switch};
+use leptos_musaic::{
+    ColorField, Engine, Inspector, InspectorSection, LogKind, Select, SelectedCard, SliderField,
+    Switch,
+};
 
 use crate::state::DemoState;
 
@@ -20,7 +23,7 @@ pub fn Sidebar(engine: Engine, state: DemoState) -> impl IntoView {
         engine.send(&protocol::Command::SetBackgroundPreset {
             preset: value.clone(),
         });
-        state.log_line(format!("background -> {value}"));
+        state.log_line(LogKind::Event, format!("background -> {value}"));
     });
     let bg_color = Callback::new(move |(rgb, _committed): ([f32; 3], bool)| {
         state.bg_color.set(rgb);
@@ -46,24 +49,8 @@ pub fn Sidebar(engine: Engine, state: DemoState) -> impl IntoView {
     });
 
     view! {
-        <div class="ed-sidebar">
-            <Panel title="Scene">
-                <Stat label="Adapter" value=Signal::derive(move || engine.state.adapter.get()) />
-                <Stat
-                    label="FPS"
-                    value=Signal::derive(move || format!("{:.0}", engine.state.fps.get()))
-                />
-                <Stat
-                    label="Entities"
-                    value=Signal::derive(move || engine.state.entity_count.get().to_string())
-                />
-                <Stat
-                    label="Objects"
-                    value=Signal::derive(move || state.object_count.get().to_string())
-                />
-            </Panel>
-
-            <Panel title="Motion">
+        <Inspector>
+            <InspectorSection title="Motion">
                 <Switch
                     label="Spin"
                     value=Signal::derive(move || state.spinning.get())
@@ -77,9 +64,9 @@ pub fn Sidebar(engine: Engine, state: DemoState) -> impl IntoView {
                     step=0.05
                     on_change=spin_speed
                 />
-            </Panel>
+            </InspectorSection>
 
-            <Panel title="Environment">
+            <InspectorSection title="Environment">
                 <Select
                     label="Sky"
                     value=Signal::derive(move || state.background.get())
@@ -97,9 +84,9 @@ pub fn Sidebar(engine: Engine, state: DemoState) -> impl IntoView {
                     value=Signal::derive(move || state.bg_color.get())
                     on_change=bg_color
                 />
-            </Panel>
+            </InspectorSection>
 
-            <Panel title="Selection">
+            <InspectorSection title="Selection">
                 <SelectedCard selected=engine.state.selected />
                 <ColorField
                     label="Color"
@@ -114,17 +101,7 @@ pub fn Sidebar(engine: Engine, state: DemoState) -> impl IntoView {
                     step=0.05
                     on_change=sel_scale
                 />
-            </Panel>
-        </div>
-    }
-}
-
-#[component]
-fn Stat(label: &'static str, value: Signal<String>) -> impl IntoView {
-    view! {
-        <div class="ed-stat">
-            <span class="ed-key">{label}</span>
-            <span>{move || value.get()}</span>
-        </div>
+            </InspectorSection>
+        </Inspector>
     }
 }

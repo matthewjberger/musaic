@@ -1,4 +1,5 @@
 use leptos::prelude::*;
+use leptos_musaic::{LogEntry, LogKind};
 
 const SAMPLE_SCRIPT: &str = r#"// musaic studio scene script (scratchpad)
 fn build(commands) {
@@ -23,7 +24,8 @@ pub struct DemoState {
     pub object_count: RwSignal<u32>,
     pub dock_tab: RwSignal<String>,
     pub script: RwSignal<String>,
-    pub log: RwSignal<Vec<String>>,
+    pub log: RwSignal<Vec<LogEntry>>,
+    pub log_seq: RwSignal<usize>,
     pub palette_open: RwSignal<bool>,
     pub sidebar_width: RwSignal<f64>,
     pub dock_height: RwSignal<f64>,
@@ -41,20 +43,27 @@ impl DemoState {
             object_count: RwSignal::new(0),
             dock_tab: RwSignal::new("script".to_string()),
             script: RwSignal::new(SAMPLE_SCRIPT.to_string()),
-            log: RwSignal::new(vec!["musaic studio ready".to_string()]),
+            log: RwSignal::new(vec![LogEntry::new(0, LogKind::Info, "musaic studio ready")]),
+            log_seq: RwSignal::new(1),
             palette_open: RwSignal::new(false),
             sidebar_width: RwSignal::new(296.0),
             dock_height: RwSignal::new(232.0),
         }
     }
 
-    pub fn log_line(&self, message: impl Into<String>) {
-        self.log.update(|lines| {
-            lines.push(message.into());
-            if lines.len() > 200 {
-                lines.remove(0);
+    pub fn log_line(&self, kind: LogKind, message: impl Into<String>) {
+        let id = self.log_seq.get_untracked();
+        self.log_seq.set(id + 1);
+        self.log.update(|entries| {
+            entries.push(LogEntry::new(id, kind, message));
+            if entries.len() > 200 {
+                entries.remove(0);
             }
         });
+    }
+
+    pub fn clear_log(&self) {
+        self.log.update(Vec::clear);
     }
 }
 

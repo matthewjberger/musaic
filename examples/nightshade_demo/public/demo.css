@@ -1,20 +1,6 @@
-/* App-level layout for musaic studio. musaic provides the widgets, tokens, and
-   themes; the app arranges them into an editor shell. */
-
-.ed-grid {
-  display: grid;
-  grid-template-rows: 48px minmax(0, 1fr) 6px 232px;
-  height: 100%;
-}
-
-.ed-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 14px;
-  border-bottom: 1px solid var(--musaic-panel-border);
-  background: var(--musaic-panel-2);
-}
+/* App-level chrome for musaic studio. musaic provides the frame (EditorShell),
+   widgets, tokens, and themes; the app only styles its own brand mark and the
+   script pane inside the dock. */
 
 .ed-brand {
   display: flex;
@@ -37,47 +23,11 @@
   font-size: 12px;
 }
 
-.ed-spacer {
-  flex: 1;
-}
-
-.ed-body {
-  display: grid;
-  grid-template-columns: 296px 6px minmax(0, 1fr);
-  min-height: 0;
-}
-
-.ed-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  overflow-y: auto;
-  border-right: 1px solid var(--musaic-panel-border);
-  background: var(--musaic-panel-2);
-}
-
-.ed-viewport-cell {
-  position: relative;
-  overflow: hidden;
-}
-
-.ed-stat {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.ed-key {
-  color: var(--musaic-text-dim);
-}
-
 .ed-dock {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-top: 1px solid var(--musaic-panel-border);
-  background: var(--musaic-panel-2);
+  height: 100%;
 }
 
 .ed-dock-body {
@@ -97,22 +47,4 @@
 .ed-script-note {
   color: var(--musaic-text-dim);
   font-size: 11px;
-}
-
-.ed-log {
-  height: 100%;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-family: var(--musaic-mono);
-  font-size: 12px;
-}
-
-.ed-log-line {
-  color: var(--musaic-text-dim);
-}
-
-.ed-log-line:first-child {
-  color: var(--musaic-text);
 }

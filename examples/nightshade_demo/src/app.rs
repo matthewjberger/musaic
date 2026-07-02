@@ -1,8 +1,8 @@
 use leptos::prelude::*;
 use leptos_musaic::{
-    AppShell, Command, CommandPalette, EngineViewport, KeymapProvider, Loader, MusaicStyles,
-    ResizeAxis, ResizeHandle, THEMES, ThemeProvider, WebGpuGate, provide_command_registry,
-    use_engine, use_theme,
+    AppShell, Command, CommandPalette, EditorShell, Engine, EngineViewport, KeymapProvider, Loader,
+    LogKind, MusaicStyles, StatusBar, StatusItem, StatusSpacer, THEMES, ThemeProvider, WebGpuGate,
+    provide_command_registry, use_engine, use_theme,
 };
 
 use crate::components::dock::Dock;
@@ -41,7 +41,7 @@ fn Stage() -> impl IntoView {
             "Spawn cube",
             Callback::new(move |_| {
                 engine.send(&protocol::Command::SpawnCube);
-                state.log_line("spawned cube");
+                state.log_line(LogKind::Command, "spawned cube");
             }),
         )
         .with_keybinding("c")
@@ -51,7 +51,7 @@ fn Stage() -> impl IntoView {
             "Spawn sphere",
             Callback::new(move |_| {
                 engine.send(&protocol::Command::SpawnSphere);
-                state.log_line("spawned sphere");
+                state.log_line(LogKind::Command, "spawned sphere");
             }),
         )
         .with_group("Scene"),
@@ -92,48 +92,34 @@ fn Stage() -> impl IntoView {
     view! {
         <KeymapProvider>
             <AppShell>
-                <div
-                    class="ed-grid"
-                    style=move || {
-                        format!(
-                            "grid-template-rows: 48px minmax(0,1fr) 6px {}px",
-                            state.dock_height.get(),
-                        )
-                    }
+                <EditorShell
+                    left_size=state.sidebar_width
+                    bottom_size=state.dock_height
+                    toolbar=move || view! { <Toolbar engine=engine state=state /> }
+                    left=move || view! { <Sidebar engine=engine state=state /> }
+                    bottom=move || view! { <Dock state=state /> }
+                    status=move || view! { <StatusStrip engine=engine state=state /> }
                 >
-                    <Toolbar engine=engine state=state />
-                    <div
-                        class="ed-body"
-                        style=move || {
-                            format!(
-                                "grid-template-columns: {}px 6px minmax(0,1fr)",
-                                state.sidebar_width.get(),
-                            )
-                        }
-                    >
-                        <Sidebar engine=engine state=state />
-                        <ResizeHandle
-                            value=state.sidebar_width
-                            axis=ResizeAxis::Horizontal
-                            min=200.0
-                            max=560.0
-                        />
-                        <div class="ed-viewport-cell">
-                            <EngineViewport engine=engine />
-                            <Loader ready=engine.state.ready />
-                        </div>
-                    </div>
-                    <ResizeHandle
-                        value=state.dock_height
-                        axis=ResizeAxis::Vertical
-                        min=120.0
-                        max=560.0
-                        invert=true
-                    />
-                    <Dock state=state />
-                </div>
+                    <EngineViewport engine=engine />
+                    <Loader ready=engine.state.ready />
+                </EditorShell>
             </AppShell>
             <CommandPalette open=state.palette_open />
         </KeymapProvider>
+    }
+}
+
+#[component]
+fn StatusStrip(engine: Engine, state: DemoState) -> impl IntoView {
+    view! {
+        <StatusBar>
+            <StatusItem icon="\u{25c9}">{move || engine.state.adapter.get()}</StatusItem>
+            <StatusItem>{move || format!("{:.0} fps", engine.state.fps.get())}</StatusItem>
+            <StatusSpacer />
+            <StatusItem>
+                {move || format!("{} entities", engine.state.entity_count.get())}
+            </StatusItem>
+            <StatusItem>{move || format!("{} objects", state.object_count.get())}</StatusItem>
+        </StatusBar>
     }
 }

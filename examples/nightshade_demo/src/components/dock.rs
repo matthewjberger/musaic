@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use leptos_musaic::{CodeEditor, TabBar, highlight_rhai};
+use leptos_musaic::{CodeEditor, LogView, TabBar, highlight_rhai};
 
 use crate::state::DemoState;
 
@@ -14,7 +14,14 @@ pub fn Dock(state: DemoState) -> impl IntoView {
             <div class="ed-dock-body">
                 <Show
                     when=move || state.dock_tab.get() == "script"
-                    fallback=move || view! { <LogView state=state /> }
+                    fallback=move || {
+                        view! {
+                            <LogView
+                                entries=state.log
+                                on_clear=Callback::new(move |_| state.clear_log())
+                            />
+                        }
+                    }
                 >
                     <div class="ed-script">
                         <CodeEditor value=state.script highlighter=highlight_rhai fill=true />
@@ -24,23 +31,6 @@ pub fn Dock(state: DemoState) -> impl IntoView {
                     </div>
                 </Show>
             </div>
-        </div>
-    }
-}
-
-#[component]
-fn LogView(state: DemoState) -> impl IntoView {
-    view! {
-        <div class="ed-log">
-            {move || {
-                state
-                    .log
-                    .get()
-                    .into_iter()
-                    .rev()
-                    .map(|line| view! { <div class="ed-log-line">{line}</div> })
-                    .collect_view()
-            }}
         </div>
     }
 }

@@ -5,7 +5,15 @@ license = "MIT OR Apache-2.0"
 edition = "2024"
 
 [dependencies]
-leptos-musaic = { path = "../../crates/musaic", features = ["engine", "command-palette", "nightshade"] }
+leptos-musaic = { path = "../../crates/musaic", features = [
+    "engine",
+    "command-palette",
+    "nightshade",
+    "log",
+    "toolbar",
+    "status-bar",
+    "inspector",
+] }
 protocol = { path = "protocol" }
 leptos = { version = "0.7", features = ["csr"] }
 serde_json = "1"
