@@ -41,21 +41,35 @@ pub fn Table(
     #[prop(optional)] filterable: bool,
     #[prop(optional)] resizable: bool,
     #[prop(optional)] virtualized: bool,
+    #[prop(optional)] columns_toggle: bool,
+    #[prop(optional)] page_size: Option<usize>,
     #[prop(default = 34.0)] row_height: f64,
     #[prop(default = 12)] overscan: usize,
     #[prop(optional)] height: Option<f64>,
     #[prop(optional)] on_row_click: Option<Callback<usize>>,
+    #[prop(optional)] on_cell_edit: Option<Callback<(usize, usize, String)>>,
     #[prop(optional, into)] selected_row: Option<Signal<Option<usize>>>,
 ) -> impl IntoView {
     let column_count = headers.len();
+    let header_labels = StoredValue::new(headers.clone());
     let sort = RwSignal::new(Vec::<(usize, SortDirection)>::new());
     let filter = RwSignal::new(String::new());
     let widths = RwSignal::new(vec![None::<f64>; column_count]);
+    let visible = RwSignal::new(vec![true; column_count]);
+    let columns_menu = RwSignal::new(false);
+    let page = RwSignal::new(0usize);
+    let editing = RwSignal::new(None::<(usize, usize)>);
+    let draft = RwSignal::new(String::new());
     let scroll_top = RwSignal::new(0.0);
     let viewport_height = RwSignal::new(height.unwrap_or(360.0));
     let selected_row = selected_row.unwrap_or_else(|| Signal::derive(|| None));
     let wrap_ref = NodeRef::<html::Div>::new();
     let drag = StoredValue::new(None::<(usize, f64, f64)>);
+    let paginated = page_size.is_some();
+    let virtualized = virtualized && !paginated;
+
+    let is_visible =
+        move |column: usize| visible.with(|list| list.get(column).copied().unwrap_or(true));
 
     let toggle_sort = move |column: usize, additive: bool| {
         sort.update(|stack| {
@@ -101,6 +115,13 @@ pub fn Table(
         data
     };
 
+    let page_count = move || {
+        let Some(size) = page_size else {
+            return 1;
+        };
+        processed().len().div_ceil(size).max(1)
+    };
+
     let on_pointermove = move |event: web_sys::PointerEvent| {
         if let Some((column, start_x, start_width)) = drag.get_value() {
             let delta = event.client_x() as f64 - start_x;
@@ -114,10 +135,9 @@ pub fn Table(
     };
     let on_pointerup = move |_event: web_sys::PointerEvent| drag.set_value(None);
 
-    let header_cells = headers
-        .into_iter()
-        .enumerate()
-        .map(|(index, label)| {
+    let header_cells = (0..column_count)
+        .map(|index| {
+            let label = header_labels.with_value(|list| list[index].clone());
             let indicator = move || {
                 let stack = sort.get();
                 match stack.iter().find(|(active, _)| *active == index) {
@@ -170,41 +190,46 @@ pub fn Table(
                 }
             };
             view! {
-                <th
-                    scope="col"
-                    class="musaic-th"
-                    class:sortable=sortable
-                    aria-sort=aria_sort
-                    on:click=on_click
-                >
-                    <span class="musaic-th-label">{label}{indicator}</span>
-                    <span class="musaic-th-rank">{rank}</span>
-                    {resizable
-                        .then(|| {
-                            view! {
-                                <span
-                                    class="musaic-th-grip"
-                                    on:pointerdown=on_grip_down
-                                    on:pointermove=on_pointermove
-                                    on:pointerup=on_pointerup
-                                    on:click=|event| event.stop_propagation()
-                                ></span>
-                            }
-                        })}
-                </th>
+                <Show when=move || is_visible(index) fallback=|| ()>
+                    <th
+                        scope="col"
+                        class="musaic-th"
+                        class:sortable=sortable
+                        aria-sort=aria_sort
+                        on:click=on_click
+                    >
+                        <span class="musaic-th-label">{label.clone()}{indicator}</span>
+                        <span class="musaic-th-rank">{rank}</span>
+                        {resizable
+                            .then(|| {
+                                view! {
+                                    <span
+                                        class="musaic-th-grip"
+                                        on:pointerdown=on_grip_down
+                                        on:pointermove=on_pointermove
+                                        on:pointerup=on_pointerup
+                                        on:click=|event| event.stop_propagation()
+                                    ></span>
+                                }
+                            })}
+                    </th>
+                </Show>
             }
         })
         .collect_view();
 
     let colgroup = move || {
-        widths
-            .get()
-            .into_iter()
-            .map(|width| {
+        (0..column_count)
+            .map(|index| {
+                let width = widths.with(|list| list.get(index).copied().flatten());
                 let style = width
                     .map(|value| format!("width:{value}px"))
                     .unwrap_or_default();
-                view! { <col style=style /> }
+                view! {
+                    <Show when=move || is_visible(index) fallback=|| ()>
+                        <col style=style.clone() />
+                    </Show>
+                }
             })
             .collect_view()
     };
@@ -221,23 +246,74 @@ pub fn Table(
         (start, end)
     };
 
-    let spacer = move |pixels: f64| {
-        (pixels > 0.5).then(|| {
-            view! {
-                <tr class="musaic-spacer-row" aria-hidden="true">
-                    <td colspan=column_count style=format!("height:{pixels}px;padding:0")></td>
-                </tr>
+    let render_cell = move |original_index: usize, column: usize, cell: String| {
+        let editable = on_cell_edit.is_some();
+        let is_editing = move || editing.get() == Some((original_index, column));
+        let cell = StoredValue::new(cell);
+        let start_edit = move |_: web_sys::MouseEvent| {
+            if editable {
+                draft.set(cell.get_value());
+                editing.set(Some((original_index, column)));
             }
-        })
+        };
+        let commit = move || {
+            if let Some(callback) = on_cell_edit {
+                callback.run((original_index, column, draft.get_untracked()));
+            }
+            editing.set(None);
+        };
+        view! {
+            <Show when=move || is_visible(column) fallback=|| ()>
+                <td class:editable=editable on:dblclick=start_edit>
+                    {move || {
+                        if is_editing() {
+                            view! {
+                                <input
+                                    class="musaic-cell-input"
+                                    prop:value=move || draft.get()
+                                    on:click=|event| event.stop_propagation()
+                                    on:input=move |event| draft.set(event_target_value(&event))
+                                    on:keydown=move |event| {
+                                        match event.key().as_str() {
+                                            "Enter" => {
+                                                event.prevent_default();
+                                                commit();
+                                            }
+                                            "Escape" => {
+                                                event.prevent_default();
+                                                editing.set(None);
+                                            }
+                                            _ => {}
+                                        }
+                                    }
+                                    on:blur=move |_| commit()
+                                />
+                            }
+                                .into_any()
+                        } else {
+                            view! { <span>{cell.get_value()}</span> }.into_any()
+                        }
+                    }}
+                </td>
+            </Show>
+        }
     };
 
     let body = move || {
         let data = processed();
         let total = data.len();
-        let (start, end) = visible_range(total);
+        let data = if let Some(size) = page_size {
+            let start = (page.get() * size).min(total);
+            let end = (start + size).min(total);
+            data[start..end].to_vec()
+        } else {
+            data
+        };
+        let visible_total = data.len();
+        let (start, end) = visible_range(visible_total);
         let top_pad = start as f64 * row_height;
-        let bottom_pad = total.saturating_sub(end) as f64 * row_height;
-        let visible = data
+        let bottom_pad = visible_total.saturating_sub(end) as f64 * row_height;
+        let visible_rows = data
             .into_iter()
             .skip(start)
             .take(end - start)
@@ -249,6 +325,11 @@ pub fn Table(
                     }
                 };
                 let style = virtualized.then(|| format!("height:{row_height}px"));
+                let cells = row
+                    .into_iter()
+                    .enumerate()
+                    .map(|(column, cell)| render_cell(original_index, column, cell))
+                    .collect_view();
                 view! {
                     <tr
                         class:selected=is_selected
@@ -257,17 +338,23 @@ pub fn Table(
                         aria-selected=move || is_selected().to_string()
                         on:click=on_click
                     >
-                        {row
-                            .into_iter()
-                            .map(|cell| view! { <td>{cell}</td> })
-                            .collect_view()}
+                        {cells}
                     </tr>
                 }
             })
             .collect_view();
+        let spacer = move |pixels: f64| {
+            (pixels > 0.5).then(|| {
+                view! {
+                    <tr class="musaic-spacer-row" aria-hidden="true">
+                        <td colspan=column_count style=format!("height:{pixels}px;padding:0")></td>
+                    </tr>
+                }
+            })
+        };
         view! {
             {spacer(top_pad)}
-            {visible}
+            {visible_rows}
             {spacer(bottom_pad)}
         }
     };
@@ -292,18 +379,60 @@ pub fn Table(
 
     view! {
         <div class="musaic-table-shell">
-            {filterable
-                .then(|| {
-                    view! {
-                        <input
-                            class="musaic-table-filter"
-                            type="search"
-                            placeholder="Filter rows…"
-                            prop:value=move || filter.get()
-                            on:input=move |event| filter.set(event_target_value(&event))
-                        />
-                    }
-                })}
+            <div class="musaic-table-toolbar">
+                {filterable
+                    .then(|| {
+                        view! {
+                            <input
+                                class="musaic-table-filter"
+                                type="search"
+                                placeholder="Filter rows…"
+                                prop:value=move || filter.get()
+                                on:input=move |event| filter.set(event_target_value(&event))
+                            />
+                        }
+                    })}
+                {columns_toggle
+                    .then(|| {
+                        view! {
+                            <div class="musaic-table-columns">
+                                <button
+                                    class="musaic-button"
+                                    on:click=move |_| columns_menu.update(|open| *open = !*open)
+                                >
+                                    "Columns"
+                                </button>
+                                <Show when=move || columns_menu.get() fallback=|| ()>
+                                    <div class="musaic-table-columns-menu">
+                                        {(0..column_count)
+                                            .map(|index| {
+                                                let label = header_labels
+                                                    .with_value(|list| list[index].clone());
+                                                view! {
+                                                    <label class="musaic-table-column-row">
+                                                        <input
+                                                            type="checkbox"
+                                                            prop:checked=move || is_visible(index)
+                                                            on:change=move |_| {
+                                                                visible
+                                                                    .update(|list| {
+                                                                        if let Some(slot) = list.get_mut(index) {
+                                                                            *slot = !*slot;
+                                                                        }
+                                                                    })
+                                                            }
+                                                        />
+                                                        {label}
+                                                    </label>
+                                                }
+                                            })
+                                            .collect_view()}
+                                    </div>
+                                </Show>
+                            </div>
+                        }
+                    })}
+            </div>
             <div
                 class="musaic-table-wrap"
                 class:sticky=virtualized || height.is_some()
@@ -319,6 +448,33 @@ pub fn Table(
                     <tbody>{body}</tbody>
                 </table>
             </div>
+            {paginated
+                .then(|| {
+                    view! {
+                        <div class="musaic-table-pager">
+                            <button
+                                class="musaic-button"
+                                disabled=move || page.get() == 0
+                                on:click=move |_| page.update(|value| *value = value.saturating_sub(1))
+                            >
+                                "Prev"
+                            </button>
+                            <span class="musaic-table-page">
+                                {move || format!("Page {} / {}", page.get() + 1, page_count())}
+                            </span>
+                            <button
+                                class="musaic-button"
+                                disabled=move || page.get() + 1 >= page_count()
+                                on:click=move |_| {
+                                    let last = page_count() - 1;
+                                    page.update(|value| *value = (*value + 1).min(last))
+                                }
+                            >
+                                "Next"
+                            </button>
+                        </div>
+                    }
+                })}
         </div>
     }
 }

@@ -122,3 +122,67 @@
 .musaic-spacer-row td {
   border: none !important;
 }
+
+/* toolbar, column toggle, pager, inline cell edit */
+
+.musaic-table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.musaic-table-columns {
+  position: relative;
+}
+
+.musaic-table-columns-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  padding: 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  background: var(--musaic-panel);
+  box-shadow: var(--musaic-shadow);
+}
+
+.musaic-table-column-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.musaic-table-pager {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.musaic-table-page {
+  color: var(--musaic-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.musaic-table tbody td.editable {
+  cursor: text;
+}
+
+.musaic-cell-input {
+  width: 100%;
+  padding: 3px 6px;
+  border: 1px solid var(--musaic-accent);
+  border-radius: 5px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+}
+
+.musaic-cell-input:focus {
+  outline: none;
+}

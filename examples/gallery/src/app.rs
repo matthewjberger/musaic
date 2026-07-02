@@ -83,6 +83,24 @@ fn Shell() -> impl IntoView {
         })
         .collect::<Vec<_>>();
     registry.register(Command::submenu("theme", "Switch theme", theme_children).with_group("View"));
+    registry.register(
+        Command::new(
+            "goto-overview",
+            "Go to overview",
+            Callback::new(move |_| selected.set("overview".to_string())),
+        )
+        .with_keybinding("g o")
+        .with_group("Go"),
+    );
+    registry.register(
+        Command::new(
+            "goto-dock",
+            "Go to dock",
+            Callback::new(move |_| selected.set("dock".to_string())),
+        )
+        .with_keybinding("g d")
+        .with_group("Go"),
+    );
 
     let nav = sections::nav_tree();
     let on_select = Callback::new(move |id: String| selected.set(id));

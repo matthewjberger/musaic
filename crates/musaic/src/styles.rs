@@ -21,6 +21,8 @@ pub fn stylesheet() -> String {
     css.push_str(include_str!("../css/dock.css"));
     #[cfg(feature = "overlays")]
     css.push_str(include_str!("../css/overlays.css"));
+    #[cfg(feature = "virtual-list")]
+    css.push_str(include_str!("../css/virtual_list.css"));
     #[cfg(feature = "disclosure")]
     css.push_str(include_str!("../css/disclosure.css"));
     #[cfg(feature = "status-bar")]

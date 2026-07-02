@@ -75,6 +75,11 @@ mod floating;
 #[cfg(feature = "overlays")]
 pub use floating::*;
 
+#[cfg(feature = "virtual-list")]
+mod virtual_list;
+#[cfg(feature = "virtual-list")]
+pub use virtual_list::*;
+
 #[cfg(feature = "disclosure")]
 mod disclosure;
 #[cfg(feature = "disclosure")]

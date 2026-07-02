@@ -510,3 +510,49 @@ body {
 .musaic-theme-menu-item.active {
   color: var(--musaic-accent);
 }
+
+.musaic-whichkey {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 400;
+  min-width: 240px;
+  max-width: 520px;
+  padding: 10px 12px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 10px;
+  background: var(--musaic-panel);
+  box-shadow: var(--musaic-shadow);
+  animation: musaic-toast-in 0.12s ease;
+}
+
+.musaic-whichkey-prefix {
+  margin-bottom: 6px;
+  color: var(--musaic-accent);
+  font-family: var(--musaic-mono);
+  font-size: 12px;
+}
+
+.musaic-whichkey-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 4px 12px;
+}
+
+.musaic-whichkey-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.musaic-whichkey-keys {
+  padding: 1px 6px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 5px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text-dim);
+  font-family: var(--musaic-mono);
+  font-size: 11px;
+}

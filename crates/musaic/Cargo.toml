@@ -61,6 +61,7 @@ tree = []
 inspector = []
 dock = []
 overlays = []
+virtual-list = []
 disclosure = []
 status-bar = []
 toolbar = ["menus"]
@@ -85,6 +86,7 @@ full = [
     "inspector",
     "dock",
     "overlays",
+    "virtual-list",
     "disclosure",
     "status-bar",
     "toolbar",

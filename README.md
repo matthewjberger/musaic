@@ -53,12 +53,13 @@ compiled. Everything else is opt-in:
 | `menus` | `Menu`, `MenuItem` (checkable, disabled, shortcuts), `Submenu`, `MenuSeparator`, `ContextMenu` (portalled), `TabBar`, all keyboard-navigable |
 | `themes` | the bundled themes, `register_theme` for custom typed themes, `ThemePicker`, and `ThemeMenu` (hover-preview) |
 | `command-palette` | `CommandPalette` (registry-driven, fuzzy-ranked, recents, keybinding hints, nested submenus) |
-| `code-editor` | `CodeEditor` (highlight layer, optional line-number gutter and diagnostic markers) |
-| `table` | `Table` (multi-column sort, filter, column resize, sticky header, optional virtualization) |
+| `code-editor` | `CodeEditor` (highlight layer, optional gutter and diagnostic markers) plus `highlight_code`, a generic keyword/command highlighter |
+| `table` | `Table` (multi-column sort, filter, column resize + show/hide, sticky header, pagination, inline cell edit, optional virtualization) |
 | `tree` | `Tree`, `TreeItem` (collapsible hierarchy, multi-select, inline rename, drag-and-drop, lazy expand, arrow-key nav) |
 | `inspector` | `Inspector`, `InspectorSection` (header actions slot), `InspectorRow` |
 | `dock` | `DockLayout`, `DockPanel`, `DockMain`: resizable, collapsible panels docked around a main region |
 | `overlays` | `Popover` (anchored positioning that flips/shifts to stay on screen), `Dropdown`, `Combobox`, `Dialog` |
+| `virtual-list` | `VirtualList`: a windowed-rendering primitive over any item count and render closure |
 | `disclosure` | `Disclosure`, `Accordion`, `AccordionItem` |
 | `status-bar` | `StatusBar`, `StatusItem`, `StatusSpacer` |
 | `toolbar` | `Toolbar`, `ToolbarGroup`, `ToolbarSpacer`, `ToolButton`, `MenuBar`, `MenuBarMenu` |
@@ -82,7 +83,8 @@ each with an id, title, group, optional `enabled` predicate, optional keybinding
 children. The `CommandPalette`, `KeymapProvider`, and your menus all read from that single registry,
 so a new capability is one `register` call instead of three wired surfaces. `KeymapProvider` installs
 one global key listener that parses bindings like `Mod+K` or the chord `g d` and dispatches to the
-registry, skipping bare keys while a text field has focus.
+registry, skipping bare keys while a text field has focus. When a chord prefix is pending it shows a
+which-key hint overlay of the possible completions.
 
 ## Theming
 

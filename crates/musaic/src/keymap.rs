@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::KeyboardEvent;
 
-use crate::command::use_commands;
+use crate::command::{Command, use_commands};
 
 #[derive(Clone, PartialEq, Eq)]
 struct Combo {
@@ -122,10 +122,54 @@ pub fn pretty_binding(binding: &str) -> String {
 
 const CHORD_RESET_MS: i32 = 900;
 
+fn combo_text(combo: &Combo) -> String {
+    let mut parts = Vec::new();
+    if combo.modifier {
+        parts.push("Ctrl".to_string());
+    }
+    if combo.alt {
+        parts.push("Alt".to_string());
+    }
+    if combo.shift {
+        parts.push("Shift".to_string());
+    }
+    let key = if combo.key.chars().count() == 1 {
+        combo.key.to_uppercase()
+    } else {
+        let mut chars = combo.key.chars();
+        match chars.next() {
+            Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+            None => String::new(),
+        }
+    };
+    parts.push(key);
+    parts.join("+")
+}
+
+fn collect_pending(commands: &[Command], pending: &[Combo], out: &mut Vec<(String, String)>) {
+    for command in commands {
+        if let Some(binding) = &command.keybinding {
+            let parsed = parse_binding(binding);
+            if sequence_prefixes(&parsed, pending) {
+                let remaining = parsed[pending.len()..]
+                    .iter()
+                    .map(combo_text)
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                out.push((remaining, command.title.clone()));
+            }
+        }
+        collect_pending(&command.children, pending, out);
+    }
+}
+
 #[component]
-pub fn KeymapProvider(children: Children) -> impl IntoView {
+pub fn KeymapProvider(
+    #[prop(default = true)] which_key: bool,
+    children: Children,
+) -> impl IntoView {
     let registry = use_commands();
-    let pending = StoredValue::new(Vec::<Combo>::new());
+    let pending = RwSignal::new(Vec::<Combo>::new());
     let generation = StoredValue::new(0u32);
 
     let handle = window_event_listener(leptos::ev::keydown, move |event: KeyboardEvent| {
@@ -149,11 +193,11 @@ pub fn KeymapProvider(children: Children) -> impl IntoView {
         }
 
         let editing = editable_focus();
-        if editing && !current.modifier && !current.alt && pending.with_value(Vec::is_empty) {
+        if editing && !current.modifier && !current.alt && pending.with(Vec::is_empty) {
             return;
         }
 
-        let mut sequence = pending.get_value();
+        let mut sequence = pending.get_untracked();
         sequence.push(current);
 
         if let Some((id, _)) = bindings
@@ -161,7 +205,7 @@ pub fn KeymapProvider(children: Children) -> impl IntoView {
             .find(|(_, binding)| sequence_matches(binding, &sequence))
         {
             event.prevent_default();
-            pending.set_value(Vec::new());
+            pending.set(Vec::new());
             registry.run(id);
             return;
         }
@@ -171,7 +215,7 @@ pub fn KeymapProvider(children: Children) -> impl IntoView {
             .any(|(_, binding)| sequence_prefixes(binding, &sequence));
         if has_prefix {
             event.prevent_default();
-            pending.set_value(sequence);
+            pending.set(sequence);
             schedule_reset(pending, generation);
             return;
         }
@@ -183,25 +227,61 @@ pub fn KeymapProvider(children: Children) -> impl IntoView {
             .any(|(_, binding)| sequence_prefixes(binding, &restart))
         {
             event.prevent_default();
-            pending.set_value(restart);
+            pending.set(restart);
             schedule_reset(pending, generation);
         } else {
-            pending.set_value(Vec::new());
+            pending.set(Vec::new());
         }
     });
 
     on_cleanup(move || handle.remove());
 
-    children()
+    let candidates = move || {
+        let pending = pending.get();
+        if pending.is_empty() {
+            return Vec::new();
+        }
+        let mut out = Vec::new();
+        collect_pending(&registry.commands(), &pending, &mut out);
+        out
+    };
+
+    view! {
+        {children()}
+        <Show when=move || which_key && !pending.get().is_empty() fallback=|| ()>
+            <div class="musaic-whichkey">
+                <div class="musaic-whichkey-prefix">
+                    {move || {
+                        pending.get().iter().map(combo_text).collect::<Vec<_>>().join(" ")
+                    }}
+                </div>
+                <div class="musaic-whichkey-list">
+                    {move || {
+                        candidates()
+                            .into_iter()
+                            .map(|(keys, title)| {
+                                view! {
+                                    <div class="musaic-whichkey-row">
+                                        <kbd class="musaic-whichkey-keys">{keys}</kbd>
+                                        <span>{title}</span>
+                                    </div>
+                                }
+                            })
+                            .collect_view()
+                    }}
+                </div>
+            </div>
+        </Show>
+    }
 }
 
-fn schedule_reset(pending: StoredValue<Vec<Combo>>, generation: StoredValue<u32>) {
+fn schedule_reset(pending: RwSignal<Vec<Combo>>, generation: StoredValue<u32>) {
     let current = generation.get_value().wrapping_add(1);
     generation.set_value(current);
     set_timeout(
         move || {
             if generation.get_value() == current {
-                pending.set_value(Vec::new());
+                pending.set(Vec::new());
             }
         },
         std::time::Duration::from_millis(CHORD_RESET_MS as u64),

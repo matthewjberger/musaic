@@ -1,0 +1,13 @@
+/* musaic virtual list. */
+
+.musaic-virtual-list {
+  overflow-y: auto;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+}
+
+.musaic-virtual-row {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}

@@ -11,8 +11,8 @@ use leptos_musaic::{
     SearchItem, SearchList, Select, Side, SliderField, Spinner, SplitAxis, StatusBar, StatusItem,
     StatusSpacer, Submenu, SwatchPalette, Switch, TabBar, Table, TagInput, TextField, Theme,
     ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup, ToolbarSpacer, Tooltip,
-    Tree, TreeItem, Vec3Field, ViewportOverlay, highlight_rhai, pretty_binding, register_theme,
-    use_commands, use_theme, use_toaster,
+    Tree, TreeItem, Vec3Field, ViewportOverlay, VirtualList, highlight_rhai, pretty_binding,
+    register_theme, use_commands, use_theme, use_toaster,
 };
 use web_sys::MouseEvent;
 
@@ -254,6 +254,10 @@ const CATEGORIES: &[Category] = &[
                 id: "nav-gizmo",
                 title: "NavGizmo",
             },
+            Page {
+                id: "virtual-list",
+                title: "VirtualList",
+            },
         ],
     },
     Category {
@@ -345,6 +349,7 @@ pub fn render(id: &str) -> AnyView {
         "chat" => view! { <ChatDemo /> }.into_any(),
         "markdown" => view! { <MarkdownDemo /> }.into_any(),
         "nav-gizmo" => view! { <NavGizmoDemo /> }.into_any(),
+        "virtual-list" => view! { <VirtualListDemo /> }.into_any(),
         "engine" => view! { <EngineDemo /> }.into_any(),
         other => match CATEGORIES.iter().find(|category| category.id == other) {
             Some(category) => category_landing(category),
@@ -1073,7 +1078,15 @@ fn TableDemo() -> impl IntoView {
                 sortable=true
                 filterable=true
                 resizable=true
+                columns_toggle=true
                 on_row_click=Callback::new(move |index: usize| selected.set(Some(index)))
+                on_cell_edit=Callback::new(move |(row, col, value): (usize, usize, String)| {
+                    rows.update(|data| {
+                        if let Some(cell) = data.get_mut(row).and_then(|row| row.get_mut(col)) {
+                            *cell = value;
+                        }
+                    })
+                })
                 selected_row=Signal::derive(move || selected.get())
             />
             <span class="gallery-readout">
@@ -1710,6 +1723,32 @@ fn NavGizmoDemo() -> impl IntoView {
             />
             <span class="gallery-readout">{move || readout.get()}</span>
             <Snippet code="<ViewportOverlay><NavGizmo basis=camera_basis on_axis=cb /></ViewportOverlay>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn VirtualListDemo() -> impl IntoView {
+    let count = RwSignal::new(20_000usize);
+    view! {
+        <Demo title="VirtualList" blurb="A reusable windowed-rendering primitive: give it a count, an item height, and a render closure, and it renders only the rows in view. This list holds 20,000 rows and scrolls smoothly.">
+            <VirtualList
+                count=Signal::derive(move || count.get())
+                item_height=30.0
+                height=320.0
+                render=move |index| {
+                    view! {
+                        <div style="padding:0 12px; display:flex; gap:12px;">
+                            <span class="gallery-readout" style="width:70px;">
+                                {format!("#{index:05}")}
+                            </span>
+                            <span>{format!("row payload {}", (index * 2654435761usize) % 9973)}</span>
+                        </div>
+                    }
+                        .into_any()
+                }
+            />
+            <Snippet code="<VirtualList count=n item_height=30.0 height=320.0 render=move |i| view!{ ... }.into_any() />" />
         </Demo>
     }
 }
