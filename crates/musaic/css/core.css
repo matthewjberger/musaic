@@ -155,6 +155,7 @@ body {
   background: transparent;
   transition: background 0.12s ease;
   z-index: 6;
+  flex: 0 0 auto;
   align-self: stretch;
   justify-self: stretch;
 }
@@ -166,11 +167,13 @@ body {
 
 .musaic-resize-handle.horizontal {
   cursor: col-resize;
+  width: 6px;
   height: 100%;
 }
 
 .musaic-resize-handle.vertical {
   cursor: row-resize;
+  height: 6px;
   width: 100%;
 }
 
