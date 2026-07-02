@@ -68,6 +68,11 @@ pub fn Table(
     let paginated = page_size.is_some();
     let virtualized = virtualized && !paginated;
 
+    Effect::new(move |_| {
+        filter.track();
+        page.set(0);
+    });
+
     let is_visible =
         move |column: usize| visible.with(|list| list.get(column).copied().unwrap_or(true));
 
