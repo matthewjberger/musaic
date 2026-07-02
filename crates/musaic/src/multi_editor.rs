@@ -1,8 +1,40 @@
 use leptos::html;
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::prelude::Closure;
 
 use crate::code_editor::Highlighter;
+
+fn selection_text(chars: &[char], carets: &[Caret]) -> String {
+    let mut sorted = carets.to_vec();
+    sorted.sort_by_key(Caret::low);
+    sorted
+        .iter()
+        .map(|caret| chars[caret.low()..caret.high()].iter().collect::<String>())
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn move_line_edge(chars: &[char], carets: &mut [Caret], to_end: bool, extend: bool) {
+    for caret in carets.iter_mut() {
+        let (line, _) = line_col(chars, caret.head);
+        let target = if to_end {
+            line_start(chars, line) + line_len(chars, line)
+        } else {
+            line_start(chars, line)
+        };
+        caret.head = target;
+        if !extend {
+            caret.anchor = target;
+        }
+    }
+}
+
+fn write_clipboard(text: &str) {
+    if let Some(window) = web_sys::window() {
+        let _ = window.navigator().clipboard().write_text(text);
+    }
+}
 
 #[derive(Clone, Copy)]
 struct Caret {
@@ -182,11 +214,10 @@ pub fn MultiEditor(
     let viewport_height = RwSignal::new(height);
     let wrap_ref = NodeRef::<html::Div>::new();
     let ruler_ref = NodeRef::<html::Span>::new();
+    let pressed = StoredValue::new(false);
 
-    let on_pointer = move |event: web_sys::PointerEvent| {
-        let Some(wrap) = wrap_ref.get() else {
-            return;
-        };
+    let offset_at = move |event: &web_sys::PointerEvent| -> Option<usize> {
+        let wrap = wrap_ref.get()?;
         let rect = wrap.get_bounding_client_rect();
         let char_width = ruler_ref
             .get()
@@ -199,10 +230,30 @@ pub fn MultiEditor(
         let target_col = (x / char_width).round().max(0.0) as usize;
         let chars: Vec<char> = value.get_untracked().chars().collect();
         let line = target_line.min(total_lines(&chars).saturating_sub(1));
-        let offset = offset_of(&chars, line, target_col);
-        carets.set(vec![Caret::collapsed(offset)]);
-        let _ = wrap.focus();
+        Some(offset_of(&chars, line, target_col))
     };
+
+    let on_pointer_down = move |event: web_sys::PointerEvent| {
+        if let Some(offset) = offset_at(&event) {
+            carets.set(vec![Caret::collapsed(offset)]);
+            pressed.set_value(true);
+            if let Some(wrap) = wrap_ref.get() {
+                let _ = wrap.focus();
+            }
+        }
+    };
+    let on_pointer_move = move |event: web_sys::PointerEvent| {
+        if pressed.get_value()
+            && let Some(offset) = offset_at(&event)
+        {
+            carets.update(|list| {
+                if let Some(first) = list.first_mut() {
+                    first.head = offset;
+                }
+            });
+        }
+    };
+    let on_pointer_up = move |_: web_sys::PointerEvent| pressed.set_value(false);
 
     let edit = move |mutate: &dyn Fn(&mut Vec<char>, &mut Vec<Caret>)| {
         let mut chars: Vec<char> = value.get_untracked().chars().collect();
@@ -211,6 +262,35 @@ pub fn MultiEditor(
         normalize(&mut current);
         value.set(chars.into_iter().collect());
         carets.set(current);
+    };
+
+    let copy_selection = move || {
+        let chars: Vec<char> = value.get_untracked().chars().collect();
+        let text = selection_text(&chars, &carets.get_untracked());
+        if !text.is_empty() {
+            write_clipboard(&text);
+        }
+    };
+    let paste = move || {
+        let Some(window) = web_sys::window() else {
+            return;
+        };
+        let promise = window.navigator().clipboard().read_text();
+        let closure = Closure::<dyn FnMut(wasm_bindgen::JsValue)>::new(
+            move |result: wasm_bindgen::JsValue| {
+                if let Some(text) = result.as_string() {
+                    let insert: Vec<char> = text.chars().collect();
+                    let mut chars: Vec<char> = value.get_untracked().chars().collect();
+                    let mut current = carets.get_untracked();
+                    insert_text(&mut chars, &mut current, &insert);
+                    normalize(&mut current);
+                    value.set(chars.into_iter().collect());
+                    carets.set(current);
+                }
+            },
+        );
+        let _ = promise.then(&closure);
+        closure.forget();
     };
 
     let on_key = move |event: web_sys::KeyboardEvent| {
@@ -248,7 +328,40 @@ pub fn MultiEditor(
             edit(&|chars, carets| add_next_occurrence(chars, carets));
             return;
         }
+        if ctrl && key == "a" {
+            event.prevent_default();
+            let len = value.get_untracked().chars().count();
+            carets.set(vec![Caret {
+                anchor: 0,
+                head: len,
+            }]);
+            return;
+        }
+        if ctrl && key == "c" {
+            event.prevent_default();
+            copy_selection();
+            return;
+        }
+        if ctrl && key == "x" {
+            event.prevent_default();
+            copy_selection();
+            edit(&|chars, carets| insert_text(chars, carets, &[]));
+            return;
+        }
+        if ctrl && key == "v" {
+            event.prevent_default();
+            paste();
+            return;
+        }
         match key.as_str() {
+            "Home" => {
+                event.prevent_default();
+                edit(&move |chars, carets| move_line_edge(chars, carets, false, shift));
+            }
+            "End" => {
+                event.prevent_default();
+                edit(&move |chars, carets| move_line_edge(chars, carets, true, shift));
+            }
             "ArrowLeft" => {
                 event.prevent_default();
                 edit(&move |chars, carets| move_horizontal(chars, carets, -1, shift));
@@ -412,7 +525,9 @@ pub fn MultiEditor(
             style=format!("height:{height}px")
             on:keydown=on_key
             on:scroll=on_scroll
-            on:pointerdown=on_pointer
+            on:pointerdown=on_pointer_down
+            on:pointermove=on_pointer_move
+            on:pointerup=on_pointer_up
         >
             <span node_ref=ruler_ref class="musaic-ml-ruler">"0000000000"</span>
             {content}
@@ -444,6 +559,15 @@ mod tests {
         let mut carets = vec![Caret::collapsed(2), Caret::collapsed(5)];
         delete_backward(&mut buffer, &mut carets);
         assert_eq!(buffer.iter().collect::<String>(), "a\nc");
+    }
+
+    #[test]
+    fn selection_text_joins_multiple_carets() {
+        let buffer = super::selection_text(
+            &chars("abcdef"),
+            &[Caret { anchor: 0, head: 2 }, Caret { anchor: 4, head: 6 }],
+        );
+        assert_eq!(buffer, "ab\nef");
     }
 
     #[test]
