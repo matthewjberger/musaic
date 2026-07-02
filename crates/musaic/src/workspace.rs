@@ -62,12 +62,12 @@ where
                         }
                     });
                     view! {
-                        <div class="musaic-tabdock-pane">
-                            <DropZone
-                                id=format!("pane-{}", pane_key.get_value())
-                                on_drop=on_drop
-                                class="musaic-tabdock-tabs"
-                            >
+                        <DropZone
+                            id=format!("pane-{}", pane_key.get_value())
+                            on_drop=on_drop
+                            class="musaic-tabdock-pane"
+                        >
+                            <div class="musaic-tabdock-tabs">
                                 {move || {
                                     tabs_in()
                                         .into_iter()
@@ -94,7 +94,7 @@ where
                                         })
                                         .collect_view()
                                 }}
-                            </DropZone>
+                            </div>
                             <div class="musaic-tabdock-body">
                                 {move || match active_in_pane() {
                                     Some(id) => render.with_value(|render| render(id)),
@@ -106,7 +106,7 @@ where
                                     }
                                 }}
                             </div>
-                        </div>
+                        </DropZone>
                     }
                 })
                 .collect_view()}

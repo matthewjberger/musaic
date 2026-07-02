@@ -199,6 +199,14 @@ fn Branch(
                 .is_some_and(|selection| selection.with(|set| set.contains(&id)))
     };
     let is_editing = move || api.editing.get().as_deref() == Some(id.get_value().as_str());
+    let rename_ref = NodeRef::<html::Input>::new();
+    Effect::new(move |_| {
+        if is_editing()
+            && let Some(input) = rename_ref.get()
+        {
+            let _ = input.focus();
+        }
+    });
     let is_drop_target = move || api.drop_target.get().as_deref() == Some(id.get_value().as_str());
     let is_open_chevron = move || expanded.get().contains(&id.get_value());
     let is_open_show = move || expanded.get().contains(&id.get_value());
@@ -338,6 +346,7 @@ fn Branch(
                 fallback=move || view! { <span class="musaic-tree-label">{label.clone()}</span> }
             >
                 <input
+                    node_ref=rename_ref
                     class="musaic-tree-rename"
                     prop:value=move || api.draft.get()
                     on:click=|event| event.stop_propagation()

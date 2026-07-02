@@ -73,6 +73,15 @@ pub fn Table(
         page.set(0);
     });
 
+    let cell_input = NodeRef::<html::Input>::new();
+    Effect::new(move |_| {
+        if editing.get().is_some()
+            && let Some(input) = cell_input.get()
+        {
+            let _ = input.focus();
+        }
+    });
+
     let is_visible =
         move |column: usize| visible.with(|list| list.get(column).copied().unwrap_or(true));
 
@@ -274,6 +283,7 @@ pub fn Table(
                         if is_editing() {
                             view! {
                                 <input
+                                    node_ref=cell_input
                                     class="musaic-cell-input"
                                     prop:value=move || draft.get()
                                     on:click=|event| event.stop_propagation()

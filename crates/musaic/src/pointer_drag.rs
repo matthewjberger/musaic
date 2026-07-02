@@ -19,17 +19,24 @@ impl DragPayload {
     }
 }
 
+const DRAG_THRESHOLD: f64 = 4.0;
+
 #[derive(Clone, Copy)]
 pub struct DragState {
     payload: RwSignal<Option<DragPayload>>,
     position: RwSignal<(f64, f64)>,
     over: RwSignal<Option<String>>,
     zones: StoredValue<HashMap<String, Callback<DragPayload>>>,
+    pending: StoredValue<Option<(DragPayload, f64, f64)>>,
 }
 
 impl DragState {
     pub fn active(&self) -> bool {
         self.payload.get().is_some()
+    }
+
+    pub fn arm(&self, payload: DragPayload, x: f64, y: f64) {
+        self.pending.set_value(Some((payload, x, y)));
     }
 
     pub fn payload(&self) -> Option<DragPayload> {
@@ -93,19 +100,26 @@ pub fn provide_drag() -> DragState {
         position: RwSignal::new((0.0, 0.0)),
         over: RwSignal::new(None),
         zones: StoredValue::new(HashMap::new()),
+        pending: StoredValue::new(None),
     };
     provide_context(state);
     let move_handle = window_event_listener(
         leptos::ev::pointermove,
         move |event: web_sys::PointerEvent| {
+            let x = event.client_x() as f64;
+            let y = event.client_y() as f64;
             if state.payload.get_untracked().is_some() {
-                state
-                    .position
-                    .set((event.client_x() as f64, event.client_y() as f64));
+                state.position.set((x, y));
+            } else if let Some((payload, start_x, start_y)) = state.pending.get_value()
+                && (x - start_x).hypot(y - start_y) > DRAG_THRESHOLD
+            {
+                state.pending.set_value(None);
+                state.start(payload, x, y);
             }
         },
     );
     let up_handle = window_event_listener(leptos::ev::pointerup, move |_| {
+        state.pending.set_value(None);
         if state.payload.get_untracked().is_some() {
             state.finish();
         }
@@ -123,6 +137,7 @@ pub fn use_drag() -> DragState {
         position: RwSignal::new((0.0, 0.0)),
         over: RwSignal::new(None),
         zones: StoredValue::new(HashMap::new()),
+        pending: StoredValue::new(None),
     })
 }
 
@@ -140,8 +155,7 @@ pub fn DragSource(
         <div
             class=format!("musaic-drag-source {class}")
             on:pointerdown=move |event: web_sys::PointerEvent| {
-                event.prevent_default();
-                drag.start(payload.get_value(), event.client_x() as f64, event.client_y() as f64);
+                drag.arm(payload.get_value(), event.client_x() as f64, event.client_y() as f64);
             }
         >
             {children()}
@@ -166,6 +180,7 @@ pub fn DropZone(
             class=format!("musaic-drop-zone {class}")
             class:over=is_over
             on:pointerenter=move |_| drag.set_over(id.get_value())
+            on:pointermove=move |_| drag.set_over(id.get_value())
             on:pointerleave=move |_| drag.clear_over(&id.get_value())
         >
             {children()}
