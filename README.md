@@ -63,8 +63,8 @@ the `EditorShell` frame, and the `use_persisted` / `use_reconnecting_socket` / `
 | `diff` | `Diff` + `diff_lines`: an LCS line-diff with +/- markers and old/new line numbers |
 | `drag` | pointer-based drag-and-drop (works in webviews where HTML5 DnD does not): `DragSource`, `DropZone`, `DragLayer`, `provide_drag` |
 | `workspace` | `TabDock`: split panes with tab tear-off between panes (built on `drag`) |
-| `code-surface` | `CodeSurface`: a virtualized, brace-foldable code viewer for large files |
-| `terminal` | `Terminal`: an interactive REPL surface (colored output lines + prompt) |
+| `code-surface` | `CodeSurface` (virtualized, brace-foldable viewer) and `MultiEditor` (multi-cursor code editor: add-cursor-below, add-next-occurrence, multi-selection) |
+| `terminal` | `Terminal` (REPL surface) and `AnsiTerminal` (a real ANSI/VT parser: SGR colors, bold/inverse, cursor movement, erase) |
 | `undo-tree` | `UndoHistory<T>` (generic branching history) + `UndoTree` panel |
 | `jump` | `JumpOverlay`: an avy-style "label every target and jump by typing" overlay |
 | `disclosure` | `Disclosure`, `Accordion`, `AccordionItem` |

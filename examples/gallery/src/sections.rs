@@ -2,20 +2,20 @@ use std::collections::HashSet;
 
 use leptos::prelude::*;
 use leptos_musaic::{
-    Accordion, AccordionItem, ActivityBar, ActivityItem, AssetGrid, AssetItem, Badge, Button, Card,
-    Chat, ChatMessage, ChatRole, CheckField, ChipGroup, CodeDocument, CodeEditor, CodeSurface,
-    CodeTabs, ColorField, ComboOption, Combobox, ContextMenu, Dialog, Diff, Disclosure, DockLayout,
-    DockMain, DockPanel, DockSide, DockTab, DragPayload, DragSource, DropZone, Dropdown,
-    DynamicForm, FieldSchema, FormField, IconButton, Inspector, InspectorRow, InspectorSection,
-    JumpOverlay, JumpTarget, ListItem, LogEntry, LogKind, LogView, Markdown, Menu, MenuBar,
-    MenuBarMenu, MenuItem, MenuSeparator, Modal, NavGizmo, NumberField, OrderedList, Panel,
-    Popover, Progress, ResizeAxis, ResizeHandle, SearchItem, SearchList, Select, Side, SliderField,
-    Spinner, SplitAxis, StatusBar, StatusItem, StatusSpacer, Submenu, SwatchPalette, Switch,
-    TabBar, TabDock, Table, TagInput, Terminal, TerminalLine, TerminalTone, TextField, Theme,
-    ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup, ToolbarSpacer, Tooltip,
-    Tree, TreeItem, UndoHistory, UndoTree, Vec3Field, ViewportOverlay, VirtualList, download_text,
-    highlight_rhai, pick_file_text, pretty_binding, register_theme, use_commands, use_theme,
-    use_toaster,
+    Accordion, AccordionItem, ActivityBar, ActivityItem, AnsiTerminal, AssetGrid, AssetItem, Badge,
+    Button, Card, Chat, ChatMessage, ChatRole, CheckField, ChipGroup, CodeDocument, CodeEditor,
+    CodeSurface, CodeTabs, ColorField, ComboOption, Combobox, ContextMenu, Dialog, Diff,
+    Disclosure, DockLayout, DockMain, DockPanel, DockSide, DockTab, DragPayload, DragSource,
+    DropZone, Dropdown, DynamicForm, FieldSchema, FormField, IconButton, Inspector, InspectorRow,
+    InspectorSection, JumpOverlay, JumpTarget, ListItem, LogEntry, LogKind, LogView, Markdown,
+    Menu, MenuBar, MenuBarMenu, MenuItem, MenuSeparator, Modal, MultiEditor, NavGizmo, NumberField,
+    OrderedList, Panel, Popover, Progress, ResizeAxis, ResizeHandle, SearchItem, SearchList,
+    Select, Side, SliderField, Spinner, SplitAxis, StatusBar, StatusItem, StatusSpacer, Submenu,
+    SwatchPalette, Switch, TabBar, TabDock, Table, TagInput, Terminal, TerminalLine, TerminalTone,
+    TextField, Theme, ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup,
+    ToolbarSpacer, Tooltip, Tree, TreeItem, UndoHistory, UndoTree, Vec3Field, ViewportOverlay,
+    VirtualList, download_text, highlight_rhai, pick_file_text, pretty_binding, register_theme,
+    terminal_grid, use_commands, use_theme, use_toaster,
 };
 use wasm_bindgen::JsCast;
 use web_sys::MouseEvent;
@@ -298,6 +298,14 @@ const CATEGORIES: &[Category] = &[
                 id: "code-surface",
                 title: "CodeSurface",
             },
+            Page {
+                id: "multi-editor",
+                title: "MultiEditor",
+            },
+            Page {
+                id: "ansi-terminal",
+                title: "ANSI terminal",
+            },
         ],
     },
     Category {
@@ -406,6 +414,8 @@ pub fn render(id: &str) -> AnyView {
         "undo-tree" => view! { <UndoTreeDemo /> }.into_any(),
         "jump" => view! { <JumpDemo /> }.into_any(),
         "code-surface" => view! { <CodeSurfaceDemo /> }.into_any(),
+        "multi-editor" => view! { <MultiEditorDemo /> }.into_any(),
+        "ansi-terminal" => view! { <AnsiTerminalDemo /> }.into_any(),
         "engine" => view! { <EngineDemo /> }.into_any(),
         other => match CATEGORIES.iter().find(|category| category.id == other) {
             Some(category) => category_landing(category),
@@ -2162,6 +2172,44 @@ fn CodeSurfaceDemo() -> impl IntoView {
                 height=380.0
             />
             <Snippet code="<CodeSurface value=source highlighter=highlight_rhai height=380.0 />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn MultiEditorDemo() -> impl IntoView {
+    let code = RwSignal::new(
+        "let x = 1;\nlet y = 1;\nlet z = 1;\n// click in, then Ctrl+Alt+Down to add a cursor\n// or select a word and Ctrl+D for the next match"
+            .to_string(),
+    );
+    view! {
+        <Demo title="MultiEditor" blurb="A multi-cursor code editor on a monospace grid, so carets align exactly with ch units. Click in and type. Ctrl+Alt+Down/Up adds a cursor on the next/previous line; Ctrl+D adds the next occurrence of the word or selection; Escape collapses to one.">
+            <div style="height:300px;">
+                <MultiEditor value=code highlighter=highlight_rhai />
+            </div>
+            <span class="gallery-readout">
+                "Focus the editor, then: type, Ctrl+Alt+\u{2193} add cursor, Ctrl+D next match, Esc collapse."
+            </span>
+            <Snippet code="<MultiEditor value=code highlighter=highlight_rhai />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn AnsiTerminalDemo() -> impl IntoView {
+    let term = terminal_grid(64, 16);
+    term.feed(
+        "\u{1b}[1;32mmusaic@ansi\u{1b}[0m:~$ echo hello\r\nhello\r\n\u{1b}[33mwarning:\u{1b}[0m mixed \u{1b}[1;31mbold red\u{1b}[0m and \u{1b}[7minverse\u{1b}[0m\r\n$ ",
+    );
+    view! {
+        <Demo title="ANSI terminal" blurb="A real ANSI/VT parser: SGR colors, bold and inverse, cursor movement, and erase, rendered to a cell grid. Feed it byte strings with escape sequences; keystrokes are encoded back through on_key (echoed here).">
+            <div style="height:300px;">
+                <AnsiTerminal
+                    handle=term
+                    on_key=Callback::new(move |bytes: String| term.feed(&bytes))
+                />
+            </div>
+            <Snippet code="let term = terminal_grid(80, 24);\nterm.feed(\"\\x1b[32mgreen\\x1b[0m\\r\\n\");\n<AnsiTerminal handle=term on_key=cb />" />
         </Demo>
     }
 }

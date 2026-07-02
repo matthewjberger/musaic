@@ -66,3 +66,29 @@
 .musaic-terminal-input:focus {
   outline: none;
 }
+
+/* ANSI terminal emulator (cell grid). */
+
+.musaic-ansi {
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  background: #1a1a1a;
+  padding: 8px 10px;
+  overflow: auto;
+  outline: none;
+}
+
+.musaic-ansi:focus {
+  border-color: var(--musaic-accent);
+}
+
+.musaic-ansi-body {
+  font-family: var(--musaic-mono);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.musaic-ansi-row {
+  white-space: pre;
+  min-height: 1.4em;
+}

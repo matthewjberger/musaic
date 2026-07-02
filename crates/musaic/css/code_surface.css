@@ -72,3 +72,59 @@
   padding: 0 6px;
   color: var(--musaic-text-dim);
 }
+
+/* multi-cursor editor */
+
+.musaic-ml {
+  position: relative;
+  overflow: auto;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  background: var(--musaic-panel-2);
+  font-family: var(--musaic-mono);
+  font-size: 13px;
+  color: var(--musaic-tok-plain);
+  outline: none;
+  cursor: text;
+}
+
+.musaic-ml:focus {
+  border-color: var(--musaic-accent);
+}
+
+.musaic-ml .tok-keyword { color: var(--musaic-tok-keyword); }
+.musaic-ml .tok-string { color: var(--musaic-tok-string); }
+.musaic-ml .tok-number { color: var(--musaic-tok-number); }
+.musaic-ml .tok-comment { color: var(--musaic-tok-comment); font-style: italic; }
+.musaic-ml .tok-command { color: var(--musaic-tok-command); }
+
+.musaic-ml-inner {
+  position: relative;
+  width: 100%;
+}
+
+.musaic-ml-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding-left: 10px;
+  white-space: pre;
+  display: flex;
+  align-items: center;
+}
+
+.musaic-ml-caret {
+  position: absolute;
+  width: 2px;
+  background: var(--musaic-accent);
+  animation: musaic-ml-blink 1s step-end infinite;
+}
+
+@keyframes musaic-ml-blink {
+  50% { opacity: 0; }
+}
+
+.musaic-ml-selection {
+  position: absolute;
+  background: var(--musaic-accent-soft);
+}

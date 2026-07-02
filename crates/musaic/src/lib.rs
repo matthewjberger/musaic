@@ -105,6 +105,11 @@ mod terminal;
 #[cfg(feature = "terminal")]
 pub use terminal::*;
 
+#[cfg(feature = "terminal")]
+mod ansi_terminal;
+#[cfg(feature = "terminal")]
+pub use ansi_terminal::*;
+
 #[cfg(feature = "workspace")]
 mod workspace;
 #[cfg(feature = "workspace")]
@@ -114,6 +119,11 @@ pub use workspace::*;
 mod code_surface;
 #[cfg(feature = "code-surface")]
 pub use code_surface::*;
+
+#[cfg(feature = "code-surface")]
+mod multi_editor;
+#[cfg(feature = "code-surface")]
+pub use multi_editor::*;
 
 #[cfg(feature = "disclosure")]
 mod disclosure;
