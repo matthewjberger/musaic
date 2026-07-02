@@ -1,20 +1,40 @@
+#[cfg(feature = "protocol")]
+pub mod protocol;
+#[cfg(feature = "protocol")]
+pub use protocol::*;
+
+#[cfg(feature = "_dom")]
 mod base;
+#[cfg(feature = "_dom")]
 mod command;
+#[cfg(feature = "_dom")]
 mod editor_shell;
+#[cfg(feature = "_dom")]
 mod keymap;
+#[cfg(feature = "_dom")]
 mod styles;
+#[cfg(feature = "_dom")]
 mod theme;
+#[cfg(feature = "_dom")]
 mod util;
+#[cfg(feature = "_dom")]
 mod web;
 
+#[cfg(feature = "_dom")]
 pub use base::*;
+#[cfg(feature = "_dom")]
 pub use command::*;
+#[cfg(feature = "_dom")]
 pub use editor_shell::*;
+#[cfg(feature = "_dom")]
 pub use keymap::*;
-pub use leptos_musaic_protocol::{SelectedEntity, TouchPhase};
+#[cfg(feature = "_dom")]
 pub use styles::{MusaicStyles, stylesheet};
+#[cfg(feature = "_dom")]
 pub use theme::*;
+#[cfg(feature = "_dom")]
 pub use util::*;
+#[cfg(feature = "_dom")]
 pub use web::*;
 
 #[cfg(feature = "forms")]
@@ -182,6 +202,7 @@ mod nightshade;
 #[cfg(feature = "nightshade")]
 pub use nightshade::*;
 
+#[cfg(feature = "_dom")]
 pub mod prelude {
     pub use crate::*;
     pub use leptos::prelude::*;

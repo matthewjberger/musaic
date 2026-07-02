@@ -1,5 +1,5 @@
+use crate::protocol::SelectedEntity;
 use leptos::prelude::*;
-use leptos_musaic_protocol::SelectedEntity;
 
 use crate::code_editor::highlight_code;
 

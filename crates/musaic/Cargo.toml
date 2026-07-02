@@ -10,14 +10,13 @@ keywords = ["leptos", "ui", "wasm", "components", "webgpu"]
 categories = ["gui", "wasm", "web-programming"]
 
 [dependencies]
-leptos-musaic-protocol = { path = "../musaic-protocol" }
-leptos = { version = "0.7", features = ["csr"] }
-wasm-bindgen = "0.2"
-js-sys = "0.3"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-serde-wasm-bindgen = "0.6"
-web-sys = { version = "0.3", features = [
+leptos = { version = "0.7", features = ["csr"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+serde_json = { version = "1", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+web-sys = { version = "0.3", optional = true, features = [
     "Window",
     "Document",
     "Element",
@@ -59,38 +58,56 @@ web-sys = { version = "0.3", features = [
 
 [features]
 default = ["forms", "menus", "themes"]
-forms = []
-menus = []
-themes = []
+
+# Leptos-free wire types shared by the page and a worker (serde only). Enabling
+# this alone (with default-features = false) pulls no DOM dependencies.
+protocol = ["dep:serde", "dep:serde_json"]
+
+# Internal: everything a rendered component needs. Every UI feature pulls this in,
+# so the DOM dependency stack is absent unless at least one component is enabled.
+_dom = [
+    "dep:leptos",
+    "dep:web-sys",
+    "dep:wasm-bindgen",
+    "dep:js-sys",
+    "dep:serde",
+    "dep:serde_json",
+    "dep:serde-wasm-bindgen",
+]
+
+forms = ["_dom"]
+menus = ["_dom"]
+themes = ["_dom"]
 command-palette = ["menus"]
-code-editor = []
-table = []
-tree = []
-inspector = []
-dock = []
-overlays = []
-virtual-list = []
-diff = []
-drag = []
-undo-tree = []
-jump = []
-terminal = []
+code-editor = ["_dom"]
+table = ["_dom"]
+tree = ["_dom"]
+inspector = ["_dom"]
+dock = ["_dom"]
+overlays = ["_dom"]
+virtual-list = ["_dom"]
+diff = ["_dom"]
+drag = ["_dom"]
+undo-tree = ["_dom"]
+jump = ["_dom"]
+terminal = ["_dom"]
 workspace = ["drag"]
-code-surface = []
-disclosure = []
-status-bar = []
+code-surface = ["_dom"]
+disclosure = ["_dom"]
+status-bar = ["_dom"]
 toolbar = ["menus"]
-log = []
-markdown = []
-search-list = []
-asset-grid = []
-list-editor = []
-chat = []
+log = ["_dom"]
+markdown = ["_dom"]
+search-list = ["_dom"]
+asset-grid = ["_dom"]
+list-editor = ["_dom"]
+chat = ["_dom"]
 dynamic-form = ["forms"]
-viewport = []
+viewport = ["_dom", "protocol"]
 engine = ["viewport"]
 nightshade = ["viewport", "code-editor"]
 full = [
+    "protocol",
     "forms",
     "menus",
     "themes",

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
+use crate::protocol::{CANVAS_KEY, MESSAGE_KEY, TouchPhase};
 use leptos::html;
 use leptos::prelude::*;
-use leptos_musaic_protocol::{CANVAS_KEY, MESSAGE_KEY, TouchPhase};
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};

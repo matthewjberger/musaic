@@ -124,13 +124,15 @@ musaic's core never links a game engine. Two layers sit on top, both optional:
   `engine.send(&YourCommand)` and receive them with `engine.on_custom(...)`. Your page drops the
   boilerplate and keeps only its panels.
 
-The wire types live in the tiny no-deps `leptos-musaic-protocol` crate, shared by page and worker, so
-there is one source of truth and no drift.
+The wire types live behind the `protocol` feature (`serde` only, no Leptos), exposed as
+`leptos_musaic::protocol`. A worker shares them with the page by depending on `leptos-musaic` with
+`default-features = false, features = ["protocol"]`, so there is one source of truth, no drift, and
+still just one crate to publish.
 
 ## Crates
 
-- `leptos-musaic` (`crates/musaic`): the component library.
-- `leptos-musaic-protocol` (`crates/musaic-protocol`): the shared page/worker wire types (`serde` only).
+- `leptos-musaic` (`crates/musaic`): the component library, and the only crate meant for publishing.
+  Its `protocol` feature exposes the shared page/worker wire types with no Leptos dependency.
 - `leptos-musaic-shell` (`crates/musaic-shell`): a reusable native shell (`wry` + `winit`) that serves
   a built web bundle into a desktop window. `leptos_musaic_shell::run(title, get)`.
 - `leptos-musaic-engine` (`crates/musaic-engine`): the worker-side engine driver used by the example.

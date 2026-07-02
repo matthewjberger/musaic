@@ -1,5 +1,5 @@
+use crate::protocol::{FromWorker, SelectedEntity, ToWorker};
 use leptos::prelude::*;
-use leptos_musaic_protocol::{FromWorker, SelectedEntity, ToWorker};
 use serde::Serialize;
 use wasm_bindgen::{JsCast, JsValue};
 

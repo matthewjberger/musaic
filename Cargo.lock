@@ -2737,7 +2737,6 @@ version = "0.1.0"
 dependencies = [
  "js-sys",
  "leptos",
- "leptos-musaic-protocol",
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
@@ -2751,7 +2750,7 @@ version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "js-sys",
- "leptos-musaic-protocol",
+ "leptos-musaic",
  "nightshade",
  "nightshade-api",
  "serde",
@@ -2760,14 +2759,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
-]
-
-[[package]]
-name = "leptos-musaic-protocol"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
 ]
 
 [[package]]
