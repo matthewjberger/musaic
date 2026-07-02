@@ -253,7 +253,9 @@ pub fn MultiEditor(
             });
         }
     };
-    let on_pointer_up = move |_: web_sys::PointerEvent| pressed.set_value(false);
+    let release_handle =
+        window_event_listener(leptos::ev::pointerup, move |_| pressed.set_value(false));
+    on_cleanup(move || release_handle.remove());
 
     let edit = move |mutate: &dyn Fn(&mut Vec<char>, &mut Vec<Caret>)| {
         let mut chars: Vec<char> = value.get_untracked().chars().collect();
@@ -538,7 +540,6 @@ pub fn MultiEditor(
             on:scroll=on_scroll
             on:pointerdown=on_pointer_down
             on:pointermove=on_pointer_move
-            on:pointerup=on_pointer_up
         >
             <span node_ref=ruler_ref class="musaic-ml-ruler">"0000000000"</span>
             {content}

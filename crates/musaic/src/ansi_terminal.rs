@@ -59,6 +59,8 @@ pub struct TerminalGrid {
 
 impl TerminalGrid {
     fn new(cols: usize, rows: usize) -> Self {
+        let cols = cols.max(1);
+        let rows = rows.max(1);
         Self {
             cols,
             rows,
