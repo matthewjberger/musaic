@@ -85,6 +85,36 @@ mod diff;
 #[cfg(feature = "diff")]
 pub use diff::*;
 
+#[cfg(feature = "drag")]
+mod pointer_drag;
+#[cfg(feature = "drag")]
+pub use pointer_drag::*;
+
+#[cfg(feature = "undo-tree")]
+mod undo_tree;
+#[cfg(feature = "undo-tree")]
+pub use undo_tree::*;
+
+#[cfg(feature = "jump")]
+mod jump;
+#[cfg(feature = "jump")]
+pub use jump::*;
+
+#[cfg(feature = "terminal")]
+mod terminal;
+#[cfg(feature = "terminal")]
+pub use terminal::*;
+
+#[cfg(feature = "workspace")]
+mod workspace;
+#[cfg(feature = "workspace")]
+pub use workspace::*;
+
+#[cfg(feature = "code-surface")]
+mod code_surface;
+#[cfg(feature = "code-surface")]
+pub use code_surface::*;
+
 #[cfg(feature = "disclosure")]
 mod disclosure;
 #[cfg(feature = "disclosure")]

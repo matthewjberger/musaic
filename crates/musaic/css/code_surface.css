@@ -1,0 +1,74 @@
+/* musaic code surface: virtualized, foldable code viewer. */
+
+.musaic-code-surface-view {
+  overflow: auto;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  background: var(--musaic-panel-2);
+  font-family: var(--musaic-mono);
+  font-size: 13px;
+  color: var(--musaic-tok-plain);
+}
+
+.musaic-code-surface-view .tok-keyword {
+  color: var(--musaic-tok-keyword);
+}
+
+.musaic-code-surface-view .tok-string {
+  color: var(--musaic-tok-string);
+}
+
+.musaic-code-surface-view .tok-number {
+  color: var(--musaic-tok-number);
+}
+
+.musaic-code-surface-view .tok-comment {
+  color: var(--musaic-tok-comment);
+  font-style: italic;
+}
+
+.musaic-code-surface-view .tok-command {
+  color: var(--musaic-tok-command);
+}
+
+.musaic-surface-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  white-space: pre;
+}
+
+.musaic-surface-num {
+  flex: 0 0 auto;
+  width: 44px;
+  text-align: right;
+  color: var(--musaic-text-dim);
+  user-select: none;
+}
+
+.musaic-surface-fold {
+  flex: 0 0 auto;
+  width: 12px;
+  color: var(--musaic-text-dim);
+  cursor: pointer;
+  user-select: none;
+}
+
+.musaic-surface-fold.folded {
+  transform: rotate(-90deg);
+}
+
+.musaic-surface-fold-spacer {
+  flex: 0 0 auto;
+  width: 12px;
+}
+
+.musaic-surface-text {
+  flex: 1 1 auto;
+}
+
+.musaic-surface-ellipsis {
+  padding: 0 6px;
+  color: var(--musaic-text-dim);
+}

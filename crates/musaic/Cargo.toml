@@ -68,6 +68,12 @@ dock = []
 overlays = []
 virtual-list = []
 diff = []
+drag = []
+undo-tree = []
+jump = []
+terminal = []
+workspace = ["drag"]
+code-surface = []
 disclosure = []
 status-bar = []
 toolbar = ["menus"]
@@ -94,6 +100,12 @@ full = [
     "overlays",
     "virtual-list",
     "diff",
+    "drag",
+    "undo-tree",
+    "jump",
+    "terminal",
+    "workspace",
+    "code-surface",
     "disclosure",
     "status-bar",
     "toolbar",

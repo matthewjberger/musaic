@@ -1,0 +1,26 @@
+/* musaic jump-label overlay. */
+
+.musaic-jump-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 450;
+  background: color-mix(in srgb, var(--musaic-bg) 45%, transparent);
+}
+
+.musaic-jump-label {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--musaic-accent);
+  color: var(--musaic-bg);
+  font-family: var(--musaic-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  box-shadow: var(--musaic-shadow);
+}
+
+.musaic-jump-typed {
+  opacity: 0.5;
+}

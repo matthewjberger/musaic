@@ -3,18 +3,21 @@ use std::collections::HashSet;
 use leptos::prelude::*;
 use leptos_musaic::{
     Accordion, AccordionItem, ActivityBar, ActivityItem, AssetGrid, AssetItem, Badge, Button, Card,
-    Chat, ChatMessage, ChatRole, CheckField, ChipGroup, CodeDocument, CodeEditor, CodeTabs,
-    ColorField, ComboOption, Combobox, ContextMenu, Dialog, Diff, Disclosure, DockLayout, DockMain,
-    DockPanel, DockSide, Dropdown, DynamicForm, FieldSchema, FormField, IconButton, Inspector,
-    InspectorRow, InspectorSection, ListItem, LogEntry, LogKind, LogView, Markdown, Menu, MenuBar,
+    Chat, ChatMessage, ChatRole, CheckField, ChipGroup, CodeDocument, CodeEditor, CodeSurface,
+    CodeTabs, ColorField, ComboOption, Combobox, ContextMenu, Dialog, Diff, Disclosure, DockLayout,
+    DockMain, DockPanel, DockSide, DockTab, DragPayload, DragSource, DropZone, Dropdown,
+    DynamicForm, FieldSchema, FormField, IconButton, Inspector, InspectorRow, InspectorSection,
+    JumpOverlay, JumpTarget, ListItem, LogEntry, LogKind, LogView, Markdown, Menu, MenuBar,
     MenuBarMenu, MenuItem, MenuSeparator, Modal, NavGizmo, NumberField, OrderedList, Panel,
     Popover, Progress, ResizeAxis, ResizeHandle, SearchItem, SearchList, Select, Side, SliderField,
     Spinner, SplitAxis, StatusBar, StatusItem, StatusSpacer, Submenu, SwatchPalette, Switch,
-    TabBar, Table, TagInput, TextField, Theme, ThemeMenu, ThemePicker, ToggleChip, ToolButton,
-    Toolbar, ToolbarGroup, ToolbarSpacer, Tooltip, Tree, TreeItem, Vec3Field, ViewportOverlay,
-    VirtualList, download_text, highlight_rhai, pick_file_text, pretty_binding, register_theme,
-    use_commands, use_theme, use_toaster,
+    TabBar, TabDock, Table, TagInput, Terminal, TerminalLine, TerminalTone, TextField, Theme,
+    ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup, ToolbarSpacer, Tooltip,
+    Tree, TreeItem, UndoHistory, UndoTree, Vec3Field, ViewportOverlay, VirtualList, download_text,
+    highlight_rhai, pick_file_text, pretty_binding, register_theme, use_commands, use_theme,
+    use_toaster,
 };
+use wasm_bindgen::JsCast;
 use web_sys::MouseEvent;
 
 use crate::app::GalleryCtx;
@@ -271,6 +274,30 @@ const CATEGORIES: &[Category] = &[
                 id: "file-io",
                 title: "File download / pick",
             },
+            Page {
+                id: "drag",
+                title: "Drag & drop",
+            },
+            Page {
+                id: "tabdock",
+                title: "TabDock (tear-off)",
+            },
+            Page {
+                id: "terminal",
+                title: "Terminal",
+            },
+            Page {
+                id: "undo-tree",
+                title: "UndoTree",
+            },
+            Page {
+                id: "jump",
+                title: "Jump labels",
+            },
+            Page {
+                id: "code-surface",
+                title: "CodeSurface",
+            },
         ],
     },
     Category {
@@ -373,6 +400,12 @@ pub fn render(id: &str) -> AnyView {
         "diff" => view! { <DiffDemo /> }.into_any(),
         "activity-bar" => view! { <ActivityBarDemo /> }.into_any(),
         "file-io" => view! { <FileIoDemo /> }.into_any(),
+        "drag" => view! { <DragDemo /> }.into_any(),
+        "tabdock" => view! { <TabDockDemo /> }.into_any(),
+        "terminal" => view! { <TerminalDemo /> }.into_any(),
+        "undo-tree" => view! { <UndoTreeDemo /> }.into_any(),
+        "jump" => view! { <JumpDemo /> }.into_any(),
+        "code-surface" => view! { <CodeSurfaceDemo /> }.into_any(),
         "engine" => view! { <EngineDemo /> }.into_any(),
         other => match CATEGORIES.iter().find(|category| category.id == other) {
             Some(category) => category_landing(category),
@@ -1882,6 +1915,253 @@ fn FileIoDemo() -> impl IntoView {
                 </div>
             </Panel>
             <Snippet code="download_text(\"note.txt\", &text);\npick_file_text(Callback::new(move |text| content.set(text)));" />
+        </Demo>
+    }
+}
+
+#[component]
+fn DragDemo() -> impl IntoView {
+    let left = RwSignal::new(vec![
+        "Cube".to_string(),
+        "Sphere".to_string(),
+        "Cone".to_string(),
+    ]);
+    let right = RwSignal::new(vec!["Camera".to_string()]);
+    let move_to = move |to_left: bool, id: String| {
+        left.update(|list| list.retain(|item| item != &id));
+        right.update(|list| list.retain(|item| item != &id));
+        if to_left {
+            left.update(|list| list.push(id));
+        } else {
+            right.update(|list| list.push(id));
+        }
+    };
+    let column = move |title: &'static str,
+                       zone: &'static str,
+                       to_left: bool,
+                       items: RwSignal<Vec<String>>| {
+        view! {
+            <DropZone
+                id=zone
+                on_drop=Callback::new(move |payload: DragPayload| move_to(to_left, payload.id))
+                class="gallery-dropzone"
+            >
+                <div class="gallery-readout">{title}</div>
+                {move || {
+                    items
+                        .get()
+                        .into_iter()
+                        .map(|id| {
+                            view! {
+                                <DragSource kind="chip" id=id.clone() label=id.clone()>
+                                    <span class="musaic-chip">{id}</span>
+                                </DragSource>
+                            }
+                        })
+                        .collect_view()
+                }}
+            </DropZone>
+        }
+    };
+    view! {
+        <Demo title="Drag & drop" blurb="Pointer-based drag that works inside webviews where HTML5 drag events never fire. Drag items between the two zones; a floating preview follows the cursor and the target tints.">
+            <div class="gallery-row" style="align-items:stretch; gap:12px;">
+                {column("Group A", "drag-left", true, left)}
+                {column("Group B", "drag-right", false, right)}
+            </div>
+            <Snippet code="<DropZone id=\"a\" on_drop=cb><DragSource kind=\"chip\" id=id label=id>{chip}</DragSource></DropZone>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn TabDockDemo() -> impl IntoView {
+    let tabs = RwSignal::new(vec![
+        DockTab::new("scene", "Scene", "left"),
+        DockTab::new("script", "script.rhai", "left"),
+        DockTab::new("preview", "Preview", "right"),
+    ]);
+    let active = RwSignal::new("scene".to_string());
+    view! {
+        <Demo title="TabDock (tear-off)" blurb="Split panes with draggable tabs, the VS Code / Zed model. Drag a tab from one pane and drop it on the other to move it there. Built on the pointer-drag primitive.">
+            <div style="height:280px;">
+                <TabDock
+                    tabs=tabs
+                    panes=vec!["left".to_string(), "right".to_string()]
+                    active=active
+                    render=move |id: String| {
+                        view! {
+                            <div class="gallery-readout">{format!("content for tab: {id}")}</div>
+                        }
+                            .into_any()
+                    }
+                />
+            </div>
+            <Snippet code="<TabDock tabs=tabs panes=vec![\"left\", \"right\"] active=active render=move |id| ... />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn TerminalDemo() -> impl IntoView {
+    let lines = RwSignal::new(vec![TerminalLine::new(
+        0,
+        "musaic terminal ready. Try: help, echo hi, clear",
+        TerminalTone::Dim,
+    )]);
+    let next = RwSignal::new(1usize);
+    let on_input = Callback::new(move |command: String| {
+        let id = next.get_untracked();
+        next.set(id + 2);
+        lines.update(|list| {
+            list.push(TerminalLine::new(
+                id,
+                format!("$ {command}"),
+                TerminalTone::Command,
+            ));
+            let trimmed = command.trim();
+            if trimmed == "clear" {
+                list.clear();
+                return;
+            }
+            let (response, tone) = if trimmed == "help" {
+                (
+                    "commands: help, echo <text>, clear".to_string(),
+                    TerminalTone::Normal,
+                )
+            } else if let Some(rest) = trimmed.strip_prefix("echo ") {
+                (rest.to_string(), TerminalTone::Success)
+            } else {
+                (format!("unknown command: {trimmed}"), TerminalTone::Error)
+            };
+            list.push(TerminalLine::new(id + 1, response, tone));
+        });
+    });
+    view! {
+        <Demo title="Terminal" blurb="An interactive terminal surface: colored output lines plus a prompt (Enter runs). This demo echoes locally; wire on_input to a real shell or worker.">
+            <div style="height:280px;">
+                <Terminal
+                    lines=Signal::derive(move || lines.get())
+                    on_input=on_input
+                    prompt="musaic \u{203a}"
+                />
+            </div>
+            <Snippet code="<Terminal lines=lines on_input=cb prompt=\"$\" />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn UndoTreeDemo() -> impl IntoView {
+    let history = UndoHistory::<String>::new("hello".to_string());
+    view! {
+        <Demo title="UndoTree" blurb="A branching undo history. Each committed edit is a node; undo then edit again to fork a branch, and click any node to jump straight to it, even a discarded one.">
+            <Panel>
+                <TextField
+                    label="Text"
+                    value=Signal::derive(move || history.value())
+                    on_commit=Callback::new(move |value: String| history.push(value, "edit"))
+                />
+                <div class="gallery-row">
+                    <Button on_click=Callback::new(move |_| history.undo())>"Undo"</Button>
+                    <Button on_click=Callback::new(move |_| history.redo())>"Redo"</Button>
+                </div>
+            </Panel>
+            <UndoTree
+                nodes=Signal::derive(move || history.rows())
+                on_restore=Callback::new(move |id: usize| history.restore(id))
+            />
+            <span class="gallery-readout">{move || format!("value = {}", history.value())}</span>
+            <Snippet code="let history = UndoHistory::new(initial);\n<UndoTree nodes=Signal::derive(move || history.rows()) on_restore=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn JumpDemo() -> impl IntoView {
+    let open = RwSignal::new(false);
+    let targets = RwSignal::new(Vec::<JumpTarget>::new());
+    let picked = RwSignal::new(String::new());
+    let start = move |_| {
+        let mut found = Vec::new();
+        if let Some(document) = web_sys::window().and_then(|window| window.document())
+            && let Ok(list) = document.query_selector_all(".gallery-jump-target")
+        {
+            for index in 0..list.length() {
+                if let Some(node) = list.item(index)
+                    && let Ok(element) = node.dyn_into::<web_sys::Element>()
+                {
+                    let rect = element.get_bounding_client_rect();
+                    let id = element.get_attribute("data-jump-id").unwrap_or_default();
+                    found.push(JumpTarget::new(
+                        id,
+                        rect.left() + rect.width() / 2.0,
+                        rect.top() + rect.height() / 2.0,
+                    ));
+                }
+            }
+        }
+        targets.set(found);
+        open.set(true);
+    };
+    view! {
+        <Demo title="Jump labels" blurb="An avy/EasyMotion overlay: label every target and jump by typing the label. Click 'Jump', then type a label. Generic over any positioned targets you supply.">
+            <Button class="primary" on_click=Callback::new(start)>"Jump"</Button>
+            <div class="gallery-row" style="flex-wrap:wrap; gap:10px; margin-top:8px;">
+                {(1..=8)
+                    .map(|index| {
+                        let id = format!("box-{index}");
+                        view! {
+                            <div
+                                class="gallery-box gallery-jump-target"
+                                data-jump-id=id.clone()
+                                style="width:90px; height:60px; display:flex; align-items:center; justify-content:center;"
+                            >
+                                {id.clone()}
+                            </div>
+                        }
+                    })
+                    .collect_view()}
+            </div>
+            <span class="gallery-readout">
+                {move || {
+                    let value = picked.get();
+                    if value.is_empty() { "jumped to: (none)".to_string() } else { format!("jumped to: {value}") }
+                }}
+            </span>
+            <JumpOverlay
+                open=open
+                targets=Signal::derive(move || targets.get())
+                on_jump=Callback::new(move |id: String| picked.set(id))
+            />
+            <Snippet code="<JumpOverlay open=open targets=targets on_jump=cb />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn CodeSurfaceDemo() -> impl IntoView {
+    let source = (0..600)
+        .map(|index| {
+            if index % 20 == 0 {
+                format!("fn block_{index}() {{")
+            } else if index % 20 == 19 {
+                "}".to_string()
+            } else {
+                format!("    let value_{index} = {index} * 2;")
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let value = RwSignal::new(source);
+    view! {
+        <Demo title="CodeSurface" blurb="A virtualized, foldable code viewer for large files: only the visible lines render, and brace regions fold from the gutter. This buffer is 600 lines.">
+            <CodeSurface
+                value=Signal::derive(move || value.get())
+                highlighter=highlight_rhai
+                height=380.0
+            />
+            <Snippet code="<CodeSurface value=source highlighter=highlight_rhai height=380.0 />" />
         </Demo>
     }
 }

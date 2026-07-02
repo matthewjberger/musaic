@@ -1,0 +1,27 @@
+/* musaic pointer drag-and-drop. */
+
+.musaic-drag-source {
+  touch-action: none;
+}
+
+.musaic-drop-zone {
+  transition: background 0.1s ease, box-shadow 0.1s ease;
+}
+
+.musaic-drop-zone.over {
+  background: var(--musaic-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--musaic-accent);
+}
+
+.musaic-drag-preview {
+  position: fixed;
+  z-index: 500;
+  pointer-events: none;
+  padding: 4px 10px;
+  border: 1px solid var(--musaic-accent);
+  border-radius: 6px;
+  background: var(--musaic-panel);
+  color: var(--musaic-text);
+  box-shadow: var(--musaic-shadow);
+  font-size: 12px;
+}

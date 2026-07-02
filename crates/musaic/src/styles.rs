@@ -25,6 +25,18 @@ pub fn stylesheet() -> String {
     css.push_str(include_str!("../css/virtual_list.css"));
     #[cfg(feature = "diff")]
     css.push_str(include_str!("../css/diff.css"));
+    #[cfg(feature = "drag")]
+    css.push_str(include_str!("../css/drag.css"));
+    #[cfg(feature = "undo-tree")]
+    css.push_str(include_str!("../css/undo_tree.css"));
+    #[cfg(feature = "jump")]
+    css.push_str(include_str!("../css/jump.css"));
+    #[cfg(feature = "terminal")]
+    css.push_str(include_str!("../css/terminal.css"));
+    #[cfg(feature = "workspace")]
+    css.push_str(include_str!("../css/workspace.css"));
+    #[cfg(feature = "code-surface")]
+    css.push_str(include_str!("../css/code_surface.css"));
     #[cfg(feature = "disclosure")]
     css.push_str(include_str!("../css/disclosure.css"));
     #[cfg(feature = "status-bar")]

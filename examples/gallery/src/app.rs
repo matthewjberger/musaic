@@ -1,7 +1,8 @@
 use leptos::prelude::*;
 use leptos_musaic::{
-    Command, CommandPalette, IconButton, KeymapProvider, MusaicStyles, THEMES, ThemePicker,
-    ThemeProvider, ToastHub, Tree, provide_command_registry, use_theme, use_toaster,
+    Command, CommandPalette, DragLayer, IconButton, KeymapProvider, MusaicStyles, THEMES,
+    ThemePicker, ThemeProvider, ToastHub, Tree, provide_command_registry, provide_drag, use_theme,
+    use_toaster,
 };
 
 use crate::sections;
@@ -37,6 +38,7 @@ fn Shell() -> impl IntoView {
         palette_open,
     });
 
+    provide_drag();
     let registry = provide_command_registry();
     registry.register_all(sections::pages().into_iter().map(|(id, title)| {
         Command::new(
@@ -143,6 +145,7 @@ fn Shell() -> impl IntoView {
                 </div>
             </div>
             <CommandPalette open=palette_open />
+            <DragLayer />
         </KeymapProvider>
     }
 }

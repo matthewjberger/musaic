@@ -1,0 +1,44 @@
+/* musaic undo tree. */
+
+.musaic-undo-tree {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 9px;
+  overflow: auto;
+  font-size: 12px;
+}
+
+.musaic-undo-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--musaic-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.musaic-undo-node:hover {
+  background: var(--musaic-hover);
+}
+
+.musaic-undo-node.current {
+  color: var(--musaic-accent);
+}
+
+.musaic-undo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--musaic-text-dim);
+  flex: 0 0 auto;
+}
+
+.musaic-undo-node.current .musaic-undo-dot {
+  background: var(--musaic-accent);
+  border-color: var(--musaic-accent);
+}
