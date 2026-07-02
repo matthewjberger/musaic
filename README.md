@@ -53,7 +53,7 @@ compiled. Everything else is opt-in:
 | `menus` | `Menu`, `MenuItem` (checkable, disabled, shortcuts), `Submenu`, `MenuSeparator`, `ContextMenu` (portalled), `TabBar`, all keyboard-navigable |
 | `themes` | the bundled themes, `register_theme` for custom typed themes, `ThemePicker`, and `ThemeMenu` (hover-preview) |
 | `command-palette` | `CommandPalette` (registry-driven, fuzzy-ranked, recents, keybinding hints, nested submenus) |
-| `code-editor` | `CodeEditor` (highlight layer, optional gutter and diagnostic markers) plus `highlight_code`, a generic keyword/command highlighter |
+| `code-editor` | `CodeEditor` (highlight layer, optional gutter, diagnostic markers, find/replace), `CodeTabs` for multiple documents, and `highlight_code`, a generic keyword/command highlighter |
 | `table` | `Table` (multi-column sort, filter, column resize + show/hide, sticky header, pagination, inline cell edit, optional virtualization) |
 | `tree` | `Tree`, `TreeItem` (collapsible hierarchy, multi-select, inline rename, drag-and-drop, lazy expand, arrow-key nav) |
 | `inspector` | `Inspector`, `InspectorSection` (header actions slot), `InspectorRow` |

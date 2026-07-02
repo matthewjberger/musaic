@@ -3,6 +3,7 @@
 .musaic-code-editor {
   position: relative;
   display: flex;
+  flex-direction: column;
   border: 1px solid var(--musaic-panel-border);
   border-radius: 9px;
   background: var(--musaic-panel-2);
@@ -17,10 +18,46 @@
   min-height: 0;
 }
 
+.musaic-code-columns {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
 .musaic-code-surface {
   position: relative;
   flex: 1 1 0;
   min-width: 0;
+}
+
+.musaic-code-find {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--musaic-panel-border);
+  background: var(--musaic-panel);
+  font-family: var(--musaic-font);
+}
+
+.musaic-code-find-input {
+  padding: 4px 8px;
+  border: 1px solid var(--musaic-panel-border);
+  border-radius: 6px;
+  background: var(--musaic-input-bg);
+  color: var(--musaic-text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.musaic-code-find-input:focus {
+  outline: none;
+  border-color: var(--musaic-accent);
+}
+
+.musaic-code-find .musaic-button {
+  padding: 4px 8px;
+  font-size: 12px;
 }
 
 .musaic-code-gutter {
@@ -101,4 +138,79 @@
 
 .musaic-code-editor .tok-plain {
   color: var(--musaic-tok-plain);
+}
+
+/* multi-document tabs */
+
+.musaic-code-tabs {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.musaic-code-tabbar {
+  display: flex;
+  gap: 2px;
+  padding: 4px 4px 0;
+  border-bottom: 1px solid var(--musaic-panel-border);
+  overflow-x: auto;
+}
+
+.musaic-code-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 10px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 7px 7px 0 0;
+  color: var(--musaic-text-dim);
+}
+
+.musaic-code-tab.active {
+  background: var(--musaic-panel-2);
+  border-color: var(--musaic-panel-border);
+  color: var(--musaic-text);
+}
+
+.musaic-code-tab-label {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.musaic-code-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--musaic-text-dim);
+  cursor: pointer;
+}
+
+.musaic-code-tab-close:hover {
+  background: var(--musaic-hover);
+  color: var(--musaic-text);
+}
+
+.musaic-code-tab-body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  padding-top: 8px;
+}
+
+.musaic-code-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--musaic-text-dim);
 }

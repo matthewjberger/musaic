@@ -3,16 +3,16 @@ use std::collections::HashSet;
 use leptos::prelude::*;
 use leptos_musaic::{
     Accordion, AccordionItem, AssetGrid, AssetItem, Badge, Button, Card, Chat, ChatMessage,
-    ChatRole, CheckField, ChipGroup, CodeEditor, ColorField, ComboOption, Combobox, ContextMenu,
-    Dialog, Disclosure, DockLayout, DockMain, DockPanel, DockSide, Dropdown, DynamicForm,
-    FieldSchema, FormField, IconButton, Inspector, InspectorRow, InspectorSection, ListItem,
-    LogEntry, LogKind, LogView, Markdown, Menu, MenuBar, MenuBarMenu, MenuItem, MenuSeparator,
-    Modal, NavGizmo, NumberField, OrderedList, Panel, Popover, Progress, ResizeAxis, ResizeHandle,
-    SearchItem, SearchList, Select, Side, SliderField, Spinner, SplitAxis, StatusBar, StatusItem,
-    StatusSpacer, Submenu, SwatchPalette, Switch, TabBar, Table, TagInput, TextField, Theme,
-    ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup, ToolbarSpacer, Tooltip,
-    Tree, TreeItem, Vec3Field, ViewportOverlay, VirtualList, highlight_rhai, pretty_binding,
-    register_theme, use_commands, use_theme, use_toaster,
+    ChatRole, CheckField, ChipGroup, CodeDocument, CodeEditor, CodeTabs, ColorField, ComboOption,
+    Combobox, ContextMenu, Dialog, Disclosure, DockLayout, DockMain, DockPanel, DockSide, Dropdown,
+    DynamicForm, FieldSchema, FormField, IconButton, Inspector, InspectorRow, InspectorSection,
+    ListItem, LogEntry, LogKind, LogView, Markdown, Menu, MenuBar, MenuBarMenu, MenuItem,
+    MenuSeparator, Modal, NavGizmo, NumberField, OrderedList, Panel, Popover, Progress, ResizeAxis,
+    ResizeHandle, SearchItem, SearchList, Select, Side, SliderField, Spinner, SplitAxis, StatusBar,
+    StatusItem, StatusSpacer, Submenu, SwatchPalette, Switch, TabBar, Table, TagInput, TextField,
+    Theme, ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup, ToolbarSpacer,
+    Tooltip, Tree, TreeItem, Vec3Field, ViewportOverlay, VirtualList, highlight_rhai,
+    pretty_binding, register_theme, use_commands, use_theme, use_toaster,
 };
 use web_sys::MouseEvent;
 
@@ -264,10 +264,16 @@ const CATEGORIES: &[Category] = &[
         id: "editor",
         title: "Editor",
         icon: "\u{1f4dd}",
-        pages: &[Page {
-            id: "code-editor",
-            title: "CodeEditor",
-        }],
+        pages: &[
+            Page {
+                id: "code-editor",
+                title: "CodeEditor",
+            },
+            Page {
+                id: "code-tabs",
+                title: "CodeTabs",
+            },
+        ],
     },
     Category {
         id: "engine-cat",
@@ -337,6 +343,7 @@ pub fn render(id: &str) -> AnyView {
         "tree" => view! { <TreeDemo /> }.into_any(),
         "inspector" => view! { <InspectorDemo /> }.into_any(),
         "code-editor" => view! { <CodeEditorDemo /> }.into_any(),
+        "code-tabs" => view! { <CodeTabsDemo /> }.into_any(),
         "toolbar" => view! { <ToolbarDemo /> }.into_any(),
         "status-bar" => view! { <StatusBarDemo /> }.into_any(),
         "disclosure" => view! { <DisclosureDemo /> }.into_any(),
@@ -1266,11 +1273,52 @@ fn build(commands) {
 fn CodeEditorDemo() -> impl IntoView {
     let code = RwSignal::new(SAMPLE_SCRIPT.to_string());
     view! {
-        <Demo title="CodeEditor" blurb="A lightweight editor: a textarea over a synced, tokenized highlight layer. Pass a highlighter (here the bundled rhai one) and fill to grow with its container.">
+        <Demo title="CodeEditor" blurb="A textarea over a synced, tokenized highlight layer, with an optional line-number gutter, diagnostic markers, and a find/replace bar (press Ctrl+F). Pass a highlighter and fill to grow with its container.">
             <div class="gallery-editor">
-                <CodeEditor value=code highlighter=highlight_rhai fill=true />
+                <CodeEditor
+                    value=code
+                    highlighter=highlight_rhai
+                    fill=true
+                    gutter=true
+                    find=true
+                    diagnostics=Signal::derive(|| vec![2usize])
+                />
             </div>
-            <Snippet code="<CodeEditor value=code highlighter=highlight_rhai fill=true />" />
+            <span class="gallery-readout">"Press Ctrl+F to find and replace."</span>
+            <Snippet code="<CodeEditor value=code highlighter=highlight_rhai gutter=true find=true diagnostics=errors fill=true />" />
+        </Demo>
+    }
+}
+
+#[component]
+fn CodeTabsDemo() -> impl IntoView {
+    let docs = RwSignal::new(vec![
+        CodeDocument::new(
+            "build",
+            "build.rhai",
+            RwSignal::new(SAMPLE_SCRIPT.to_string()),
+        ),
+        CodeDocument::new(
+            "spin",
+            "spin.rhai",
+            RwSignal::new("fn tick(dt) {\n    rotate(cube, dt * 0.5);\n}\n".to_string()),
+        ),
+    ]);
+    let active = RwSignal::new("build".to_string());
+    view! {
+        <Demo title="CodeTabs" blurb="Multiple open documents over one editor: a tab bar plus the active document's CodeEditor, each tab carrying its own reactive buffer. Close tabs with the x.">
+            <div class="gallery-editor">
+                <CodeTabs
+                    documents=Signal::derive(move || docs.get())
+                    active=active
+                    highlighter=highlight_rhai
+                    find=true
+                    on_close=Callback::new(move |id: String| {
+                        docs.update(|list| list.retain(|document| document.id != id));
+                    })
+                />
+            </div>
+            <Snippet code="<CodeTabs documents=docs active=active highlighter=highlight_rhai on_close=cb find=true />" />
         </Demo>
     }
 }
