@@ -137,3 +137,23 @@
   left: 0;
   pointer-events: none;
 }
+
+/* Hidden input sink: receives keystrokes, clipboard, and IME composition, so the
+   editor gets native text input (including IME) while the visible layer is drawn
+   by musaic. Positioned at the primary caret so the IME candidate window follows. */
+.musaic-ml-sink {
+  position: absolute;
+  width: 1px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  white-space: pre;
+  font: inherit;
+  color: transparent;
+  background: transparent;
+  caret-color: transparent;
+  opacity: 0;
+}

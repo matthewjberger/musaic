@@ -35,6 +35,7 @@ pub fn pick_file_text(on_pick: Callback<String>) {
     };
     let input: web_sys::HtmlInputElement = element.unchecked_into();
     input.set_type("file");
+    let retained = crate::use_retained_closures();
     let on_change = Closure::<dyn Fn(web_sys::Event)>::new(move |event: web_sys::Event| {
         let Some(target) = event.target() else {
             return;
@@ -55,11 +56,11 @@ pub fn pick_file_text(on_pick: Callback<String>) {
             }
         });
         reader.set_onload(Some(on_load.as_ref().unchecked_ref()));
-        on_load.forget();
+        retained.retain(on_load);
         let _ = reader.read_as_text(&file);
     });
     input.set_onchange(Some(on_change.as_ref().unchecked_ref()));
-    on_change.forget();
+    retained.retain(on_change);
     input.click();
 }
 

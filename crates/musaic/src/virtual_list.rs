@@ -2,6 +2,8 @@ use leptos::html;
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 
+use crate::visible_range;
+
 #[component]
 pub fn VirtualList<F>(
     #[prop(into)] count: Signal<usize>,
@@ -43,12 +45,13 @@ where
         >
             {move || {
                 let total = count.get();
-                let view_height = viewport_height.get().max(item_height);
-                let first = ((scroll_top.get() / item_height).floor() as usize)
-                    .saturating_sub(overscan);
-                let visible = (view_height / item_height).ceil() as usize + overscan * 2 + 1;
-                let start = first.min(total);
-                let end = (start + visible).min(total);
+                let (start, end) = visible_range(
+                    scroll_top.get(),
+                    viewport_height.get(),
+                    item_height,
+                    overscan,
+                    total,
+                );
                 let top_pad = start as f64 * item_height;
                 let bottom_pad = total.saturating_sub(end) as f64 * item_height;
                 let rows = (start..end)

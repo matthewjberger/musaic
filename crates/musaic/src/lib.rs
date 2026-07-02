@@ -4,6 +4,7 @@ mod editor_shell;
 mod keymap;
 mod styles;
 mod theme;
+mod util;
 mod web;
 
 pub use base::*;
@@ -13,6 +14,7 @@ pub use keymap::*;
 pub use leptos_musaic_protocol::{SelectedEntity, TouchPhase};
 pub use styles::{MusaicStyles, stylesheet};
 pub use theme::*;
+pub use util::*;
 pub use web::*;
 
 #[cfg(feature = "forms")]

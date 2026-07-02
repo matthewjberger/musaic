@@ -4,6 +4,8 @@ use leptos::html;
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 
+use crate::visible_range;
+
 #[derive(Clone, Copy, PartialEq)]
 enum SortDirection {
     Ascending,
@@ -252,12 +254,13 @@ pub fn Table(
         if !virtualized {
             return (0usize, total);
         }
-        let view_height = viewport_height.get().max(row_height);
-        let first = ((scroll_top.get() / row_height).floor() as usize).saturating_sub(overscan);
-        let count = (view_height / row_height).ceil() as usize + overscan * 2 + 1;
-        let start = first.min(total);
-        let end = (start + count).min(total);
-        (start, end)
+        visible_range(
+            scroll_top.get(),
+            viewport_height.get(),
+            row_height,
+            overscan,
+            total,
+        )
     };
 
     let render_cell = move |original_index: usize, column: usize, cell: String| {

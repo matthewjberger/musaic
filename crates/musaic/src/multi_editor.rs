@@ -4,6 +4,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::Closure;
 
 use crate::code_editor::Highlighter;
+use crate::{use_retained_closures, visible_range};
 
 fn selection_text(chars: &[char], carets: &[Caret]) -> String {
     let mut sorted = carets.to_vec();
@@ -215,6 +216,20 @@ pub fn MultiEditor(
     let wrap_ref = NodeRef::<html::Div>::new();
     let ruler_ref = NodeRef::<html::Span>::new();
     let pressed = StoredValue::new(false);
+    let retained = use_retained_closures();
+    let textarea_ref = NodeRef::<html::Textarea>::new();
+    let composing = StoredValue::new(false);
+
+    let model = Memo::new(move |_| {
+        let source = value.get();
+        (
+            source.chars().collect::<Vec<char>>(),
+            source
+                .split('\n')
+                .map(str::to_string)
+                .collect::<Vec<String>>(),
+        )
+    });
 
     let offset_at = move |event: &web_sys::PointerEvent| -> Option<usize> {
         let wrap = wrap_ref.get()?;
@@ -228,17 +243,18 @@ pub fn MultiEditor(
         let y = event.client_y() as f64 - rect.top() + wrap.scroll_top() as f64;
         let target_line = (y / line_height).floor().max(0.0) as usize;
         let target_col = (x / char_width).round().max(0.0) as usize;
-        let chars: Vec<char> = value.get_untracked().chars().collect();
-        let line = target_line.min(total_lines(&chars).saturating_sub(1));
-        Some(offset_of(&chars, line, target_col))
+        model.with(|(chars, _)| {
+            let line = target_line.min(total_lines(chars).saturating_sub(1));
+            Some(offset_of(chars, line, target_col))
+        })
     };
 
     let on_pointer_down = move |event: web_sys::PointerEvent| {
         if let Some(offset) = offset_at(&event) {
             carets.set(vec![Caret::collapsed(offset)]);
             pressed.set_value(true);
-            if let Some(wrap) = wrap_ref.get() {
-                let _ = wrap.focus();
+            if let Some(area) = textarea_ref.get() {
+                let _ = area.focus();
             }
         }
     };
@@ -292,7 +308,28 @@ pub fn MultiEditor(
             },
         );
         let _ = promise.then(&closure);
-        closure.forget();
+        retained.retain(closure);
+    };
+
+    let commit_input = move || {
+        if let Some(area) = textarea_ref.get() {
+            let text = area.value();
+            if !text.is_empty() {
+                let inserted: Vec<char> = text.chars().collect();
+                edit(&move |chars, carets| insert_text(chars, carets, &inserted));
+                area.set_value("");
+            }
+        }
+    };
+    let on_input = move |_: web_sys::Event| {
+        if !composing.get_value() {
+            commit_input();
+        }
+    };
+    let on_compose_start = move |_: web_sys::CompositionEvent| composing.set_value(true);
+    let on_compose_end = move |_: web_sys::CompositionEvent| {
+        composing.set_value(false);
+        commit_input();
     };
 
     let on_key = move |event: web_sys::KeyboardEvent| {
@@ -400,11 +437,6 @@ pub fn MultiEditor(
                     }
                 });
             }
-            text if text.chars().count() == 1 && !ctrl && !alt => {
-                event.prevent_default();
-                let glyph: Vec<char> = text.chars().collect();
-                edit(&move |chars, carets| insert_text(chars, carets, &glyph));
-            }
             _ => {}
         }
     };
@@ -425,27 +457,13 @@ pub fn MultiEditor(
         }
     });
 
-    let model = Memo::new(move |_| {
-        let source = value.get();
-        (
-            source.chars().collect::<Vec<char>>(),
-            source
-                .split('\n')
-                .map(str::to_string)
-                .collect::<Vec<String>>(),
-        )
-    });
-
     let content = move || {
         let view_height = viewport_height.get().max(line_height);
         let scroll = scroll_top.get();
         let cursors = carets.get();
         model.with(|(chars, lines)| {
         let total = lines.len();
-        let first = ((scroll / line_height).floor() as usize).saturating_sub(overscan);
-        let count = (view_height / line_height).ceil() as usize + overscan * 2 + 1;
-        let start = first.min(total);
-        let end = (start + count).min(total);
+        let (start, end) = visible_range(scroll, view_height, line_height, overscan, total);
 
         let rendered_lines = (start..end)
             .map(|index| {
@@ -542,6 +560,25 @@ pub fn MultiEditor(
             on:pointermove=on_pointer_move
         >
             <span node_ref=ruler_ref class="musaic-ml-ruler">"0000000000"</span>
+            <textarea
+                class="musaic-ml-sink"
+                node_ref=textarea_ref
+                on:input=on_input
+                on:compositionstart=on_compose_start
+                on:compositionend=on_compose_end
+                style=move || {
+                    let head = carets.get().last().map(|caret| caret.head).unwrap_or(0);
+                    model.with(|(chars, _)| {
+                        let (line, col) = line_col(chars, head);
+                        format!(
+                            "top:{}px; left:calc(10px + {}ch); height:{}px",
+                            line as f64 * line_height,
+                            col,
+                            line_height,
+                        )
+                    })
+                }
+            ></textarea>
             {content}
         </div>
     }

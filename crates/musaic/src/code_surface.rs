@@ -4,6 +4,8 @@ use leptos::html;
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 
+use crate::visible_range;
+
 use crate::code_editor::Highlighter;
 
 fn fold_regions(lines: &[&str]) -> Vec<(usize, usize)> {
@@ -79,10 +81,7 @@ pub fn CodeSurface(
             .filter(|line| !hidden.contains(line))
             .collect();
         let total = visible.len();
-        let first = ((scroll / line_height).floor() as usize).saturating_sub(overscan);
-        let count = (view_height / line_height).ceil() as usize + overscan * 2 + 1;
-        let start = first.min(total);
-        let end = (start + count).min(total);
+        let (start, end) = visible_range(scroll, view_height, line_height, overscan, total);
         let top_pad = start as f64 * line_height;
         let bottom_pad = total.saturating_sub(end) as f64 * line_height;
 

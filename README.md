@@ -63,8 +63,8 @@ the `EditorShell` frame, and the `use_persisted` / `use_reconnecting_socket` / `
 | `diff` | `Diff` + `diff_lines`: an LCS line-diff with +/- markers and old/new line numbers |
 | `drag` | pointer-based drag-and-drop (works in webviews where HTML5 DnD does not): `DragSource`, `DropZone`, `DragLayer`, `provide_drag` |
 | `workspace` | `TabDock`: split panes with tab tear-off between panes (built on `drag`) |
-| `code-surface` | `CodeSurface` (virtualized, brace-foldable viewer) and `MultiEditor` (multi-cursor code editor: add-cursor-below, add-next-occurrence, multi-selection) |
-| `terminal` | `Terminal` (REPL surface) and `AnsiTerminal` (a real ANSI/VT parser: SGR colors, bold/inverse, cursor movement, erase) |
+| `code-surface` | `CodeSurface` (virtualized, brace-foldable viewer) and `MultiEditor` (multi-cursor code editor: add-cursor-below, add-next-occurrence, multi-selection, drag-select, Home/End, clipboard copy/cut/paste, and IME composition via a hidden input sink) |
+| `terminal` | `Terminal` (REPL surface) and `AnsiTerminal` (a real ANSI/VT parser: 16/256/truecolor SGR, bold/inverse, cursor movement + save/restore, erase, scroll regions, alternate screen) |
 | `undo-tree` | `UndoHistory<T>` (generic branching history) + `UndoTree` panel |
 | `jump` | `JumpOverlay`: an avy-style "label every target and jump by typing" overlay |
 | `disclosure` | `Disclosure`, `Accordion`, `AccordionItem` |

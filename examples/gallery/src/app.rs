@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_musaic::{
     Command, CommandPalette, DragLayer, IconButton, KeymapProvider, MusaicStyles, THEMES,
-    ThemePicker, ThemeProvider, ToastHub, Tree, provide_command_registry, provide_drag, use_theme,
+    ThemeMenu, ThemeProvider, ToastHub, Tree, provide_command_registry, provide_drag, use_theme,
     use_toaster,
 };
 
@@ -129,7 +129,7 @@ fn Shell() -> impl IntoView {
                     <IconButton on_click=Callback::new(move |_| {
                         palette_open.set(true)
                     })>"\u{2318}K"</IconButton>
-                    <ThemePicker />
+                    <ThemeMenu />
                 </div>
                 <div class=body_class>
                     <div class="gallery-sidebar">
