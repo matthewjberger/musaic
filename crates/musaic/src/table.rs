@@ -122,7 +122,7 @@ pub fn Table(
         });
     };
 
-    let processed = move || {
+    let processed = Memo::new(move |_| {
         let needle = filter.get().to_lowercase();
         let mut data = rows
             .get()
@@ -137,13 +137,13 @@ pub fn Table(
             data.sort_by(|(_, left), (_, right)| compare_rows(left, right, &sort));
         }
         data
-    };
+    });
 
     let page_count = move || {
         let Some(size) = page_size else {
             return 1;
         };
-        processed().len().div_ceil(size).max(1)
+        processed.with(|data| data.len()).div_ceil(size).max(1)
     };
 
     let on_pointermove = move |event: web_sys::PointerEvent| {
@@ -326,63 +326,66 @@ pub fn Table(
     };
 
     let body = move || {
-        let data = processed();
-        let total = data.len();
-        let data = if let Some(size) = page_size {
-            let start = (page.get() * size).min(total);
-            let end = (start + size).min(total);
-            data[start..end].to_vec()
-        } else {
-            data
-        };
-        let visible_total = data.len();
-        let (start, end) = visible_range(visible_total);
-        let top_pad = start as f64 * row_height;
-        let bottom_pad = visible_total.saturating_sub(end) as f64 * row_height;
-        let visible_rows = data
-            .into_iter()
-            .skip(start)
-            .take(end - start)
-            .map(|(original_index, row)| {
-                let is_selected = move || selected_row.get() == Some(original_index);
-                let on_click = move |_| {
-                    if let Some(callback) = on_row_click {
-                        callback.run(original_index);
+        let page = page.get();
+        processed.with(|data| {
+            let total = data.len();
+            let (page_start, page_end) = if let Some(size) = page_size {
+                let start = (page * size).min(total);
+                let end = (start + size).min(total);
+                (start, end)
+            } else {
+                (0, total)
+            };
+            let visible_total = page_end - page_start;
+            let (start, end) = visible_range(visible_total);
+            let top_pad = start as f64 * row_height;
+            let bottom_pad = visible_total.saturating_sub(end) as f64 * row_height;
+            let visible_rows = data[page_start..page_end]
+                .iter()
+                .skip(start)
+                .take(end - start)
+                .cloned()
+                .map(|(original_index, row)| {
+                    let is_selected = move || selected_row.get() == Some(original_index);
+                    let on_click = move |_| {
+                        if let Some(callback) = on_row_click {
+                            callback.run(original_index);
+                        }
+                    };
+                    let style = virtualized.then(|| format!("height:{row_height}px"));
+                    let cells = row
+                        .into_iter()
+                        .enumerate()
+                        .map(|(column, cell)| render_cell(original_index, column, cell))
+                        .collect_view();
+                    view! {
+                        <tr
+                            class:selected=is_selected
+                            class:clickable=on_row_click.is_some()
+                            style=style
+                            aria-selected=move || is_selected().to_string()
+                            on:click=on_click
+                        >
+                            {cells}
+                        </tr>
                     }
-                };
-                let style = virtualized.then(|| format!("height:{row_height}px"));
-                let cells = row
-                    .into_iter()
-                    .enumerate()
-                    .map(|(column, cell)| render_cell(original_index, column, cell))
-                    .collect_view();
-                view! {
-                    <tr
-                        class:selected=is_selected
-                        class:clickable=on_row_click.is_some()
-                        style=style
-                        aria-selected=move || is_selected().to_string()
-                        on:click=on_click
-                    >
-                        {cells}
-                    </tr>
-                }
-            })
-            .collect_view();
-        let spacer = move |pixels: f64| {
-            (pixels > 0.5).then(|| {
+                })
+                .collect_view();
+            let spacer = move |pixels: f64| {
+                (pixels > 0.5).then(|| {
                 view! {
                     <tr class="musaic-spacer-row" aria-hidden="true">
                         <td colspan=column_count style=format!("height:{pixels}px;padding:0")></td>
                     </tr>
                 }
             })
-        };
-        view! {
-            {spacer(top_pad)}
-            {visible_rows}
-            {spacer(bottom_pad)}
-        }
+            };
+            view! {
+                {spacer(top_pad)}
+                {visible_rows}
+                {spacer(bottom_pad)}
+            }
+        })
     };
 
     let on_scroll = move |event: web_sys::Event| {
