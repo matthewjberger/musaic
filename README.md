@@ -10,34 +10,83 @@ for the moments you need to steer them. Everything is themed from one set of CSS
 so the whole surface (including every component added here) restyles with a single `data-theme`
 switch.
 
+## Quickstart
+
+musaic is a client-side-rendered (CSR) Leptos app. This is the whole path from an empty crate to a
+themed, running UI.
+
+**1. Add the dependencies.** musaic is consumed as a git dependency (it is not on crates.io):
+
 ```toml
 [dependencies]
-leptos-musaic = { version = "0.1", features = ["forms", "themes", "command-palette"] }
+leptos = { version = "0.7", features = ["csr"] }
+leptos-musaic = { git = "https://github.com/matthewjberger/musaic", features = ["forms", "themes", "command-palette"] }
+console_error_panic_hook = "0.1"
 ```
 
+Enable the features whose components you use, or `features = ["full"]` for everything. See
+[Feature gates](#feature-gates).
+
+**2. Mount the root component** (`src/main.rs`):
+
 ```rust
-use leptos::prelude::*;
-use leptos_musaic::{MusaicStyles, ThemeProvider, ThemePicker, Panel, Button};
+fn main() {
+    console_error_panic_hook::set_once();
+    leptos::prelude::mount_to_body(app::App);
+}
+```
+
+**3. Write the UI** (`src/app.rs`). `use leptos_musaic::prelude::*;` pulls in every enabled
+component plus `leptos::prelude::*`, so one import is usually enough:
+
+```rust
+use leptos_musaic::prelude::*;
 
 #[component]
-fn App() -> impl IntoView {
+pub fn App() -> impl IntoView {
+    let count = RwSignal::new(0);
     view! {
-        <MusaicStyles />
+        <MusaicStyles/>
         <ThemeProvider>
             <Panel title="Hello">
-                <ThemePicker />
-                <Button>"Click me"</Button>
+                <ThemePicker/>
+                <Button on_click=Callback::new(move |_| count.update(|n| *n += 1))>
+                    "clicked " {move || count.get()}
+                </Button>
             </Panel>
         </ThemeProvider>
     }
 }
 ```
 
-Drop `<MusaicStyles/>` at the root once: it injects the design-token stylesheet (wrapped in
-`@layer musaic`, so your own CSS always wins) into the document head. No file to copy, no build step.
+Two pieces make this work. `<MusaicStyles/>`, dropped once at the root, injects the design-token
+stylesheet (wrapped in `@layer musaic`, so your own CSS always wins) into the document head, no file
+to copy and no build step. `<ThemeProvider>` sets `data-theme` on the document, persists the choice,
+and makes theming available to everything inside it.
 
-Prefer a single import? `use leptos_musaic::prelude::*;` pulls in every enabled component plus
-`leptos::prelude::*`, so a typical module needs just that one line.
+**4. Add an `index.html`** at the crate root for [Trunk](https://trunkrs.dev):
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <link data-trunk rel="rust" data-wasm-opt="z"/>
+  </head>
+  <body></body>
+</html>
+```
+
+**5. Run it:**
+
+```
+trunk serve --open
+```
+
+This exact app is a runnable crate at [`examples/minimal`](examples/minimal); `just run-minimal`
+serves it. From here, grow the single `Panel` into a full layout with
+[`EditorShell`](docs/book/src/app-shell.md) and reach for components by task. The
+[guide](docs/book) and the runnable [gallery](examples/gallery) are the next stops.
 
 ## Documentation
 

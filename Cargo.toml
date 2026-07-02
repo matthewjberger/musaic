@@ -11,6 +11,7 @@ members = [
     "examples/gallery",
     "examples/gallery/desktop",
     "examples/landing",
+    "examples/minimal",
 ]
 
 [profile.release]

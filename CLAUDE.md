@@ -7,7 +7,11 @@ engine-agnostic: a reusable set of themed UI patterns, not tied to any app or ba
 New here, or building a UI with musaic? Read the book in `docs/book/src` (start with
 `introduction.md`, then `installation.md` and `first-ui.md`). The **gallery is the living reference**:
 every component has a runnable demo in `examples/gallery/src/sections.rs`. When in doubt about a
-component's props or idiom, open its gallery demo. `README.md` has the full feature-gate table.
+component's props or idiom, open its gallery demo. `README.md` has the full feature-gate table, and
+`examples/minimal` is the runnable quickstart.
+
+Starting a brand-new app rather than working in this repo? `docs/TEMPLATE.md` explains how to clone
+and update the project starter template that musaic layers onto.
 
 ## Consuming it
 

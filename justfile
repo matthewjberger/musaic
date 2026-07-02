@@ -36,6 +36,10 @@ run-gallery:
 run-landing:
     trunk serve --config examples/landing/Trunk.toml
 
+# Serves the minimal quickstart example at http://127.0.0.1:8083
+run-minimal:
+    trunk serve --config examples/minimal/Trunk.toml
+
 # Builds the worker, then serves the demo in the browser at http://127.0.0.1:8080
 dev: worker
     trunk serve
@@ -51,14 +55,14 @@ build-desktop: dist
 # Type-checks the library across all features and the demo workspace
 check:
     cargo build --manifest-path crates/musaic/Cargo.toml --target wasm32-unknown-unknown --features full
-    cargo check -p leptos-musaic-engine -p protocol -p worker -p nightshade_demo -p gallery -p landing --target wasm32-unknown-unknown
+    cargo check -p leptos-musaic-engine -p protocol -p worker -p nightshade_demo -p gallery -p landing -p minimal --target wasm32-unknown-unknown
     cargo check -p leptos-musaic-shell -p nightshade_demo_desktop -p gallery_desktop
     cargo fmt --all -- --check
 
 # Lints the library and the demo workspace, denying warnings
 lint:
     cargo clippy --manifest-path crates/musaic/Cargo.toml --target wasm32-unknown-unknown --features full -- -D warnings
-    cargo clippy -p leptos-musaic-engine -p protocol -p worker -p nightshade_demo -p gallery -p landing --target wasm32-unknown-unknown -- -D warnings
+    cargo clippy -p leptos-musaic-engine -p protocol -p worker -p nightshade_demo -p gallery -p landing -p minimal --target wasm32-unknown-unknown -- -D warnings
     cargo clippy -p leptos-musaic-shell -p nightshade_demo_desktop -p gallery_desktop -- -D warnings
 
 # Runs the unit tests on the host target
