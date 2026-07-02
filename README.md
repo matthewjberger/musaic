@@ -153,12 +153,19 @@ A new engine-backed app is roughly: `use_engine()` plus your panels on the page,
 `run_offscreen(scene, setup, tick, on_custom)` plus your scene logic in the worker. The repeated
 wiring is gone.
 
-## Example
+## Examples
 
-`examples/nightshade_demo` is a full editor-style app built entirely from musaic components: a
-toolbar, a sidebar of live scene controls, an embedded viewport, a resizable script/log dock, a
-command palette, and nine themes, driving a 3D engine in a web worker on an `OffscreenCanvas`. It
-runs on the web (`just dev`) and as a native desktop app (`just run`) from the same code.
+Three example apps, all built entirely from musaic components:
+
+- `examples/landing` is the showcase that fronts the site: an `EditorShell` app with a toolbar,
+  a live controls sidebar, a command palette, an ANSI terminal, a table, and a code editor, wired
+  to demonstrate the library. `just run-landing`.
+- `examples/gallery` is the interactive catalog, a runnable demo of every component.
+  `just run-gallery`.
+- `examples/nightshade_demo` is a full editor-style app: a toolbar, a sidebar of live scene
+  controls, an embedded viewport, a resizable script/log dock, a command palette, and nine themes,
+  driving a renderer in a web worker on an `OffscreenCanvas`. It runs on the web (`just dev`) and
+  as a native desktop app (`just run`) from the same code.
 
 ```
 just init    # install the pinned toolchain (rust, wasm-bindgen, wasm-opt, trunk) via mise
@@ -170,7 +177,9 @@ just lint    # clippy, denying warnings
 just test    # run the unit tests on the host target
 ```
 
-The demo deploys to GitHub Pages on every push to `main` via `.github/workflows/pages.yml`.
+On every push to `main`, `.github/workflows/pages.yml` deploys the whole site to GitHub Pages: the
+landing showcase at the root, the demo at `/demo/`, the gallery at `/gallery/`, and the guide book
+at `/book/`.
 
 ## License
 

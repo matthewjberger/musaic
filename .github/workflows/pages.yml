@@ -1,4 +1,4 @@
-name: Deploy demo and gallery to GitHub Pages
+name: Deploy site, demo, gallery, and book to GitHub Pages
 
 on:
   push:
@@ -39,9 +39,14 @@ jobs:
           wasm-bindgen --target web --out-dir examples/nightshade_demo/runtime --out-name engine target/wasm32-unknown-unknown/release/worker.wasm
           wasm-opt -O3 --enable-simd examples/nightshade_demo/runtime/engine_bg.wasm -o examples/nightshade_demo/runtime/engine_bg.wasm
 
-      # The nightshade demo is served at the project root, /musaic/.
-      - name: Build the nightshade demo bundle
-        run: trunk build --release --public-url /musaic/ --dist "$GITHUB_WORKSPACE/site"
+      # The musaic-built landing page is served at the project root, /musaic/.
+      # Built first, since trunk clears its dist dir and the others nest under it.
+      - name: Build the landing showcase
+        run: trunk build --release --config examples/landing/Trunk.toml --public-url /musaic/ --dist "$GITHUB_WORKSPACE/site"
+
+      # The full app demo is served at /musaic/demo/.
+      - name: Build the demo bundle
+        run: trunk build --release --public-url /musaic/demo/ --dist "$GITHUB_WORKSPACE/site/demo"
 
       # The interactive component gallery is served at /musaic/gallery/.
       - name: Build the gallery bundle
