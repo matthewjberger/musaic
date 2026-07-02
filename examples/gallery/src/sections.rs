@@ -6,16 +6,17 @@ use leptos_musaic::{
     Button, Card, Chat, ChatMessage, ChatRole, CheckField, ChipGroup, CodeDocument, CodeEditor,
     CodeSurface, CodeTabs, ColorField, ComboOption, Combobox, ContextMenu, Dialog, Diff,
     Disclosure, DockLayout, DockMain, DockPanel, DockSide, DockTab, DragPayload, DragSource,
-    DropZone, Dropdown, DynamicForm, EditorShell, FieldSchema, FormField, IconButton, Inspector,
-    InspectorRow, InspectorSection, JumpOverlay, JumpTarget, ListItem, LogEntry, LogKind, LogView,
-    Markdown, Menu, MenuBar, MenuBarMenu, MenuItem, MenuSeparator, Modal, MultiEditor, NavGizmo,
-    NumberField, OrderedList, Panel, Popover, Progress, ResizeAxis, ResizeHandle, SearchItem,
-    SearchList, Select, Side, SliderField, Spinner, SplitAxis, StatusBar, StatusItem, StatusSpacer,
-    Submenu, SwatchPalette, Switch, TabBar, TabDock, Table, TagInput, Terminal, TerminalLine,
-    TerminalTone, TextField, Theme, ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar,
-    ToolbarGroup, ToolbarSpacer, Tooltip, Tree, TreeItem, UndoHistory, UndoTree, Vec3Field,
-    ViewportOverlay, VirtualList, download_text, highlight_rhai, pick_file_text, pretty_binding,
-    register_theme, terminal_grid, use_commands, use_theme, use_toaster,
+    DropZone, Dropdown, DynamicForm, EditorShell, FieldSchema, FormField, HudPanel, IconButton,
+    Inspector, InspectorRow, InspectorSection, JumpOverlay, JumpTarget, ListItem, LogEntry,
+    LogKind, LogView, Markdown, Menu, MenuBar, MenuBarMenu, MenuItem, MenuSeparator, Modal,
+    MultiEditor, NavGizmo, NumberField, OrderedList, Panel, Popover, Progress, ResizeAxis,
+    ResizeHandle, SearchItem, SearchList, Select, SelectedCard, SelectedEntity, Side, SliderField,
+    Spinner, SplitAxis, StatusBar, StatusItem, StatusSpacer, Submenu, SwatchPalette, Switch,
+    TabBar, TabDock, Table, TagInput, Terminal, TerminalLine, TerminalTone, TextField, Theme,
+    ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup, ToolbarSpacer, Tooltip,
+    Tree, TreeItem, UndoHistory, UndoTree, Vec3Field, ViewportOverlay, VirtualList, download_text,
+    highlight_rhai, pick_file_text, pretty_binding, register_theme, terminal_grid, use_commands,
+    use_theme, use_toaster,
 };
 use wasm_bindgen::JsCast;
 use web_sys::MouseEvent;
@@ -333,10 +334,16 @@ const CATEGORIES: &[Category] = &[
         id: "engine-cat",
         title: "Engine",
         icon: "\u{1f3ae}",
-        pages: &[Page {
-            id: "engine",
-            title: "Engine integration",
-        }],
+        pages: &[
+            Page {
+                id: "engine",
+                title: "Engine integration",
+            },
+            Page {
+                id: "selected-card",
+                title: "SelectedCard",
+            },
+        ],
     },
 ];
 
@@ -424,6 +431,7 @@ pub fn render(id: &str) -> AnyView {
         "multi-editor" => view! { <MultiEditorDemo /> }.into_any(),
         "ansi-terminal" => view! { <AnsiTerminalDemo /> }.into_any(),
         "engine" => view! { <EngineDemo /> }.into_any(),
+        "selected-card" => view! { <SelectedCardDemo /> }.into_any(),
         other => match CATEGORIES.iter().find(|category| category.id == other) {
             Some(category) => category_landing(category),
             None => view! { <Overview /> }.into_any(),
@@ -1456,6 +1464,26 @@ fn EngineDemo() -> impl IntoView {
 }
 
 #[component]
+fn SelectedCardDemo() -> impl IntoView {
+    let selected = RwSignal::new(Some(SelectedEntity {
+        id: 7,
+        name: "Cube".to_string(),
+    }));
+    view! {
+        <Demo title="SelectedCard" blurb="A compact readout of the current engine selection (id + name), driven by a Signal. Toggle the selection to see it update or clear.">
+            <SelectedCard selected=Signal::derive(move || selected.get()) />
+            <div class="gallery-row">
+                <Button on_click=Callback::new(move |_| {
+                    selected.set(Some(SelectedEntity { id: 12, name: "Sphere".to_string() }))
+                })>"Select sphere"</Button>
+                <Button on_click=Callback::new(move |_| selected.set(None))>"Clear"</Button>
+            </div>
+            <Snippet code="<SelectedCard selected=Signal::derive(move || state.selected.get()) />" />
+        </Demo>
+    }
+}
+
+#[component]
 fn ToolbarDemo() -> impl IntoView {
     let toaster = use_toaster();
     let snap = RwSignal::new(true);
@@ -1868,14 +1896,14 @@ fn NavGizmoDemo() -> impl IntoView {
                     "engine surface"
                 </div>
                 <ViewportOverlay>
-                    <div style="position:absolute; top:10px; right:10px; pointer-events:auto;">
+                    <HudPanel class="gallery-hud-corner">
                         <NavGizmo
                             basis=basis
                             on_axis=Callback::new(move |index: usize| {
                                 readout.set(format!("clicked axis {index}"))
                             })
                         />
-                    </div>
+                    </HudPanel>
                 </ViewportOverlay>
             </div>
             <SliderField

@@ -105,6 +105,7 @@ impl SocketHandle {
 const RECONNECT_MS: u64 = 1000;
 
 type ConnectSlot = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
+type ClosureKeep = StoredValue<Vec<Box<dyn std::any::Any>>, LocalStorage>;
 
 pub fn use_reconnecting_socket(
     url: impl Into<String>,
@@ -112,18 +113,22 @@ pub fn use_reconnecting_socket(
 ) -> SocketHandle {
     let connected = RwSignal::new(false);
     let socket = StoredValue::new_local(None::<web_sys::WebSocket>);
+    let keep: ClosureKeep = StoredValue::new_local(Vec::new());
+    let cancelled = StoredValue::new(false);
     let url = url.into();
     let connect_slot: ConnectSlot = Rc::new(RefCell::new(None));
 
     let slot_for_close = connect_slot.clone();
     let make: Rc<dyn Fn()> = Rc::new(move || {
+        if cancelled.get_value() {
+            return;
+        }
         let Ok(ws) = web_sys::WebSocket::new(&url) else {
             return;
         };
 
         let on_open = Closure::<dyn Fn()>::new(move || connected.set(true));
         ws.set_onopen(Some(on_open.as_ref().unchecked_ref()));
-        on_open.forget();
 
         let on_message_closure =
             Closure::<dyn Fn(web_sys::MessageEvent)>::new(move |event: web_sys::MessageEvent| {
@@ -132,23 +137,39 @@ pub fn use_reconnecting_socket(
                 }
             });
         ws.set_onmessage(Some(on_message_closure.as_ref().unchecked_ref()));
-        on_message_closure.forget();
 
         let reconnect = slot_for_close.clone();
         let on_close = Closure::<dyn Fn()>::new(move || {
             connected.set(false);
-            if let Some(again) = reconnect.borrow().clone() {
+            if !cancelled.get_value()
+                && let Some(again) = reconnect.borrow().clone()
+            {
                 set_timeout(move || again(), Duration::from_millis(RECONNECT_MS));
             }
         });
         ws.set_onclose(Some(on_close.as_ref().unchecked_ref()));
-        on_close.forget();
 
+        keep.update_value(|closures| {
+            closures.push(Box::new(on_open));
+            closures.push(Box::new(on_message_closure));
+            closures.push(Box::new(on_close));
+        });
         socket.set_value(Some(ws));
     });
 
     *connect_slot.borrow_mut() = Some(make.clone());
     make();
+
+    on_cleanup(move || {
+        cancelled.set_value(true);
+        if let Some(ws) = socket.get_value() {
+            ws.set_onopen(None);
+            ws.set_onmessage(None);
+            ws.set_onclose(None);
+            let _ = ws.close();
+        }
+        keep.update_value(Vec::clear);
+    });
 
     SocketHandle { connected, socket }
 }

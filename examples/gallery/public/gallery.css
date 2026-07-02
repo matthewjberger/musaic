@@ -278,3 +278,8 @@
   border-radius: 9px;
   min-height: 120px;
 }
+
+.gallery-hud-corner {
+  top: 10px;
+  right: 10px;
+}
