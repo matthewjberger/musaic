@@ -39,6 +39,16 @@ Drop `<MusaicStyles/>` at the root once: it injects the design-token stylesheet 
 Prefer a single import? `use leptos_musaic::prelude::*;` pulls in every enabled component plus
 `leptos::prelude::*`, so a typical module needs just that one line.
 
+## Documentation
+
+- The **guide** is an mdbook under `docs/book` (`just book` to build, `just book-serve` to read it
+  live). Start with `introduction.md`, then Getting Started and the task-by-task chapters.
+- The **API reference** is the rustdoc: `just doc` (or `cargo doc --features full --open`). Every
+  component and public type is documented.
+- The **gallery** (`examples/gallery`) is the living reference: a runnable demo of every component.
+  `just run-gallery`.
+- `CLAUDE.md` is a dense orientation for building UIs with musaic.
+
 ## Feature gates
 
 The base layer (design tokens, typed theming, `Button`, `IconButton`, `Panel`, `Card`, layout,

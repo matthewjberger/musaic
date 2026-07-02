@@ -1,12 +1,20 @@
+//! A scrolling, auto-tailing list of categorized log entries with optional selection and clearing.
+
 use leptos::html;
 use leptos::prelude::*;
 
+/// The severity or category of a `LogEntry`, used to pick its color and short tag.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum LogKind {
+    /// An informational message.
     Info,
+    /// A command that was issued.
     Command,
+    /// A notable event.
     Event,
+    /// A warning.
     Warn,
+    /// An error.
     Error,
 }
 
@@ -32,16 +40,24 @@ impl LogKind {
     }
 }
 
+/// One row in a `LogView`: a stable `id`, a `kind`, a primary `label`, optional
+/// `detail` text, and a repeat `count` shown as a multiplier badge.
 #[derive(Clone)]
 pub struct LogEntry {
+    /// Stable identifier passed back through the selection callback.
     pub id: usize,
+    /// Category controlling the row's color and tag.
     pub kind: LogKind,
+    /// The primary text of the entry.
     pub label: String,
+    /// Secondary detail text shown after the label when non-empty.
     pub detail: String,
+    /// Repeat count; rendered as an `xN` badge when greater than one.
     pub count: usize,
 }
 
 impl LogEntry {
+    /// Creates an entry with the given id, kind, and label, empty detail, and a count of one.
     pub fn new(id: usize, kind: LogKind, label: impl Into<String>) -> Self {
         Self {
             id,
@@ -52,17 +68,23 @@ impl LogEntry {
         }
     }
 
+    /// Returns the entry with its detail text set.
     pub fn with_detail(mut self, detail: impl Into<String>) -> Self {
         self.detail = detail.into();
         self
     }
 
+    /// Returns the entry with its repeat count set.
     pub fn with_count(mut self, count: usize) -> Self {
         self.count = count;
         self
     }
 }
 
+/// A scrolling log panel driven by the `entries` signal. It shows an entry count
+/// header, an optional "Clear" button (`on_clear`), auto-scrolls to the newest row
+/// when `autoscroll` is set, and calls `on_select` with an entry's id when a row is
+/// clicked. Shows the `empty` placeholder when there are no entries.
 #[component]
 pub fn LogView(
     #[prop(into)] entries: Signal<Vec<LogEntry>>,

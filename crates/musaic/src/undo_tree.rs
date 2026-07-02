@@ -1,3 +1,5 @@
+//! A branching, signal-backed undo history and a component that renders it as a tree.
+
 use leptos::prelude::*;
 
 #[derive(Clone)]
@@ -7,6 +9,10 @@ struct Node<T> {
     label: String,
 }
 
+/// A reactive, branching undo history. Every edit becomes a node whose parent is
+/// the state it was made from, so undoing and then editing forks a new branch
+/// rather than discarding the old one. `Copy`, so it can be captured freely in
+/// closures.
 pub struct UndoHistory<T: Send + Sync + 'static> {
     nodes: RwSignal<Vec<Node<T>>>,
     current: RwSignal<usize>,
@@ -20,15 +26,22 @@ impl<T: Send + Sync + 'static> Clone for UndoHistory<T> {
 
 impl<T: Send + Sync + 'static> Copy for UndoHistory<T> {}
 
+/// A flattened view of one history node for rendering: its `id`, `label`, tree
+/// `depth`, and whether it is the `current` state.
 #[derive(Clone)]
 pub struct HistoryNode {
+    /// The node's index, accepted by `UndoHistory::restore` and the restore callback.
     pub id: usize,
+    /// The label given when the node was pushed.
     pub label: String,
+    /// Distance from the root, used to indent the row.
     pub depth: usize,
+    /// Whether this node is the currently active state.
     pub current: bool,
 }
 
 impl<T: Clone + Send + Sync + 'static> UndoHistory<T> {
+    /// Creates a history seeded with `initial` as the root state.
     pub fn new(initial: T) -> Self {
         Self {
             nodes: RwSignal::new(vec![Node {
@@ -40,11 +53,13 @@ impl<T: Clone + Send + Sync + 'static> UndoHistory<T> {
         }
     }
 
+    /// Reactively reads the value at the current node.
     pub fn value(&self) -> T {
         let current = self.current.get();
         self.nodes.with(|nodes| nodes[current].value.clone())
     }
 
+    /// Records `value` as a child of the current node and makes it current.
     pub fn push(&self, value: T, label: impl Into<String>) {
         let parent = self.current.get_untracked();
         let id = self.nodes.with_untracked(Vec::len);
@@ -58,6 +73,7 @@ impl<T: Clone + Send + Sync + 'static> UndoHistory<T> {
         self.current.set(id);
     }
 
+    /// Moves to the parent of the current node, if any.
     pub fn undo(&self) {
         let parent = self
             .nodes
@@ -67,6 +83,7 @@ impl<T: Clone + Send + Sync + 'static> UndoHistory<T> {
         }
     }
 
+    /// Moves to the most recently added child of the current node, if any.
     pub fn redo(&self) {
         let current = self.current.get_untracked();
         let child = self.nodes.with_untracked(|nodes| {
@@ -82,12 +99,14 @@ impl<T: Clone + Send + Sync + 'static> UndoHistory<T> {
         }
     }
 
+    /// Jumps directly to the node with the given id, ignoring out-of-range ids.
     pub fn restore(&self, id: usize) {
         if self.nodes.with_untracked(|nodes| id < nodes.len()) {
             self.current.set(id);
         }
     }
 
+    /// Reactively returns every node as a `HistoryNode` for rendering the tree.
     pub fn rows(&self) -> Vec<HistoryNode> {
         let current = self.current.get();
         self.nodes.with(|nodes| {
@@ -138,6 +157,9 @@ mod tests {
     }
 }
 
+/// Renders history `nodes` newest-first as an indented list of buttons. The
+/// current node is marked, and clicking a row runs `on_restore` with that node's
+/// id.
 #[component]
 pub fn UndoTree(
     #[prop(into)] nodes: Signal<Vec<HistoryNode>>,

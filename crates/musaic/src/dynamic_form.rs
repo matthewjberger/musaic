@@ -1,6 +1,11 @@
+//! Schema-driven form rendering: describe fields with [`FormField`] and [`FieldSchema`]
+//! and let [`DynamicForm`] build the inputs and collect their values as JSON.
+
 use leptos::prelude::*;
 use serde_json::{Map, Value};
 
+/// The type of a form field, which determines the control [`DynamicForm`] renders and the
+/// JSON shape of its value.
 #[derive(Clone)]
 pub enum FieldSchema {
     Number {
@@ -14,14 +19,20 @@ pub enum FieldSchema {
     Vector(usize),
 }
 
+/// A single field in a [`DynamicForm`], pairing a JSON `key` and display `label` with its
+/// [`FieldSchema`].
 #[derive(Clone)]
 pub struct FormField {
+    /// The key under which this field's value is stored in the output JSON object.
     pub key: String,
+    /// The label shown next to the control.
     pub label: String,
+    /// The field type describing which control to render.
     pub schema: FieldSchema,
 }
 
 impl FormField {
+    /// Creates a [`FormField`] from a key, label, and schema.
     pub fn new(key: impl Into<String>, label: impl Into<String>, schema: FieldSchema) -> Self {
         Self {
             key: key.into(),
@@ -222,6 +233,9 @@ fn field_view(field: FormField, state: FormState, emit: impl Fn() + Copy + 'stat
     .into_any()
 }
 
+/// Renders a form from a list of [`FormField`]s, maintaining the collected values as a
+/// JSON object. Emits the object through `on_change` on every edit and, when an
+/// `on_submit` callback is provided, shows a submit button labelled `submit_label`.
 #[component]
 pub fn DynamicForm(
     fields: Vec<FormField>,

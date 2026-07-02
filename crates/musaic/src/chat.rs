@@ -1,13 +1,22 @@
+//! A chat transcript with a compose box, a connection indicator, and a busy spinner.
+
 use leptos::html;
 use leptos::prelude::*;
 
+/// Who or what produced a `ChatMessage`, used to pick the bubble's styling.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ChatRole {
+    /// A message from the user.
     User,
+    /// A message from the assistant.
     Assistant,
+    /// Assistant reasoning shown as a thinking bubble.
     Thinking,
+    /// Output from a tool invocation.
     Tool,
+    /// An informational system message.
     Info,
+    /// An error message.
     Error,
 }
 
@@ -24,14 +33,20 @@ impl ChatRole {
     }
 }
 
+/// A single message in the transcript: a stable `id` for keyed rendering, its
+/// `role`, and the message `text`.
 #[derive(Clone)]
 pub struct ChatMessage {
+    /// Stable identifier used as the render key.
     pub id: usize,
+    /// The author role controlling the bubble styling.
     pub role: ChatRole,
+    /// The message body.
     pub text: String,
 }
 
 impl ChatMessage {
+    /// Creates a message with the given id, role, and text.
     pub fn new(id: usize, role: ChatRole, text: impl Into<String>) -> Self {
         Self {
             id,
@@ -41,6 +56,11 @@ impl ChatMessage {
     }
 }
 
+/// A chat panel that renders the `messages` transcript, auto-scrolling to the
+/// latest, and a compose box that fires `on_send` with the trimmed text on click
+/// or Enter (Shift+Enter inserts a newline). The header shows a `connected` dot,
+/// a `busy` spinner appears while working, and an optional `on_reset` renders a
+/// "New" button. `placeholder` sets the input hint.
 #[component]
 pub fn Chat(
     #[prop(into)] messages: Signal<Vec<ChatMessage>>,

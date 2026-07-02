@@ -1,0 +1,13 @@
+[book]
+authors = ["Matthew J. Berger"]
+language = "en"
+src = "src"
+title = "leptos-musaic"
+
+[rust]
+edition = "2024"
+
+[output.html]
+default-theme = "dark"
+preferred-dark-theme = "ayu"
+mathjax-support = false

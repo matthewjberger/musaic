@@ -4,12 +4,16 @@ use leptos::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{HtmlDivElement, HtmlElement, KeyboardEvent};
 
+/// Renders `children` into a `<Portal>` so they escape the normal DOM flow and
+/// stack above the rest of the app.
 #[component]
 pub fn Overlay(children: ChildrenFn) -> impl IntoView {
     let children = StoredValue::new(children);
     view! { <Portal>{move || children.with_value(|render| render())}</Portal> }
 }
 
+/// A full-screen backdrop behind overlay content. Clicking it runs the optional
+/// `on_dismiss` callback.
 #[component]
 pub fn Scrim(
     #[prop(optional)] on_dismiss: Option<Callback<()>>,
@@ -29,6 +33,9 @@ pub fn Scrim(
 
 const FOCUSABLE_SELECTOR: &str = "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
 
+/// A portalled dialog shown while `open` is true. It traps Tab focus within the
+/// dialog, closes on Escape or backdrop click, and restores focus to the
+/// previously focused element when dismissed.
 #[component]
 pub fn Modal(open: RwSignal<bool>, children: ChildrenFn) -> impl IntoView {
     let dialog_ref = NodeRef::<html::Div>::new();

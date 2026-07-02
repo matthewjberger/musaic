@@ -2,19 +2,27 @@ use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
 
+/// An indeterminate loading spinner.
 #[component]
 pub fn Spinner() -> impl IntoView {
     view! { <span class="musaic-spinner"></span> }
 }
 
+/// A single queued toast notification held by a [`Toaster`].
 #[derive(Clone)]
 pub struct Toast {
+    /// Unique, monotonically increasing identifier used for keying and dismissal.
     pub id: usize,
+    /// The message shown in the toast body.
     pub text: String,
+    /// The severity class (`"info"`, `"success"`, `"warn"`, or `"error"`).
     pub kind: &'static str,
+    /// Optional action button as a `(label, callback)` pair.
     pub action: Option<(String, Callback<()>)>,
 }
 
+/// A handle for pushing toast notifications. Obtain one with [`use_toaster`]
+/// inside a [`ToastHub`].
 #[derive(Clone, Copy)]
 pub struct Toaster {
     toasts: RwSignal<Vec<Toast>>,
@@ -22,22 +30,28 @@ pub struct Toaster {
 }
 
 impl Toaster {
+    /// Push an informational toast (auto-dismisses after ~3.2s).
     pub fn info(&self, text: impl Into<String>) {
         self.push(text.into(), "info", 3200, None);
     }
 
+    /// Push a success toast (auto-dismisses after ~3.2s).
     pub fn success(&self, text: impl Into<String>) {
         self.push(text.into(), "success", 3200, None);
     }
 
+    /// Push a warning toast (auto-dismisses after ~4.2s).
     pub fn warning(&self, text: impl Into<String>) {
         self.push(text.into(), "warn", 4200, None);
     }
 
+    /// Push an error toast (auto-dismisses after ~5s).
     pub fn error(&self, text: impl Into<String>) {
         self.push(text.into(), "error", 5000, None);
     }
 
+    /// Push an informational toast with an action button labelled `label` that
+    /// runs `on_action` when clicked (auto-dismisses after ~6s).
     pub fn action(
         &self,
         text: impl Into<String>,
@@ -76,6 +90,8 @@ impl Toaster {
     }
 }
 
+/// Retrieve the [`Toaster`] provided by an enclosing [`ToastHub`]. Falls back
+/// to a detached, standalone toaster when no hub is present.
 pub fn use_toaster() -> Toaster {
     use_context::<Toaster>().unwrap_or_else(|| Toaster {
         toasts: RwSignal::new(Vec::new()),
@@ -83,6 +99,9 @@ pub fn use_toaster() -> Toaster {
     })
 }
 
+/// Provides a [`Toaster`] to `children` via context and renders the stacked
+/// toast overlay. Wrap your app in this, then call [`use_toaster`] to push
+/// messages.
 #[component]
 pub fn ToastHub(children: Children) -> impl IntoView {
     let toaster = Toaster {

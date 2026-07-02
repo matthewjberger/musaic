@@ -1,5 +1,7 @@
 use leptos::prelude::*;
 
+/// A styled `<button>`. Pass extra classes via `class` and a click handler via
+/// the optional `on_click` callback.
 #[component]
 pub fn Button(
     #[prop(into, optional)] class: String,
@@ -18,6 +20,8 @@ pub fn Button(
     }
 }
 
+/// A square, icon-only button variant. Pass extra classes via `class` and a
+/// click handler via the optional `on_click` callback.
 #[component]
 pub fn IconButton(
     #[prop(into, optional)] class: String,

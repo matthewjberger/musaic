@@ -1,10 +1,16 @@
+//! A property-inspector panel built from collapsible sections and labeled rows.
+
 use leptos::prelude::*;
 
+/// The outer container for an inspector panel; wraps its `children` sections.
 #[component]
 pub fn Inspector(children: Children) -> impl IntoView {
     view! { <div class="musaic-inspector">{children()}</div> }
 }
 
+/// A collapsible inspector section with a `title` header, optional `actions`
+/// rendered on the header row, and a body of `children`. `default_open`
+/// controls the initial expanded state.
 #[component]
 pub fn InspectorSection(
     #[prop(into)] title: String,
@@ -34,6 +40,8 @@ pub fn InspectorSection(
     }
 }
 
+/// A labeled inspector row pairing a `label` with a control rendered from
+/// `children`.
 #[component]
 pub fn InspectorRow(#[prop(into)] label: String, children: Children) -> impl IntoView {
     view! {

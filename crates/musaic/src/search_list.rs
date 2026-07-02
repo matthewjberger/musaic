@@ -1,14 +1,23 @@
+//! A filterable list of titled entries with an expandable detail pane.
+
 use leptos::prelude::*;
 
+/// An entry in a [`SearchList`], with a stable `id`, a `title` and `subtitle`
+/// (both searched), and a `detail` body shown when the entry is selected.
 #[derive(Clone)]
 pub struct SearchItem {
+    /// Stable identifier used for selection and callbacks.
     pub id: String,
+    /// Primary text, matched against the search query.
     pub title: String,
+    /// Secondary text, matched against the search query.
     pub subtitle: String,
+    /// Longer body shown in a detail pane when the entry is active.
     pub detail: String,
 }
 
 impl SearchItem {
+    /// Builds an item from an `id` and `title`, leaving subtitle and detail empty.
     pub fn new(id: impl Into<String>, title: impl Into<String>) -> Self {
         Self {
             id: id.into(),
@@ -18,11 +27,13 @@ impl SearchItem {
         }
     }
 
+    /// Sets the item's subtitle, returning the updated item.
     pub fn with_subtitle(mut self, subtitle: impl Into<String>) -> Self {
         self.subtitle = subtitle.into();
         self
     }
 
+    /// Sets the item's detail body, returning the updated item.
     pub fn with_detail(mut self, detail: impl Into<String>) -> Self {
         self.detail = detail.into();
         self
@@ -49,6 +60,10 @@ fn dom_id(id: &str) -> String {
     format!("musaic-sl-{sanitized}")
 }
 
+/// A searchable list of `items` with a text input that filters by title and
+/// subtitle. The active entry expands to show its detail body and scrolls into
+/// view; `selected` and `on_select` track the current selection and
+/// `placeholder` customizes the search box.
 #[component]
 pub fn SearchList(
     #[prop(into)] items: Signal<Vec<SearchItem>>,

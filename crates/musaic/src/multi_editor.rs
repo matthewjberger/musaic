@@ -1,3 +1,5 @@
+//! A multi-cursor code editor rendered on a virtualized monospace grid.
+
 use leptos::html;
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
@@ -202,6 +204,12 @@ fn add_next_occurrence(chars: &[char], carets: &mut Vec<Caret>) {
     }
 }
 
+/// A multi-cursor code editor over the `value` buffer on a virtualized
+/// monospace grid: add cursors above/below (Ctrl/Cmd+Alt+Arrow), add-next-
+/// occurrence (Ctrl/Cmd+D), select-all, drag-select, clipboard, and IME
+/// composition via a hidden textarea sink. Renders only the rows in the visible
+/// window (plus `overscan`) at the given `line_height`, `height`, and optional
+/// `highlighter`.
 #[component]
 pub fn MultiEditor(
     value: RwSignal<String>,

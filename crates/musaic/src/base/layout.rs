@@ -1,17 +1,25 @@
 use leptos::html;
 use leptos::prelude::*;
 
+/// Full-viewport root container that fills the window and hosts the rest of the
+/// app's layout.
 #[component]
 pub fn AppShell(children: Children) -> impl IntoView {
     view! { <div class="musaic-app-shell">{children()}</div> }
 }
 
+/// The axis a [`ResizeHandle`] drags along: `Horizontal` adjusts width,
+/// `Vertical` adjusts height.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ResizeAxis {
     Horizontal,
     Vertical,
 }
 
+/// A draggable divider that writes the pointer's movement along `axis` into the
+/// `value` signal, clamped to `min`/`max` (defaults `120.0`/`2000.0`). Set
+/// `invert` to reverse the drag direction (for panels anchored to the right or
+/// bottom).
 #[component]
 pub fn ResizeHandle(
     value: RwSignal<f64>,
@@ -69,16 +77,19 @@ pub fn ResizeHandle(
     }
 }
 
+/// A horizontal flex container. Merge extra classes via `class`.
 #[component]
 pub fn Row(#[prop(into, optional)] class: String, children: Children) -> impl IntoView {
     view! { <div class=format!("musaic-row {class}")>{children()}</div> }
 }
 
+/// A vertical flex container. Merge extra classes via `class`.
 #[component]
 pub fn Column(#[prop(into, optional)] class: String, children: Children) -> impl IntoView {
     view! { <div class=format!("musaic-column {class}")>{children()}</div> }
 }
 
+/// A CSS grid container. Merge extra classes via `class` to set the template.
 #[component]
 pub fn Grid(#[prop(into, optional)] class: String, children: Children) -> impl IntoView {
     view! { <div class=format!("musaic-grid {class}")>{children()}</div> }

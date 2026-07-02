@@ -1,27 +1,52 @@
+//! Named color themes: the [`Theme`] palette type, a set of built-in themes,
+//! and helpers for storing, previewing, and applying the active theme via
+//! `data-theme` and injected CSS custom properties.
+
 use leptos::prelude::*;
 
+/// A named color palette. Each field maps to a `--musaic-*` CSS custom property
+/// emitted by [`Theme::to_css`] and scoped to `:root[data-theme="{id}"]`.
 #[derive(Clone)]
 pub struct Theme {
+    /// Stable identifier used in the `data-theme` attribute and storage.
     pub id: String,
+    /// Human-readable name shown in theme pickers.
     pub label: String,
+    /// Whether this is a light theme (sets `color-scheme: light`).
     pub light: bool,
+    /// Page background color.
     pub bg: String,
+    /// Primary panel/surface color.
     pub panel: String,
+    /// Secondary/recessed panel color.
     pub panel_2: String,
+    /// Panel border color.
     pub panel_border: String,
+    /// Primary foreground text color.
     pub text: String,
+    /// Dimmed/secondary text color.
     pub text_dim: String,
+    /// Accent/highlight color.
     pub accent: String,
+    /// Background color for input fields.
     pub input_bg: String,
+    /// Danger/error color.
     pub danger: String,
+    /// Syntax token color for keywords.
     pub keyword: String,
+    /// Syntax token color for strings.
     pub string: String,
+    /// Syntax token color for numbers.
     pub number: String,
+    /// Syntax token color for comments.
     pub comment: String,
+    /// Syntax token color for commands.
     pub command: String,
 }
 
 impl Theme {
+    /// Render this palette as a CSS rule declaring its `--musaic-*` custom
+    /// properties on `:root[data-theme="{id}"]`.
     pub fn to_css(&self) -> String {
         let scheme = if self.light {
             "\n  color-scheme: light;"
@@ -92,6 +117,7 @@ macro_rules! theme {
     };
 }
 
+/// The set of themes shipped with the library, in display order.
 pub fn builtin_themes() -> Vec<Theme> {
     vec![
         theme!(
@@ -268,6 +294,7 @@ pub fn builtin_themes() -> Vec<Theme> {
     ]
 }
 
+/// The built-in themes as `(id, label)` pairs; the first entry is the default.
 pub const THEMES: &[(&str, &str)] = &[
     ("nightshade", "Nightshade"),
     ("nightshade-light", "Nightshade Light"),
@@ -289,6 +316,8 @@ fn resolve_theme(stored: Option<String>) -> String {
         .unwrap_or_else(|| THEMES[0].0.to_string())
 }
 
+/// Read the persisted theme id from local storage, falling back to the default
+/// when it is missing or unrecognized.
 pub fn stored_theme() -> String {
     resolve_theme(
         web_sys::window()
@@ -297,6 +326,8 @@ pub fn stored_theme() -> String {
     )
 }
 
+/// Set the `data-theme` attribute on the document root without persisting it,
+/// useful for transient hover previews.
 pub fn preview_theme(id: &str) {
     if let Some(element) = web_sys::window()
         .and_then(|window| window.document())
@@ -306,6 +337,7 @@ pub fn preview_theme(id: &str) {
     }
 }
 
+/// Apply a theme (via [`preview_theme`]) and persist its id to local storage.
 pub fn apply_theme(id: &str) {
     preview_theme(id);
     if let Some(storage) =
@@ -337,18 +369,24 @@ struct ThemeContext(RwSignal<String>);
 #[derive(Clone, Copy)]
 struct ThemeRegistry(RwSignal<Vec<Theme>>);
 
+/// Get the active theme-id signal from context (provided by [`ThemeProvider`]),
+/// or a standalone signal seeded from storage when no provider is present.
 pub fn use_theme() -> RwSignal<String> {
     use_context::<ThemeContext>()
         .map(|context| context.0)
         .unwrap_or_else(|| RwSignal::new(stored_theme()))
 }
 
+/// Get the registered themes from context (provided by [`ThemeProvider`]),
+/// falling back to [`builtin_themes`] when no provider is present.
 pub fn use_themes() -> Vec<Theme> {
     use_context::<ThemeRegistry>()
         .map(|registry| registry.0.get())
         .unwrap_or_else(builtin_themes)
 }
 
+/// Add a custom theme to the enclosing [`ThemeProvider`]'s registry, replacing
+/// any existing theme with the same id. No-op without a provider.
 pub fn register_theme(theme: Theme) {
     if let Some(registry) = use_context::<ThemeRegistry>() {
         registry.0.update(|themes| {
@@ -361,6 +399,9 @@ pub fn register_theme(theme: Theme) {
     }
 }
 
+/// Provides the active-theme signal and theme registry to `children`, injects
+/// the registered themes' CSS, and keeps the document's `data-theme` in sync
+/// with the active theme. Wrap your app in this to enable theming.
 #[component]
 pub fn ThemeProvider(children: Children) -> impl IntoView {
     let theme = RwSignal::new(stored_theme());
@@ -377,6 +418,8 @@ pub fn ThemeProvider(children: Children) -> impl IntoView {
     children()
 }
 
+/// A `<select>` dropdown for choosing among the registered themes, bound to the
+/// active-theme signal.
 #[cfg(feature = "themes")]
 #[component]
 pub fn ThemePicker() -> impl IntoView {
@@ -397,6 +440,8 @@ pub fn ThemePicker() -> impl IntoView {
     }
 }
 
+/// A button-triggered theme menu that live-previews each theme on hover and
+/// commits the selection on click.
 #[cfg(feature = "themes")]
 #[component]
 pub fn ThemeMenu() -> impl IntoView {

@@ -1,5 +1,7 @@
 use leptos::prelude::*;
 
+/// A framed section, typically for editor sidebars. A non-empty `title` renders
+/// a header above the `children`, which fill the panel body.
 #[component]
 pub fn Panel(
     #[prop(into, optional)] title: String,

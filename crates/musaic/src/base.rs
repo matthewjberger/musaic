@@ -1,3 +1,6 @@
+//! Unstyled-but-themed base UI primitives: layout containers, buttons, cards,
+//! panels, badges, overlays, toasts, progress bars, and tooltips.
+
 mod badge;
 mod button;
 mod card;

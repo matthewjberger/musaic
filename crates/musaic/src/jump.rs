@@ -1,13 +1,21 @@
+//! A keyboard "jump to" overlay that labels on-screen targets and selects one by typed prefix.
+
 use leptos::prelude::*;
 
+/// A place the jump overlay can send you: a stable `id` reported on selection and
+/// the screen position (`x`, `y`, in pixels) where its label is drawn.
 #[derive(Clone)]
 pub struct JumpTarget {
+    /// Identifier passed to the jump callback when this target is chosen.
     pub id: String,
+    /// Label position in pixels from the left of the overlay.
     pub x: f64,
+    /// Label position in pixels from the top of the overlay.
     pub y: f64,
 }
 
 impl JumpTarget {
+    /// Creates a target with the given id and pixel position.
     pub fn new(id: impl Into<String>, x: f64, y: f64) -> Self {
         Self {
             id: id.into(),
@@ -39,6 +47,10 @@ fn labels(count: usize) -> Vec<String> {
     }
 }
 
+/// A full-screen overlay that assigns short letter labels to each `targets`
+/// entry while `open` is set. Typing narrows the labels by prefix; a full match
+/// closes the overlay and runs `on_jump` with that target's id, and Escape
+/// cancels.
 #[component]
 pub fn JumpOverlay(
     open: RwSignal<bool>,

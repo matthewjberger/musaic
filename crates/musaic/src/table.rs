@@ -1,3 +1,6 @@
+//! A data table component with sorting, filtering, resizable columns, and
+//! optional row virtualization.
+
 use std::cmp::Ordering;
 
 use leptos::html;
@@ -35,6 +38,11 @@ fn compare_rows(left: &[String], right: &[String], sort: &[(usize, SortDirection
     Ordering::Equal
 }
 
+/// A data table with multi-column sort (shift-click for additive sort),
+/// text filter, column resize and show/hide, sticky header, pagination, inline
+/// cell edit, and optional row virtualization. `rows` is a reactive signal of
+/// row data; `on_row_click`, `on_cell_edit`, and `selected_row` wire up
+/// selection and editing.
 #[component]
 pub fn Table(
     headers: Vec<String>,

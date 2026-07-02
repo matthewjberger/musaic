@@ -2,6 +2,11 @@ use leptos::prelude::*;
 
 use crate::{ResizeAxis, ResizeHandle};
 
+/// A code-editor layout with a top toolbar, collapsible and resizable left,
+/// right, and bottom slots around the central `children`, and a status footer.
+/// Each `*_open` signal toggles a slot's visibility; providing a matching
+/// `*_size` signal makes that slot resizable (and drives its pixel size) via an
+/// inserted [`ResizeHandle`].
 #[component]
 pub fn EditorShell(
     #[prop(optional, into)] toolbar: ViewFn,

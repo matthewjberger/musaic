@@ -1,3 +1,6 @@
+//! A canvas surface that hands rendering to a web worker over an `OffscreenCanvas`,
+//! translating DOM pointer, wheel, touch, and resize events into a neutral event enum.
+
 use std::collections::HashMap;
 
 use crate::protocol::{CANVAS_KEY, MESSAGE_KEY, TouchPhase};
@@ -18,41 +21,65 @@ type MessageClosure = Closure<dyn FnMut(MessageEvent)>;
 type WheelClosure = Closure<dyn FnMut(WheelEvent)>;
 type ResizeObservation = (ResizeObserver, Closure<dyn FnMut()>);
 
+/// A normalized input or layout event emitted by `Viewport`, with coordinates in
+/// physical (device-pixel) space, ready to forward to the render worker.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ViewportEvent {
+    /// The surface was resized to these physical dimensions.
     Resize {
+        /// New width in physical pixels.
         width: f32,
+        /// New height in physical pixels.
         height: f32,
     },
+    /// The pointer moved to this physical position.
     PointerMove {
+        /// X in physical pixels.
         x: f32,
+        /// Y in physical pixels.
         y: f32,
     },
+    /// A mouse button changed state.
     PointerButton {
+        /// The button index.
         button: u8,
+        /// Whether the button is now pressed.
         pressed: bool,
     },
+    /// The wheel scrolled by this vertical delta.
     Wheel {
+        /// Vertical scroll delta.
         delta: f32,
     },
+    /// A touch point changed state.
     Touch {
+        /// Identifier of the touch point.
         id: u64,
+        /// The phase of the touch.
         phase: TouchPhase,
+        /// X in physical pixels.
         x: f32,
+        /// Y in physical pixels.
         y: f32,
     },
+    /// A click or tap that did not drag, requesting a pick at this position.
     Pick {
+        /// X in physical pixels.
         x: f32,
+        /// Y in physical pixels.
         y: f32,
     },
 }
 
+/// A handle to the render worker for posting serde-serializable messages, with an
+/// optional transferable `OffscreenCanvas`.
 #[derive(Clone)]
 pub struct Bridge {
     worker: Worker,
 }
 
 impl Bridge {
+    /// Serializes `message` and posts it to the worker under the message envelope key.
     pub fn send<Message: Serialize>(&self, message: &Message) {
         let envelope = js_sys::Object::new();
         let value = serde_wasm_bindgen::to_value(message).unwrap_or(JsValue::NULL);
@@ -60,6 +87,8 @@ impl Bridge {
         let _ = self.worker.post_message(&envelope);
     }
 
+    /// Posts `message` to the worker while transferring ownership of `canvas` so the
+    /// worker can render into it off the main thread.
     pub fn send_with_canvas<Message: Serialize>(
         &self,
         message: &Message,
@@ -96,6 +125,7 @@ struct TouchTrack {
     moved: f32,
 }
 
+/// Reports whether the current browser exposes WebGPU (`navigator.gpu`).
 pub fn webgpu_supported() -> bool {
     let Some(window) = web_sys::window() else {
         return false;
@@ -109,6 +139,7 @@ pub fn webgpu_supported() -> bool {
         .unwrap_or(false)
 }
 
+/// Renders `children` when WebGPU is available, or an explanatory fallback card when it is not.
 #[component]
 pub fn WebGpuGate(children: ChildrenFn) -> impl IntoView {
     if webgpu_supported() {
@@ -128,6 +159,7 @@ pub fn WebGpuGate(children: ChildrenFn) -> impl IntoView {
     }
 }
 
+/// A full-surface overlay with a spinner and `message`, shown until `ready` becomes true.
 #[component]
 pub fn Loader(
     ready: RwSignal<bool>,
@@ -145,6 +177,13 @@ pub fn Loader(
     }
 }
 
+/// A render surface backed by a web worker. On mount it sizes a canvas to the
+/// device pixel ratio, transfers it to an `OffscreenCanvas`, spawns the module
+/// worker at `worker_url`, and reports the `Bridge`, canvas, and dimensions through
+/// `on_connect`. It forwards pointer, wheel, touch, and resize events as
+/// `ViewportEvent`s to `on_input`, worker messages to `on_message`, failures to
+/// the optional `on_error`, and toggles the `grabbing` signal during pointer
+/// interaction.
 #[component]
 pub fn Viewport(
     #[prop(into)] worker_url: String,

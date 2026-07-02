@@ -1,3 +1,9 @@
+//! Global keyboard dispatch for registered commands, including multi-key chords.
+//!
+//! [`KeymapProvider`] listens for `keydown`, matches against each command's
+//! keybinding, and runs the first match; [`pretty_binding`] renders a binding
+//! string for display.
+
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::KeyboardEvent;
@@ -90,6 +96,7 @@ fn editable_focus() -> bool {
         .is_some_and(|element| element.is_content_editable())
 }
 
+/// Formats a raw binding string into a readable label, capitalizing keys and normalizing modifier aliases (for example `"mod+shift+p"` becomes `"Ctrl+Shift+P"`).
 pub fn pretty_binding(binding: &str) -> String {
     binding
         .split_whitespace()
@@ -163,6 +170,12 @@ fn collect_pending(commands: &[Command], pending: &[Combo], out: &mut Vec<(Strin
     }
 }
 
+/// Installs a global `keydown` listener that matches keys against registered command bindings and runs the first match, supporting chord sequences (for example `g d`).
+///
+/// Wrap your app in this once. When `which_key` is enabled (the default) and a
+/// chord prefix is pending, it renders an overlay listing the possible
+/// completions. Bindings are ignored while a text input is focused unless a
+/// modifier is held or a chord is already in progress.
 #[component]
 pub fn KeymapProvider(
     #[prop(default = true)] which_key: bool,

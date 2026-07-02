@@ -1,3 +1,5 @@
+//! A tiny self-contained Markdown renderer: parses a subset of Markdown and emits Leptos views.
+
 use leptos::prelude::*;
 
 #[derive(Clone, PartialEq)]
@@ -260,6 +262,9 @@ fn render_block(block: Block) -> AnyView {
     }
 }
 
+/// Parses the `source` signal as Markdown and renders it reactively. Supports
+/// headings, paragraphs, fenced code, ordered and unordered lists, blockquotes,
+/// horizontal rules, and inline bold, italic, code, and links.
 #[component]
 pub fn Markdown(#[prop(into)] source: Signal<String>) -> impl IntoView {
     view! {

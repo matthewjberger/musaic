@@ -1,3 +1,51 @@
+//! A feature-gated [Leptos](https://leptos.dev) 0.7 (CSR) component library for building
+//! beautiful, editor-grade UIs that run the same code on the web (wasm) and natively (in a
+//! webview). It is engine-agnostic: a reusable set of themed UI patterns, panels, forms, menus,
+//! tables, trees, a command palette, keybindings, a code editor, toasts, a status bar, drag and
+//! drop, and a resizable app shell, all driven from one set of CSS custom properties.
+//!
+//! # Quick start
+//!
+//! Add the crate with the features you use (`default = ["forms", "menus", "themes"]`, or `full`
+//! for everything), then import the prelude and drop the stylesheet and a theme provider at the
+//! root:
+//!
+//! ```ignore
+//! use leptos_musaic::prelude::*;
+//!
+//! #[component]
+//! fn App() -> impl IntoView {
+//!     view! {
+//!         <MusaicStyles/>
+//!         <ThemeProvider>
+//!             <Panel title="Hello">
+//!                 <ThemePicker/>
+//!                 <Button>"Click me"</Button>
+//!             </Panel>
+//!         </ThemeProvider>
+//!     }
+//! }
+//! ```
+//!
+//! [`MusaicStyles`] injects the design-token stylesheet (wrapped in `@layer musaic`, so your own
+//! CSS always wins) into the document head. [`ThemeProvider`] sets `data-theme` and persists the
+//! choice. From there, compose components; [`EditorShell`] is the recommended app frame.
+//!
+//! # Concepts
+//!
+//! - **Feature gates.** Every component is behind a Cargo feature; enable only what you use. A type
+//!   that does not resolve usually means a missing feature.
+//!   Components are browser/CSR only, except the [`protocol`] module (leptos-free `serde` wire
+//!   types behind the `protocol` feature, for sharing messages with a worker).
+//! - **Reactivity.** Hold state in `RwSignal`s, pass reactive props as `Signal::derive(...)`, pass
+//!   events as `Callback::new(...)`, and bundle a screen's signals into one `#[derive(Clone,
+//!   Copy)]` handle struct passed by value.
+//! - **Theming.** Components read semantic tokens (`--musaic-accent`, `--musaic-panel`, and
+//!   friends); [`register_theme`] adds a custom [`Theme`] that restyles the whole surface.
+//!
+//! The book under `docs/book` is the full guide, and `examples/gallery` renders a live demo of
+//! every component.
+
 #[cfg(feature = "protocol")]
 pub mod protocol;
 #[cfg(feature = "protocol")]

@@ -1,8 +1,13 @@
+//! Floating overlay components: popovers, dropdowns, comboboxes, and dialogs that anchor
+//! to a trigger and reposition to stay within the viewport.
+
 use leptos::html;
 use leptos::prelude::*;
 
 use crate::base::Overlay;
 
+/// The preferred side of the anchor on which to place a floating element. Placement may
+/// flip to the opposite side when there is not enough room.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Side {
     Top,
@@ -11,6 +16,8 @@ pub enum Side {
     Right,
 }
 
+/// Alignment of a floating element along the anchor's cross axis: to its start, centered,
+/// or to its end.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Align {
     Start,
@@ -98,6 +105,9 @@ fn viewport() -> (f64, f64) {
     (width, height)
 }
 
+/// A floating panel anchored to a `trigger` element, toggled by the `open` signal and by
+/// clicking the trigger. It repositions on scroll and resize to stay in the viewport,
+/// flipping `side` and shifting as needed, and dismisses on outside click via `on_dismiss`.
 #[component]
 pub fn Popover(
     open: RwSignal<bool>,
@@ -193,6 +203,8 @@ pub fn Popover(
     }
 }
 
+/// A button labelled `label` that opens a [`Popover`] containing a menu of `children`.
+/// The menu closes when any item is clicked.
 #[component]
 pub fn Dropdown(
     #[prop(into)] label: String,
@@ -228,13 +240,17 @@ pub fn Dropdown(
     }
 }
 
+/// A selectable option for [`Combobox`], pairing a stored `value` with a display `label`.
 #[derive(Clone)]
 pub struct ComboOption {
+    /// The value emitted when this option is chosen.
     pub value: String,
+    /// The text shown to the user.
     pub label: String,
 }
 
 impl ComboOption {
+    /// Creates a [`ComboOption`] from a value and its display label.
     pub fn new(value: impl Into<String>, label: impl Into<String>) -> Self {
         Self {
             value: value.into(),
@@ -243,6 +259,9 @@ impl ComboOption {
     }
 }
 
+/// A filterable dropdown selector: the trigger shows the label of the current `value` (or
+/// `placeholder`), and the panel offers a text filter plus a keyboard-navigable list of
+/// `options`. Emits the chosen option's value through `on_select`.
 #[component]
 pub fn Combobox(
     #[prop(into)] value: Signal<String>,
@@ -379,6 +398,9 @@ pub fn Combobox(
     }
 }
 
+/// A modal dialog with a title, body `children`, and cancel/confirm buttons. Toggled by
+/// the `open` signal; both buttons close it and run the optional `on_cancel`/`on_confirm`
+/// callbacks. The confirm button uses danger styling when `danger` is set.
 #[component]
 pub fn Dialog(
     open: RwSignal<bool>,

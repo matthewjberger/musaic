@@ -1,15 +1,25 @@
+//! Pointer-based drag and drop that works inside webviews where HTML5 DnD does not fire.
+//! `provide_drag()` at the root, then wrap items in `DragSource` and targets in `DropZone`,
+//! and render one `DragLayer`.
+
 use std::collections::HashMap;
 
 use leptos::prelude::*;
 
+/// What is being dragged: a `kind` used by drop zones to accept or reject it, an
+/// `id` identifying the source, and a `label` shown in the drag preview.
 #[derive(Clone)]
 pub struct DragPayload {
+    /// Category of the dragged item, matched against by drop zones.
     pub kind: String,
+    /// Identifier of the dragged item.
     pub id: String,
+    /// Text shown in the floating drag preview.
     pub label: String,
 }
 
 impl DragPayload {
+    /// Creates a payload from a kind, id, and label.
     pub fn new(kind: impl Into<String>, id: impl Into<String>, label: impl Into<String>) -> Self {
         Self {
             kind: kind.into(),
@@ -21,6 +31,9 @@ impl DragPayload {
 
 const DRAG_THRESHOLD: f64 = 4.0;
 
+/// The shared drag session, provided via context by `provide_drag`. Tracks the
+/// active payload, the pointer position, the hovered drop zone, and the registry
+/// of drop callbacks. `Copy`, so it can be captured in event handlers.
 #[derive(Clone, Copy)]
 pub struct DragState {
     payload: RwSignal<Option<DragPayload>>,
@@ -31,37 +44,45 @@ pub struct DragState {
 }
 
 impl DragState {
+    /// Reactively reports whether a drag is currently in progress.
     pub fn active(&self) -> bool {
         self.payload.get().is_some()
     }
 
+    /// Arms a potential drag at a start position; it begins once the pointer moves past the threshold.
     pub fn arm(&self, payload: DragPayload, x: f64, y: f64) {
         self.pending.set_value(Some((payload, x, y)));
     }
 
+    /// Reactively reads the payload of the active drag, if any.
     pub fn payload(&self) -> Option<DragPayload> {
         self.payload.get()
     }
 
+    /// Reactively reads the current pointer position.
     pub fn position(&self) -> (f64, f64) {
         self.position.get()
     }
 
+    /// Reactively reads the id of the drop zone currently under the pointer, if any.
     pub fn over(&self) -> Option<String> {
         self.over.get()
     }
 
+    /// Begins an active drag at the given position with the given payload.
     pub fn start(&self, payload: DragPayload, x: f64, y: f64) {
         self.position.set((x, y));
         self.payload.set(Some(payload));
     }
 
+    /// Marks the drop zone `id` as hovered while a drag is active.
     pub fn set_over(&self, id: String) {
         if self.payload.get_untracked().is_some() {
             self.over.set(Some(id));
         }
     }
 
+    /// Clears the hovered drop zone if it is currently `id`.
     pub fn clear_over(&self, id: &str) {
         if self.over.get_untracked().as_deref() == Some(id) {
             self.over.set(None);
@@ -94,6 +115,9 @@ impl DragState {
     }
 }
 
+/// Creates the drag session, provides it via context, and installs the window
+/// pointer listeners that promote an armed drag to active, track the pointer, and
+/// commit the drop on release. Call once near the root; returns the `DragState`.
 pub fn provide_drag() -> DragState {
     let state = DragState {
         payload: RwSignal::new(None),
@@ -131,6 +155,8 @@ pub fn provide_drag() -> DragState {
     state
 }
 
+/// Reads the drag session from context. Returns a detached, no-op `DragState` if
+/// `provide_drag` was never called.
 pub fn use_drag() -> DragState {
     use_context::<DragState>().unwrap_or_else(|| DragState {
         payload: RwSignal::new(None),
@@ -141,6 +167,9 @@ pub fn use_drag() -> DragState {
     })
 }
 
+/// Wraps children as a draggable item. Arms a drag with a `DragPayload` built
+/// from `kind`, `id`, and `label` on pointer down; the drag starts once the
+/// pointer moves past the threshold.
 #[component]
 pub fn DragSource(
     #[prop(into)] kind: String,
@@ -163,6 +192,9 @@ pub fn DragSource(
     }
 }
 
+/// Wraps children as a drop target registered under `id`. Highlights while a
+/// drag hovers it and runs `on_drop` with the dropped `DragPayload` when a drag
+/// is released over it.
 #[component]
 pub fn DropZone(
     #[prop(into)] id: String,
@@ -188,6 +220,8 @@ pub fn DropZone(
     }
 }
 
+/// Renders the floating drag preview that follows the pointer while a drag is
+/// active, showing the payload's label. Render one of these near the root.
 #[component]
 pub fn DragLayer() -> impl IntoView {
     let drag = use_drag();

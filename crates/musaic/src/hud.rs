@@ -1,10 +1,14 @@
+//! Overlay chrome for a render surface: floating panels and an orientation gizmo.
+
 use leptos::prelude::*;
 
+/// A positioning layer stacked over the render surface to hold HUD elements.
 #[component]
 pub fn ViewportOverlay(#[prop(into, optional)] class: String, children: Children) -> impl IntoView {
     view! { <div class=format!("musaic-viewport-overlay {class}")>{children()}</div> }
 }
 
+/// A floating panel for on-surface controls or readouts.
 #[component]
 pub fn HudPanel(#[prop(into, optional)] class: String, children: Children) -> impl IntoView {
     view! { <div class=format!("musaic-hud {class}")>{children()}</div> }
@@ -28,6 +32,9 @@ const AXES: [([f32; 3], &str, usize, &str); 6] = [
     ([0.0, 0.0, -1.0], "", 5, "z"),
 ];
 
+/// An SVG orientation gizmo that projects the camera `basis` (right, up, forward
+/// vectors) into six labelled axis dots, depth-sorted so near axes draw on top.
+/// Clicking an axis runs `on_axis` with its index.
 #[component]
 pub fn NavGizmo(
     #[prop(into)] basis: Signal<[[f32; 3]; 3]>,

@@ -1,5 +1,7 @@
 use leptos::prelude::*;
 
+/// A horizontal progress bar. The reactive `value` is divided by `max`
+/// (default `1.0`) and clamped to fill 0% to 100% of the track.
 #[component]
 pub fn Progress(
     #[prop(into)] value: Signal<f64>,

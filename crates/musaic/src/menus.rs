@@ -1,3 +1,5 @@
+//! Menu, submenu, context-menu, and tab-bar components with keyboard roving focus.
+
 use leptos::html;
 use leptos::portal::Portal;
 use leptos::prelude::*;
@@ -64,6 +66,7 @@ fn roving_focus(container: &HtmlElement, event: &KeyboardEvent) -> bool {
     }
 }
 
+/// A `label` button that toggles a dropdown of its `children`, closing on outside click or Escape and moving focus with the arrow, Home, and End keys.
 #[component]
 pub fn Menu(#[prop(into)] label: String, children: ChildrenFn) -> impl IntoView {
     let open = RwSignal::new(false);
@@ -132,6 +135,10 @@ pub fn Menu(#[prop(into)] label: String, children: ChildrenFn) -> impl IntoView 
     }
 }
 
+/// A single selectable menu row that fires `on_select` on click or Enter/Space.
+///
+/// Passing a `checked` signal renders it as a checkbox item; `disabled` blocks
+/// selection, and `shortcut` shows a trailing key hint.
 #[component]
 pub fn MenuItem(
     #[prop(into)] label: String,
@@ -186,11 +193,13 @@ pub fn MenuItem(
     }
 }
 
+/// A horizontal divider rendered between groups of menu items.
 #[component]
 pub fn MenuSeparator() -> impl IntoView {
     view! { <div class="musaic-menu-separator" role="separator"></div> }
 }
 
+/// A nested menu row that reveals its `children` in a flyout on hover or click.
 #[component]
 pub fn Submenu(#[prop(into)] label: String, children: ChildrenFn) -> impl IntoView {
     let open = RwSignal::new(false);
@@ -224,6 +233,10 @@ pub fn Submenu(#[prop(into)] label: String, children: ChildrenFn) -> impl IntoVi
     }
 }
 
+/// A menu portaled to the document at position (`x`, `y`), shown while `open` is `true`.
+///
+/// Clicking the backdrop or pressing Escape closes it; arrow, Home, and End
+/// keys move focus across its `children`.
 #[component]
 pub fn ContextMenu(
     open: RwSignal<bool>,
@@ -275,6 +288,7 @@ pub fn ContextMenu(
     }
 }
 
+/// A horizontal row of tabs from `(id, label)` pairs, binding the selected id to `active` and cycling selection with the left and right arrow keys.
 #[component]
 pub fn TabBar(tabs: Vec<(String, String)>, active: RwSignal<String>) -> impl IntoView {
     let ids: Vec<String> = tabs.iter().map(|(id, _)| id.clone()).collect();

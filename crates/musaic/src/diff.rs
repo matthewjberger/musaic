@@ -1,20 +1,35 @@
+//! Line-level LCS diff and a side-by-side rendering component.
+
 use leptos::prelude::*;
 
+/// Whether a diffed line is unchanged, added, or removed.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum LineKind {
+    /// Present unchanged in both sides.
     Equal,
+    /// Added in the new text.
     Insert,
+    /// Removed from the old text.
     Delete,
 }
 
+/// A single line of a computed diff, with its content and its line numbers on
+/// each side (`None` where the line is absent).
 #[derive(Clone)]
 pub struct DiffLine {
+    /// Whether the line is equal, inserted, or deleted.
     pub kind: LineKind,
+    /// The line's text.
     pub text: String,
+    /// Line number in the old text, if present there.
     pub old_line: Option<usize>,
+    /// Line number in the new text, if present there.
     pub new_line: Option<usize>,
 }
 
+/// Computes a line-level diff of `old` against `new` using a longest-common-
+/// subsequence, returning the merged sequence of equal, inserted, and deleted
+/// lines in order.
 pub fn diff_lines(old: &str, new: &str) -> Vec<DiffLine> {
     let left: Vec<&str> = old.lines().collect();
     let right: Vec<&str> = new.lines().collect();
@@ -108,6 +123,8 @@ fn kind_class(kind: LineKind) -> &'static str {
     }
 }
 
+/// Renders a unified diff of the `old` and `new` signals, one row per line with
+/// old/new line numbers, a `+`/`-`/space marker, and per-kind styling.
 #[component]
 pub fn Diff(#[prop(into)] old: Signal<String>, #[prop(into)] new: Signal<String>) -> impl IntoView {
     view! {

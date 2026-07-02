@@ -1,5 +1,11 @@
+//! Assembles and injects the library's CSS. Enabled Cargo features determine
+//! which per-component stylesheets are bundled into the emitted `@layer musaic`
+//! block.
+
 use leptos::prelude::*;
 
+/// Concatenate the core stylesheet with the CSS for every enabled feature,
+/// wrapped in an `@layer musaic { ... }` cascade layer.
 pub fn stylesheet() -> String {
     let mut css = String::new();
     css.push_str(include_str!("../css/core.css"));
@@ -82,6 +88,8 @@ fn inject() {
     let _ = head.append_child(&element);
 }
 
+/// Injects the [`stylesheet`] into `<head>` once (idempotent by element id).
+/// Render this near the root of your app.
 #[component]
 pub fn MusaicStyles() -> impl IntoView {
     inject();

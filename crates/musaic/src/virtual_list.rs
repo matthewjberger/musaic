@@ -1,9 +1,15 @@
+//! A windowed list that renders only the rows currently in view.
+
 use leptos::html;
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 
 use crate::visible_range;
 
+/// A virtualized list that renders only the visible slice of `count` items,
+/// calling `render` with each item index. `item_height` (fixed row height),
+/// `height` (viewport height), and `overscan` (extra rows rendered off-screen)
+/// tune the windowing.
 #[component]
 pub fn VirtualList<F>(
     #[prop(into)] count: Signal<usize>,

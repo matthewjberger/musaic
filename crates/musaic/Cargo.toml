@@ -9,6 +9,10 @@ readme = "README.md"
 keywords = ["leptos", "ui", "wasm", "components", "webgpu"]
 categories = ["gui", "wasm", "web-programming"]
 
+[package.metadata.docs.rs]
+features = ["full"]
+targets = ["wasm32-unknown-unknown"]
+
 [dependencies]
 leptos = { version = "0.7", features = ["csr"], optional = true }
 wasm-bindgen = { version = "0.2", optional = true }

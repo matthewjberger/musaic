@@ -1,3 +1,5 @@
+//! Read-only, virtualized code viewer with brace-based code folding.
+
 use std::collections::{HashMap, HashSet};
 
 use leptos::html;
@@ -26,6 +28,10 @@ fn fold_regions(lines: &[&str]) -> Vec<(usize, usize)> {
     regions
 }
 
+/// A read-only, virtualized code view of `value`: renders only the rows in the
+/// visible window (plus `overscan`) at a fixed `line_height` within a scrollable
+/// area of the given `height`, applies the optional `highlighter`, and lets
+/// brace-delimited regions be folded from the gutter.
 #[component]
 pub fn CodeSurface(
     #[prop(into)] value: Signal<String>,

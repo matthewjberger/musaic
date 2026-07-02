@@ -1,5 +1,7 @@
 use leptos::prelude::*;
 
+/// A bordered content container. When `title` is non-empty it renders a header
+/// row above the `children`, which fill the card body.
 #[component]
 pub fn Card(
     #[prop(into, optional)] title: String,

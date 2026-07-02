@@ -1,21 +1,31 @@
+//! A resizable, optionally collapsible dock layout with a main area and edge panels.
+
 use leptos::html;
 use leptos::prelude::*;
 
+/// Whether a `DockLayout` arranges its children horizontally or vertically.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SplitAxis {
+    /// Lay children out left to right.
     Row,
+    /// Lay children out top to bottom.
     Column,
 }
 
+/// Which edge a `DockPanel` sits against, which also flips its resize direction.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum DockSide {
+    /// The leading edge (left or top).
     Start,
+    /// The trailing edge (right or bottom).
     End,
 }
 
 #[derive(Clone, Copy)]
 struct DockAxis(SplitAxis);
 
+/// The dock container. Arranges its `DockMain` and `DockPanel` children along
+/// `axis` and provides that axis to them via context.
 #[component]
 pub fn DockLayout(
     #[prop(default = SplitAxis::Row)] axis: SplitAxis,
@@ -32,11 +42,16 @@ pub fn DockLayout(
     }
 }
 
+/// The flexible central region of a `DockLayout` that fills the space left by the panels.
 #[component]
 pub fn DockMain(#[prop(into, optional)] class: String, children: Children) -> impl IntoView {
     view! { <div class=format!("musaic-dock-main {class}")>{children()}</div> }
 }
 
+/// An edge panel with a draggable handle. `size` holds its pixel extent along the
+/// layout axis and is updated as the handle is dragged, clamped between `min` and
+/// `max`; `side` picks the edge and drag direction. With `collapsible` set it
+/// shows a toggle in its header that drives the `collapsed` signal.
 #[component]
 pub fn DockPanel(
     #[prop(into, optional)] title: String,

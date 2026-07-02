@@ -1,5 +1,7 @@
 use leptos::prelude::*;
 
+/// Wraps `children` in a focusable span that reveals `text` in a bubble on
+/// hover or focus.
 #[component]
 pub fn Tooltip(#[prop(into)] text: String, children: Children) -> impl IntoView {
     view! {

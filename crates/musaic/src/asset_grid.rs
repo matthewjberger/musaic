@@ -1,14 +1,24 @@
+//! A searchable grid of thumbnail asset cards.
+
 use leptos::prelude::*;
 
+/// A card in an [`AssetGrid`], with a stable `id`, a `label`, a `thumbnail`
+/// image source, and an optional `subtitle`.
 #[derive(Clone)]
 pub struct AssetItem {
+    /// Stable identifier passed to the selection callback.
     pub id: String,
+    /// Primary caption, also matched against the search query.
     pub label: String,
+    /// Image source used for the card thumbnail.
     pub thumbnail: String,
+    /// Optional secondary caption shown beneath the label.
     pub subtitle: String,
 }
 
 impl AssetItem {
+    /// Builds an item from an `id`, `label`, and `thumbnail`, leaving the
+    /// subtitle empty.
     pub fn new(
         id: impl Into<String>,
         label: impl Into<String>,
@@ -22,12 +32,16 @@ impl AssetItem {
         }
     }
 
+    /// Sets the item's subtitle, returning the updated item.
     pub fn with_subtitle(mut self, subtitle: impl Into<String>) -> Self {
         self.subtitle = subtitle.into();
         self
     }
 }
 
+/// A grid of thumbnail cards built from `items`, invoking `on_select` with an
+/// item's id when its card is clicked. When `searchable` is set a filter box
+/// (labeled by `placeholder`) narrows cards by label.
 #[component]
 pub fn AssetGrid(
     #[prop(into)] items: Signal<Vec<AssetItem>>,

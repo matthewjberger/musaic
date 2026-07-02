@@ -1,3 +1,7 @@
+//! An ANSI/VT escape-sequence terminal emulator and its Leptos view: parses SGR
+//! colors, cursor movement, erasing, scroll regions, and the alternate screen
+//! into a cell grid rendered as styled spans.
+
 use leptos::html;
 use leptos::prelude::*;
 
@@ -36,6 +40,8 @@ enum Parse {
     Csi,
 }
 
+/// A fixed-size character cell grid with an embedded ANSI escape-sequence
+/// parser: feeding it bytes updates the cells, cursor, and graphic attributes.
 #[derive(Clone)]
 pub struct TerminalGrid {
     cols: usize,
@@ -275,6 +281,8 @@ impl TerminalGrid {
         }
     }
 
+    /// Parses `text` one character at a time, updating the grid, cursor, and
+    /// graphic state for the printable characters and escape sequences it holds.
     pub fn feed(&mut self, text: &str) {
         for glyph in text.chars() {
             match self.state {
@@ -331,21 +339,26 @@ impl TerminalGrid {
     }
 }
 
+/// A cheap, copyable handle to a reactive [`TerminalGrid`], shared between the
+/// code that drives output and the [`AnsiTerminal`] view.
 #[derive(Clone, Copy)]
 pub struct TerminalHandle {
     grid: RwSignal<TerminalGrid>,
 }
 
 impl TerminalHandle {
+    /// Feeds `text` into the underlying grid, reactively updating the view.
     pub fn feed(&self, text: &str) {
         self.grid.update(|grid| grid.feed(text));
     }
 
+    /// Replaces the grid with a fresh blank one of `cols` by `rows`.
     pub fn reset(&self, cols: usize, rows: usize) {
         self.grid.set(TerminalGrid::new(cols, rows));
     }
 }
 
+/// Creates a new `cols` by `rows` terminal grid and returns a handle to it.
 pub fn terminal_grid(cols: usize, rows: usize) -> TerminalHandle {
     TerminalHandle {
         grid: RwSignal::new(TerminalGrid::new(cols, rows)),
@@ -417,6 +430,9 @@ fn key_to_bytes(event: &web_sys::KeyboardEvent) -> Option<String> {
     }
 }
 
+/// Renders the grid behind `handle` as rows of style-merged spans; when a
+/// keyboard `on_key` callback is supplied, key presses are translated to their
+/// terminal byte sequences and forwarded to it.
 #[component]
 pub fn AnsiTerminal(
     handle: TerminalHandle,

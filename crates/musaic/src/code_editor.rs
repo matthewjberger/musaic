@@ -1,10 +1,17 @@
+//! Textarea-backed code editor with syntax overlay, gutter, find/replace, and a
+//! simple built-in tokenizer, plus a tabbed multi-document wrapper.
+
 use std::collections::HashSet;
 
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 
+/// A syntax highlighter: maps source text to a sequence of `(css-class, text)`
+/// runs that are rendered as styled spans behind the editor's textarea.
 pub type Highlighter = fn(&str) -> Vec<(&'static str, String)>;
 
+/// Tokenizes `source` into highlighted runs, classifying the given `keywords`
+/// and `commands` words while recognizing comments, strings, and numbers.
 pub fn highlight_code(
     source: &str,
     keywords: &[&'static str],
@@ -103,6 +110,10 @@ fn scan(
     runs
 }
 
+/// A single-buffer code editor: a transparent `textarea` over a highlighted
+/// `<pre>` overlay, with an optional line-number `gutter` (marking lines in
+/// `diagnostics` as errors), a fixed `height` or `fill` mode, and an optional
+/// Ctrl/Cmd+F `find` bar for find/replace over the `value` signal.
 #[component]
 pub fn CodeEditor(
     value: RwSignal<String>,
@@ -291,14 +302,20 @@ pub fn CodeEditor(
     }
 }
 
+/// One open document in a [`CodeTabs`] set: a stable `id`, a display `title`,
+/// and a reactive `value` buffer shared with the editor.
 #[derive(Clone)]
 pub struct CodeDocument {
+    /// Stable identifier used to select the active tab.
     pub id: String,
+    /// Label shown on the tab.
     pub title: String,
+    /// Reactive text buffer edited when this document is active.
     pub value: RwSignal<String>,
 }
 
 impl CodeDocument {
+    /// Builds a document from an `id`, `title`, and shared `value` buffer.
     pub fn new(id: impl Into<String>, title: impl Into<String>, value: RwSignal<String>) -> Self {
         Self {
             id: id.into(),
@@ -308,6 +325,10 @@ impl CodeDocument {
     }
 }
 
+/// A tabbed multi-document editor: renders a tab bar for `documents`, tracks
+/// the `active` document id, hosts a filling [`CodeEditor`] for the selection,
+/// and fires the optional `on_close` callback with a document id when its close
+/// button is clicked.
 #[component]
 pub fn CodeTabs(
     #[prop(into)] documents: Signal<Vec<CodeDocument>>,

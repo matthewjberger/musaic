@@ -1,12 +1,18 @@
+//! An editable, reorderable list component ([`OrderedList`]) and its [`ListItem`] entry.
+
 use leptos::prelude::*;
 
+/// An entry in an [`OrderedList`], identified by `id` with a display `label`.
 #[derive(Clone)]
 pub struct ListItem {
+    /// The stable identifier passed to the list's callbacks.
     pub id: String,
+    /// The text shown for this row.
     pub label: String,
 }
 
 impl ListItem {
+    /// Creates a [`ListItem`] from an id and its display label.
     pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self {
         Self {
             id: id.into(),
@@ -15,6 +21,10 @@ impl ListItem {
     }
 }
 
+/// A reorderable list of [`ListItem`]s, showing move-up, move-down, and remove actions
+/// only for the callbacks that are provided (up/down are disabled at the ends). Each
+/// callback receives the affected item's id, and `on_select` fires when a row's label is
+/// clicked. Renders an "Empty" placeholder when there are no items.
 #[component]
 pub fn OrderedList(
     #[prop(into)] items: Signal<Vec<ListItem>>,

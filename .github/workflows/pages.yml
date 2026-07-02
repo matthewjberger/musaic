@@ -47,6 +47,15 @@ jobs:
       - name: Build the gallery bundle
         run: trunk build --release --config examples/gallery/Trunk.toml --public-url /musaic/gallery/ --dist "$GITHUB_WORKSPACE/site/gallery"
 
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: "0.4.52"
+
+      # The guide book is served at /musaic/book/.
+      - name: Build the book
+        run: mdbook build docs/book --dest-dir "$GITHUB_WORKSPACE/site/book"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

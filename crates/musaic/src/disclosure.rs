@@ -1,5 +1,11 @@
+//! Collapsible content components: a standalone [`Disclosure`] and an [`Accordion`] whose
+//! items reveal one section at a time.
+
 use leptos::prelude::*;
 
+/// A collapsible section with a clickable `title` header that shows or hides its
+/// `children`. Open state is controlled by the optional `open` signal, otherwise it starts
+/// from `default_open`.
 #[component]
 pub fn Disclosure(
     #[prop(into)] title: String,
@@ -31,6 +37,8 @@ pub fn Disclosure(
 #[derive(Clone, Copy)]
 struct AccordionContext(RwSignal<Option<String>>);
 
+/// A container for [`AccordionItem`] children that keeps at most one item open at a time,
+/// optionally starting with the item whose id matches `default_open`.
 #[component]
 pub fn Accordion(
     #[prop(into, optional)] default_open: Option<String>,
@@ -41,6 +49,8 @@ pub fn Accordion(
     view! { <div class="musaic-accordion">{children()}</div> }
 }
 
+/// A single collapsible section within an [`Accordion`], identified by `id` and headed by
+/// `title`. Clicking its header opens it and closes any sibling that was open.
 #[component]
 pub fn AccordionItem(
     #[prop(into)] id: String,

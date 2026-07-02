@@ -1,15 +1,23 @@
+//! A tabbed dock whose tabs can be dragged between panes using the pointer-drag system.
+
 use leptos::prelude::*;
 
 use crate::pointer_drag::{DragPayload, DragSource, DropZone};
 
+/// A tab in a `TabDock`: a stable `id`, a display `title`, and the id of the
+/// `pane` it currently lives in.
 #[derive(Clone)]
 pub struct DockTab {
+    /// Stable identifier used for selection and drag payloads.
     pub id: String,
+    /// Text shown on the tab button.
     pub title: String,
+    /// Id of the pane the tab currently belongs to.
     pub pane: String,
 }
 
 impl DockTab {
+    /// Creates a tab with the given id, title, and owning pane.
     pub fn new(id: impl Into<String>, title: impl Into<String>, pane: impl Into<String>) -> Self {
         Self {
             id: id.into(),
@@ -19,6 +27,10 @@ impl DockTab {
     }
 }
 
+/// Renders one drop-zone pane per entry in `panes`, each showing its `tabs` as
+/// draggable buttons and the body of the `active` tab via the `render` closure.
+/// Dragging a tab onto another pane moves it there and activates it; empty panes
+/// show a drop hint.
 #[component]
 pub fn TabDock<F>(
     tabs: RwSignal<Vec<DockTab>>,

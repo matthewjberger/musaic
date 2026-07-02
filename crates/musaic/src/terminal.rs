@@ -1,13 +1,23 @@
+//! A simple scrollback terminal that renders tone-styled lines and emits
+//! submitted prompt input.
+
 use leptos::html;
 use leptos::prelude::*;
 
+/// Visual style applied to a terminal line.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum TerminalTone {
+    /// Default foreground text.
     Normal,
+    /// Muted/secondary text.
     Dim,
+    /// Success (typically green) text.
     Success,
+    /// Warning (typically amber) text.
     Warn,
+    /// Error (typically red) text.
     Error,
+    /// Echoed command input.
     Command,
 }
 
@@ -24,14 +34,20 @@ impl TerminalTone {
     }
 }
 
+/// One line of terminal scrollback: a stable `id` for keyed rendering, its
+/// `text`, and its display `tone`.
 #[derive(Clone)]
 pub struct TerminalLine {
+    /// Stable key used to diff the scrollback list.
     pub id: usize,
+    /// Line contents.
     pub text: String,
+    /// Visual style for the line.
     pub tone: TerminalTone,
 }
 
 impl TerminalLine {
+    /// Builds a line from an `id`, `text`, and `tone`.
     pub fn new(id: usize, text: impl Into<String>, tone: TerminalTone) -> Self {
         Self {
             id,
@@ -41,6 +57,9 @@ impl TerminalLine {
     }
 }
 
+/// A scrollback terminal that renders `lines` (auto-scrolling to the bottom as
+/// they change) with a `prompt` sigil (defaulting to `$`) and an input row that
+/// fires `on_input` with the trimmed draft when Enter is pressed.
 #[component]
 pub fn Terminal(
     #[prop(into)] lines: Signal<Vec<TerminalLine>>,

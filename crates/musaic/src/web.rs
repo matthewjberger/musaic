@@ -1,3 +1,6 @@
+//! Browser-platform helpers: text file download and pick, local-storage-backed
+//! persisted signals, and a reconnecting WebSocket handle.
+
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Duration;
@@ -12,6 +15,8 @@ fn local_storage() -> Option<web_sys::Storage> {
     web_sys::window().and_then(|window| window.local_storage().ok().flatten())
 }
 
+/// Trigger a browser download of `contents` as a plain-text file named
+/// `filename` using a temporary data-URL anchor.
 pub fn download_text(filename: &str, contents: &str) {
     let Some(document) = web_sys::window().and_then(|window| window.document()) else {
         return;
@@ -26,6 +31,8 @@ pub fn download_text(filename: &str, contents: &str) {
     }
 }
 
+/// Open the browser's file picker and read the chosen file as text, invoking
+/// `on_pick` with its contents.
 pub fn pick_file_text(on_pick: Callback<String>) {
     let Some(document) = web_sys::window().and_then(|window| window.document()) else {
         return;
@@ -64,6 +71,8 @@ pub fn pick_file_text(on_pick: Callback<String>) {
     input.click();
 }
 
+/// Create a signal seeded from JSON in local storage under `key` (or `default`
+/// when absent or invalid) that re-serializes back to storage on every change.
 pub fn use_persisted<T>(key: impl Into<String>, default: T) -> RwSignal<T>
 where
     T: Serialize + DeserializeOwned + Send + Sync + Clone + 'static,
@@ -82,6 +91,8 @@ where
     signal
 }
 
+/// A cheap, copyable handle to a reconnecting WebSocket created by
+/// [`use_reconnecting_socket`].
 #[derive(Clone, Copy)]
 pub struct SocketHandle {
     connected: RwSignal<bool>,
@@ -89,11 +100,13 @@ pub struct SocketHandle {
 }
 
 impl SocketHandle {
+    /// A reactive signal that is `true` while the socket is open.
     pub fn connected(&self) -> Signal<bool> {
         let connected = self.connected;
         Signal::derive(move || connected.get())
     }
 
+    /// Send a text frame if the socket is currently connected; otherwise a no-op.
     pub fn send(&self, text: &str) {
         self.socket.with_value(|socket| {
             if let Some(socket) = socket {
@@ -108,6 +121,9 @@ const RECONNECT_MS: u64 = 1000;
 type ConnectSlot = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
 type ClosureKeep = StoredValue<Vec<Box<dyn std::any::Any>>, LocalStorage>;
 
+/// Open a WebSocket to `url` that auto-reconnects after a short delay when
+/// closed, forwarding each received text message to `on_message`. The socket is
+/// closed and reconnection cancelled on cleanup.
 pub fn use_reconnecting_socket(
     url: impl Into<String>,
     on_message: Callback<String>,

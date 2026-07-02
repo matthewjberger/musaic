@@ -1,3 +1,5 @@
+//! The command palette component, driven by the [`CommandRegistry`](crate::command::CommandRegistry).
+
 use leptos::prelude::*;
 
 use crate::command::{Command, use_commands};
@@ -50,6 +52,11 @@ fn resolve_level(root: Vec<Command>, path: &[String]) -> Vec<Command> {
     current
 }
 
+/// Registry-driven command palette: fuzzy-ranked, shows recents when the query is empty, descends into submenus, and displays keybinding hints.
+///
+/// Toggle visibility through the `open` signal (typically bound to a shortcut).
+/// Arrow keys move the selection, Enter runs or opens the active command,
+/// Backspace pops a submenu level, and Escape closes.
 #[component]
 pub fn CommandPalette(open: RwSignal<bool>) -> impl IntoView {
     let registry = use_commands();

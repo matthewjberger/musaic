@@ -65,6 +65,18 @@ test:
 format:
     cargo fmt --all
 
+# Builds the guide book (mdbook) into docs/book/book
+book:
+    mdbook build docs/book
+
+# Serves the guide book with live reload
+book-serve:
+    mdbook serve docs/book --open
+
+# Opens the rendered rustdoc for the library (all features)
+doc:
+    cargo doc --manifest-path crates/musaic/Cargo.toml --features full --no-deps --open
+
 # Removes build artifacts (Windows)
 [windows]
 clean:

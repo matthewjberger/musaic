@@ -1,3 +1,6 @@
+//! A hierarchical tree view with keyboard navigation, inline rename, drag and
+//! drop reordering, and lazy branch expansion.
+
 use std::collections::HashSet;
 
 use leptos::html;
@@ -5,16 +8,25 @@ use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlElement, KeyboardEvent};
 
+/// A single node in a [`Tree`], carrying its stable `id`, display `label`, an
+/// optional `icon` glyph, a `lazy` flag for branches whose children load on
+/// expand, and its `children`.
 #[derive(Clone)]
 pub struct TreeItem {
+    /// Stable identifier used for selection, rename, move, and expand callbacks.
     pub id: String,
+    /// Text shown for the node.
     pub label: String,
+    /// Optional leading icon glyph.
     pub icon: Option<String>,
+    /// Whether this branch loads its children lazily on first expand.
     pub lazy: bool,
+    /// Child nodes nested beneath this one.
     pub children: Vec<TreeItem>,
 }
 
 impl TreeItem {
+    /// Builds a childless leaf node from an `id` and `label`.
     pub fn leaf(id: impl Into<String>, label: impl Into<String>) -> Self {
         Self {
             id: id.into(),
@@ -25,6 +37,7 @@ impl TreeItem {
         }
     }
 
+    /// Builds a branch node with the given `children`.
     pub fn branch(
         id: impl Into<String>,
         label: impl Into<String>,
@@ -39,11 +52,13 @@ impl TreeItem {
         }
     }
 
+    /// Sets the node's leading icon glyph, returning the updated node.
     pub fn with_icon(mut self, icon: impl Into<String>) -> Self {
         self.icon = Some(icon.into());
         self
     }
 
+    /// Marks the node as a lazily loaded branch, overriding its `id` and `label`.
     pub fn lazy(mut self, id: impl Into<String>, label: impl Into<String>) -> Self {
         self.id = id.into();
         self.label = label.into();
@@ -66,6 +81,11 @@ struct TreeApi {
     drop_target: RwSignal<Option<String>>,
 }
 
+/// A hierarchical tree view built from `items`, with arrow-key navigation,
+/// F2 inline rename, drag and drop moves, and single or multi selection. The
+/// optional `on_select`, `selected`, `selection`, `on_rename`, `on_move`, and
+/// `on_expand` props wire up interaction; `default_expanded` opens every branch
+/// initially.
 #[component]
 pub fn Tree(
     items: Vec<TreeItem>,

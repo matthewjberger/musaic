@@ -1,3 +1,6 @@
+//! Form field components: numeric, text, boolean, slider, color, select, chip,
+//! tag, and swatch inputs sharing the `musaic-field` styling conventions.
+
 use leptos::prelude::*;
 
 fn parse_number(chars: &[char], pos: &mut usize) -> Option<f64> {
@@ -79,6 +82,10 @@ fn eval_expr(input: &str) -> Option<f64> {
     }
 }
 
+/// A numeric field that evaluates arithmetic expressions, supports drag-to-scrub on its
+/// label, optional reset-to-default, clamping to `min`/`max`, integer rounding, and live
+/// validation. Emits `(value, committed)` through `on_change`, where `committed` marks
+/// the final value on blur, Enter, or scrub end.
 #[component]
 pub fn NumberField(
     #[prop(into)] label: String,
@@ -209,6 +216,9 @@ pub fn NumberField(
     }
 }
 
+/// Three numeric inputs labelled X, Y, and Z for editing a `[f64; 3]` vector. Each axis
+/// clamps to `min`/`max` and evaluates arithmetic expressions on commit. Emits the full
+/// updated array with a `committed` flag through `on_change`.
 #[component]
 pub fn Vec3Field(
     #[prop(into)] label: String,
@@ -267,6 +277,8 @@ pub fn Vec3Field(
     }
 }
 
+/// A labelled checkbox bound to a `bool` signal. Emits the new checked state through
+/// `on_change`.
 #[component]
 pub fn CheckField(
     #[prop(into)] label: String,
@@ -287,6 +299,8 @@ pub fn CheckField(
     }
 }
 
+/// A labelled toggle switch (an ARIA `switch` button) bound to a `bool` signal. Emits the
+/// toggled state through `on_change`.
 #[component]
 pub fn Switch(
     #[prop(into)] label: String,
@@ -312,6 +326,9 @@ pub fn Switch(
     }
 }
 
+/// A single-line text field with optional help and error notes. Commits on change, or
+/// debounces input by `debounce` milliseconds when set, emitting the text through
+/// `on_commit`.
 #[component]
 pub fn TextField(
     #[prop(into)] label: String,
@@ -363,6 +380,9 @@ pub fn TextField(
     }
 }
 
+/// A range slider bound to a `f64` signal with reactive `min`, `max`, and a fixed `step`,
+/// showing the current value. Emits `(value, committed)` through `on_change`, with
+/// `committed` false during drag and true on release.
 #[component]
 pub fn SliderField(
     #[prop(into)] label: String,
@@ -399,6 +419,9 @@ pub fn SliderField(
     }
 }
 
+/// A native color picker bound to an `[f32; 3]` RGB signal (components in `0.0..=1.0`).
+/// Emits `(rgb, committed)` through `on_change`, with `committed` false during input and
+/// true on change.
 #[component]
 pub fn ColorField(
     #[prop(into)] label: String,
@@ -428,6 +451,8 @@ pub fn ColorField(
     }
 }
 
+/// A labelled dropdown built from `(value, text)` option pairs, bound to a `String`
+/// signal. Emits the selected option value through `on_change`.
 #[component]
 pub fn Select(
     #[prop(into)] label: String,
@@ -454,11 +479,14 @@ pub fn Select(
     }
 }
 
+/// A flex container that lays out chip children, with an optional extra `class`.
 #[component]
 pub fn ChipGroup(#[prop(into, optional)] class: String, children: Children) -> impl IntoView {
     view! { <div class=format!("musaic-chip-group {class}")>{children()}</div> }
 }
 
+/// A pill-shaped toggle button reflecting an `active` signal via `aria-pressed`. Emits a
+/// unit event through `on_toggle` when clicked.
 #[component]
 pub fn ToggleChip(
     #[prop(into)] label: String,
@@ -480,6 +508,8 @@ pub fn ToggleChip(
     }
 }
 
+/// An editable list of tags with a text entry that adds a trimmed tag on Enter. Emits new
+/// tags through `on_add` and removed tags through `on_remove`.
 #[component]
 pub fn TagInput(
     #[prop(into)] tags: Signal<Vec<String>>,
@@ -536,6 +566,8 @@ pub fn TagInput(
     }
 }
 
+/// A single color swatch button showing `color` as its background, marked active via the
+/// `active` signal. Runs the optional `on_select` callback when clicked.
 #[component]
 pub fn Swatch(
     #[prop(into)] color: String,
@@ -558,6 +590,8 @@ pub fn Swatch(
     }
 }
 
+/// A row of [`Swatch`] buttons built from `colors`, highlighting the one matching the
+/// `selected` signal. Emits the chosen color string through `on_select`.
 #[component]
 pub fn SwatchPalette(
     colors: Vec<String>,

@@ -1,3 +1,6 @@
+//! Presentation helpers for a worker-backed rendering surface: script syntax
+//! highlighting and a card summarizing the selected entity.
+
 use crate::protocol::SelectedEntity;
 use leptos::prelude::*;
 
@@ -64,10 +67,14 @@ const COMMANDS: &[&str] = &[
     "log",
 ];
 
+/// Tokenizes Rhai `source` into class-name and text pairs for syntax highlighting,
+/// recognizing the language keywords and the scene scripting commands.
 pub fn highlight_rhai(source: &str) -> Vec<(&'static str, String)> {
     highlight_code(source, KEYWORDS, COMMANDS)
 }
 
+/// Renders a small card describing the `selected` entity's name and id, or a
+/// "None" placeholder when nothing is selected.
 #[component]
 pub fn SelectedCard(#[prop(into)] selected: Signal<Option<SelectedEntity>>) -> impl IntoView {
     view! {
