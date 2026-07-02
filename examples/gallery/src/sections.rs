@@ -6,16 +6,16 @@ use leptos_musaic::{
     Button, Card, Chat, ChatMessage, ChatRole, CheckField, ChipGroup, CodeDocument, CodeEditor,
     CodeSurface, CodeTabs, ColorField, ComboOption, Combobox, ContextMenu, Dialog, Diff,
     Disclosure, DockLayout, DockMain, DockPanel, DockSide, DockTab, DragPayload, DragSource,
-    DropZone, Dropdown, DynamicForm, FieldSchema, FormField, IconButton, Inspector, InspectorRow,
-    InspectorSection, JumpOverlay, JumpTarget, ListItem, LogEntry, LogKind, LogView, Markdown,
-    Menu, MenuBar, MenuBarMenu, MenuItem, MenuSeparator, Modal, MultiEditor, NavGizmo, NumberField,
-    OrderedList, Panel, Popover, Progress, ResizeAxis, ResizeHandle, SearchItem, SearchList,
-    Select, Side, SliderField, Spinner, SplitAxis, StatusBar, StatusItem, StatusSpacer, Submenu,
-    SwatchPalette, Switch, TabBar, TabDock, Table, TagInput, Terminal, TerminalLine, TerminalTone,
-    TextField, Theme, ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar, ToolbarGroup,
-    ToolbarSpacer, Tooltip, Tree, TreeItem, UndoHistory, UndoTree, Vec3Field, ViewportOverlay,
-    VirtualList, download_text, highlight_rhai, pick_file_text, pretty_binding, register_theme,
-    terminal_grid, use_commands, use_theme, use_toaster,
+    DropZone, Dropdown, DynamicForm, EditorShell, FieldSchema, FormField, IconButton, Inspector,
+    InspectorRow, InspectorSection, JumpOverlay, JumpTarget, ListItem, LogEntry, LogKind, LogView,
+    Markdown, Menu, MenuBar, MenuBarMenu, MenuItem, MenuSeparator, Modal, MultiEditor, NavGizmo,
+    NumberField, OrderedList, Panel, Popover, Progress, ResizeAxis, ResizeHandle, SearchItem,
+    SearchList, Select, Side, SliderField, Spinner, SplitAxis, StatusBar, StatusItem, StatusSpacer,
+    Submenu, SwatchPalette, Switch, TabBar, TabDock, Table, TagInput, Terminal, TerminalLine,
+    TerminalTone, TextField, Theme, ThemeMenu, ThemePicker, ToggleChip, ToolButton, Toolbar,
+    ToolbarGroup, ToolbarSpacer, Tooltip, Tree, TreeItem, UndoHistory, UndoTree, Vec3Field,
+    ViewportOverlay, VirtualList, download_text, highlight_rhai, pick_file_text, pretty_binding,
+    register_theme, terminal_grid, use_commands, use_theme, use_toaster,
 };
 use wasm_bindgen::JsCast;
 use web_sys::MouseEvent;
@@ -200,10 +200,16 @@ const CATEGORIES: &[Category] = &[
         id: "layout-sys",
         title: "Layout system",
         icon: "\u{1f5c3}",
-        pages: &[Page {
-            id: "dock",
-            title: "Dock",
-        }],
+        pages: &[
+            Page {
+                id: "dock",
+                title: "Dock",
+            },
+            Page {
+                id: "editor-shell",
+                title: "EditorShell",
+            },
+        ],
     },
     Category {
         id: "editor-kit",
@@ -381,6 +387,7 @@ pub fn render(id: &str) -> AnyView {
         "select" => view! { <SelectDemo /> }.into_any(),
         "vec3" => view! { <VecFieldDemo /> }.into_any(),
         "dock" => view! { <DockDemo /> }.into_any(),
+        "editor-shell" => view! { <EditorShellDemo /> }.into_any(),
         "menu" => view! { <MenuDemo /> }.into_any(),
         "context-menu" => view! { <ContextMenuDemo /> }.into_any(),
         "tabs" => view! { <TabsDemo /> }.into_any(),
@@ -1017,6 +1024,57 @@ fn DockDemo() -> impl IntoView {
                 </DockLayout>
             </div>
             <Snippet code="<DockLayout axis=SplitAxis::Row><DockPanel title=\"Hierarchy\" size=w collapsible=true>...</DockPanel><DockMain>...</DockMain></DockLayout>" />
+        </Demo>
+    }
+}
+
+#[component]
+fn EditorShellDemo() -> impl IntoView {
+    let left_open = RwSignal::new(true);
+    let right_open = RwSignal::new(true);
+    view! {
+        <Demo title="EditorShell" blurb="The canonical editor frame: named toolbar, left, center, right, and status slots laid out with a CSS grid, with collapsible side regions bound to signals. Toggle the sides with the buttons.">
+            <div class="gallery-row">
+                <Button on_click=Callback::new(move |_| left_open.update(|open| *open = !*open))>
+                    "Toggle left"
+                </Button>
+                <Button on_click=Callback::new(move |_| right_open.update(|open| *open = !*open))>
+                    "Toggle right"
+                </Button>
+            </div>
+            <div style="height:320px; border:1px solid var(--musaic-panel-border); border-radius:9px; overflow:hidden;">
+                <EditorShell
+                    left_open=left_open
+                    right_open=right_open
+                    toolbar=move || {
+                        view! {
+                            <div style="padding:8px 12px; border-bottom:1px solid var(--musaic-panel-border);">
+                                "Toolbar"
+                            </div>
+                        }
+                    }
+                    left=move || {
+                        view! { <div style="padding:10px;" class="gallery-readout">"Left panel"</div> }
+                    }
+                    right=move || {
+                        view! {
+                            <div style="padding:10px;" class="gallery-readout">"Right panel"</div>
+                        }
+                    }
+                    status=move || {
+                        view! {
+                            <div style="padding:4px 12px; border-top:1px solid var(--musaic-panel-border); font-size:11px;" class="gallery-readout">
+                                "Ready"
+                            </div>
+                        }
+                    }
+                >
+                    <div style="display:flex; align-items:center; justify-content:center; height:100%;" class="gallery-readout">
+                        "Center content"
+                    </div>
+                </EditorShell>
+            </div>
+            <Snippet code="<EditorShell left_open=l right_open=r toolbar=move || ... left=move || ... status=move || ...>{center}</EditorShell>" />
         </Demo>
     }
 }
